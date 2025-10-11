@@ -199,30 +199,10 @@ export default function App() {
                         bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_0%,var(--accent)_40%,transparent_70%)] opacity-25" />
       </div>
 
-      {/* FULL-HEIGHT SIDEBAR (desktop) */}
-      <aside
-        className="fixed inset-y-0 left-0 hidden w-[240px] border-r border-[color:var(--border)]
-                   bg-[var(--card)]/85 backdrop-blur md:block overflow-y-auto overflow-x-hidden z-30"
-      >
-        {/* updated brand: Circle icon + "Radial" link */}
-        <div className="px-4 py-4 sticky top-0 bg-[var(--card)]/90 backdrop-blur border-b border-[color:var(--border)]/50">
-          <div className="flex items-center gap-2 font-semibold">
-            <Circle className="size-4" />
-            <a
-              href="https://www.radialsolutions.com.au"
-              target="_blank"
-              rel="noreferrer"
-              className="underline-offset-2 hover:underline"
-            >
-              Radial
-            </a>
-          </div>
-        </div>
-        <Nav />
-      </aside>
+      {/* Sidebar removed */}
 
-      {/* HEADER (unchanged brand) */}
-      <header className="sticky top-0 z-40 border-b bg-[color:var(--card)]/80 border-[color:var(--border)] backdrop-blur supports-[backdrop-filter]:bg-[color:var(--card)]/60 md:ml-[240px]">
+      {/* HEADER */}
+      <header className="sticky top-0 z-40 border-b bg-[color:var(--card)]/80 border-[color:var(--border)] backdrop-blur supports-[backdrop-filter]:bg-[color:var(--card)]/60">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 md:px-6">
           <div className="flex min-w-0 items-center gap-2 font-semibold tracking-tight">
             <Rocket className="size-4 shrink-0" />
@@ -251,7 +231,7 @@ export default function App() {
       </header>
 
       {/* SUBHEADER */}
-      <section className="sticky top-[56px] z-30 border-b bg-[var(--card)]/80 border-[color:var(--border)] backdrop-blur md:ml-[240px]">
+      <section className="sticky top-[56px] z-30 border-b bg-[var(--card)]/80 border-[color:var(--border)] backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 py-2 md:px-6">
           <Tabs defaultValue="overview" className="w-full">
             <TabsList className="flex h-9 w-full items-center justify-start gap-1 bg-[var(--muted)] overflow-x-auto">
@@ -296,7 +276,7 @@ export default function App() {
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="relative mx-auto max-w-7xl p-4 md:ml-[240px] md:p-6 overflow-x-hidden">
+      <main className="relative mx-auto max-w-7xl p-4 md:p-6 overflow-x-hidden">
         <Tabs defaultValue="overview">
           <TabsContent value="overview" className="mt-0">
             <Card className="mb-6 bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]">

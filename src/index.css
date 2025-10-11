@@ -1,0 +1,542 @@
+
+
+@import "tailwindcss";
+/* ---break---
+*/
+@plugin "tailwindcss-animate";
+/* ---break---
+*/
+@custom-variant dark (&:is(.dark *));
+/* If you use shadcn/ui animations, enable the plugin below (and install it in step 5):
+@plugin "tailwindcss-animate";
+*/
+/* ---break---
+*/
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+/* ---break---
+*/
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+/* ---break---
+*/
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+/* ---break---
+*/
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* === floating blob animations === */
+@keyframes blob1 {
+  0%   { transform: translate(0, 0) scale(1) rotate(0deg); }
+  20%  { transform: translate(120px, -80px) scale(1.12) rotate(10deg); }
+  50%  { transform: translate(0, -140px) scale(0.95) rotate(0deg); }
+  80%  { transform: translate(-100px, 60px) scale(1.08) rotate(-8deg); }
+  100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+}
+
+@keyframes blob2 {
+  0%   { transform: translate(0, 0) scale(1) rotate(0deg); }
+  25%  { transform: translate(-110px, 70px) scale(1.1) rotate(-12deg); }
+  55%  { transform: translate(50px, 140px) scale(0.94) rotate(6deg); }
+  85%  { transform: translate(140px, -40px) scale(1.06) rotate(12deg); }
+  100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+}
+
+
+
+/* I've got these themes, which are in an old index.css file.  I would like to bring them into ours and provide a dropdown menu with them as theme options.
+*/
+html[data-theme="C64"] {
+  --bg: #6fc3df;
+  --text: #352879;
+  --card: #8fd8f6;
+  --input: #8fd8f6;
+  --muted: #b2e0f7;
+  --border: #352879;
+  --accent: #7841b0;
+  --accent-contrast: #e0e0ff;
+  --button: #6fc3df;
+}
+
+html[data-theme="Star Wars"] {
+  --bg: #181818;
+  --text: #ffe81f;
+  --card: #232323;
+  --input: #232323;
+  --muted: #353535;
+  --border: #ffe81f;
+  --accent: #00bfff;
+  --accent-contrast: #181818;
+  --button: #181818;
+}
+
+html[data-theme="Barbie"] {
+  --bg: #fff0fa;
+  --text: #e0218a;
+  --card: #fff7fb;
+  --input: #fff7fb;
+  --muted: #ffe0f0;
+  --border: #ffb6e6;
+  --accent: #ff69b4;
+  --accent-contrast: #fff0fa;
+  --button: #fff0fa;
+}
+
+html[data-theme="Matrix"] {
+  --bg: #101a12;
+  --text: #39ff14;
+  --card: #1a2b1a;
+  --input: #1a2b1a;
+  --muted: #223822;
+  --border: #39ff14;
+  --accent: #00ff99;
+  --accent-contrast: #101a12;
+  --button: #101a12;
+}
+
+html[data-theme="Dune"] {
+  --bg: #f4e7d3;
+  --text: #7c5c2a;
+  --card: #f9f3e7;
+  --input: #f9f3e7;
+  --muted: #e2c9a0;
+  --border: #c2a471;
+  --accent: #b88b4a;
+  --accent-contrast: #f4e7d3;
+  --button: #f4e7d3;
+}
+
+html[data-theme="Tron"] {
+  --bg: #0b0f1a;
+  --text: #00fff7;
+  --card: #1a2233;
+  --input: #1a2233;
+  --muted: #112233;
+  --border: #00fff7;
+  --accent: #00bfff;
+  --accent-contrast: #0b0f1a;
+  --button: #0b0f1a;
+}
+
+html[data-theme="Jurassic Park"] {
+  --bg: #232b1a;
+  --text: #e2c044;
+  --card: #2e3a1a;
+  --input: #2e3a1a;
+  --muted: #3a4a2a;
+  --border: #e94f37;
+  --accent: #e94f37;
+  --accent-contrast: #232b1a;
+  --button: #232b1a;
+}
+
+html[data-theme="Lord of the Rings"] {
+  --bg: #2d2a1f;
+  --text: #f6e7b4;
+  --card: #3a3627;
+  --input: #3a3627;
+  --muted: #4a4533;
+  --border: #bfa76f;
+  --accent: #bfa76f;
+  --accent-contrast: #2d2a1f;
+  --button: #2d2a1f;
+}
+
+html[data-theme="Wes Anderson"] {
+  --bg: #f7e9d2;
+  --text: #b36a5e;
+  --card: #f9f3e7;
+  --input: #f9f3e7;
+  --muted: #e2c9a0;
+  --border: #b7a98c;
+  --accent: #e07a5f;
+  --accent-contrast: #f7e9d2;
+  --button: #f7e9d2;
+}
+
+html[data-theme="Octonauts"] {
+  --bg: #0a2740;
+  --text: #ffe066;
+  --card: #17497a;
+  --input: #17497a;
+  --muted: #1b3a5b;
+  --border: #ff7f32;
+  --accent: #ff7f32;
+  --accent-contrast: #0a2740;
+  /* Extra Octonauts colors */
+  --octo-blue: #17497a;
+  --octo-dark: #0a2740;
+  --octo-yellow: #ffe066;
+  --octo-orange: #ff7f32;
+  --octo-red: #e94f37;
+  --octo-cyan: #1da9c4;
+  --octo-muted: #1b3a5b;
+  --button: #0a2740;
+}
+
+html[data-theme="Shaun Tan"] {
+  --bg: #f3ede3;
+  --text: #4e4637;
+  --card: #f7f4ea;
+  --input: #f7f4ea;
+  --muted: #e0d7c3;
+  --border: #b7a98c;
+  --accent: #a67c52;
+  --accent-contrast: #f3ede3;
+  --button: #f3ede3;
+}
+
+html[data-theme="Rainforest"] {
+  --bg: #1b2e1b;
+  --text: #e6f4e6;
+  --card: #284d28;
+  --input: #284d28;
+  --muted: #3a5c3a;
+  --border: #6b8f6b;
+  --accent: #a67c52;
+  --accent-contrast: #e6f4e6;
+  --button: #1b2e1b;
+}
+
+html[data-theme="Midnight"] {
+  --bg: #181c2f;
+  --text: #e0e7ef;
+  --card: #232849;
+  --input: #232849;
+  --muted: #232849;
+  --border: #2d325a;
+  --accent: #5b6ee1;
+  --accent-contrast: #e0e7ef;
+  --button: #181c2f;
+}
+
+html[data-theme="Citrus"] {
+  --bg: #fffbe6;
+  --text: #7a5c00;
+  --card: #fffde7;
+  --input: #fffde7;
+  --muted: #fff9c4;
+  --border: #ffe082;
+  --accent: #ffb300;
+  --accent-contrast: #7a5c00;
+  --button: #fffbe6;
+}
+
+html[data-theme="Lavender"] {
+  --bg: #f6f3ff;
+  --text: #4b3869;
+  --card: #f9f7fd;
+  --input: #f9f7fd;
+  --muted: #ede7f6;
+  --border: #d1c4e9;
+  --accent: #9575cd;
+  --accent-contrast: #f6f3ff;
+  --button: #f6f3ff;
+}
+
+html[data-theme="Sandstone"] {
+  --bg: #fdf6f0;
+  --text: #7c5a3a;
+  --card: #fffaf7;
+  --input: #fffaf7;
+  --muted: #f5e6d5;
+  --border: #e0c9b0;
+  --accent: #e0a96d;
+  --accent-contrast: #7c5a3a;
+  --button: #fdf6f0;
+}
+
+html[data-theme="Aurora"] {
+  --bg: #eafaf1;
+  --text: #1b3a2b;
+  --card: #f5fff9;
+  --input: #f5fff9;
+  --muted: #d0f5e8;
+  --border: #a7e9ce;
+  --accent: #34d399;
+  --accent-contrast: #1b3a2b;
+  --button: #eafaf1;
+}
+
+html[data-theme="Slate"] {
+  --bg: #f8fafc;
+  --text: #1e293b;
+  --card: #e2e8f0;
+  --input: #ffffff;
+  --muted: #f1f5f9;
+  --border: #cbd5e1;
+  --accent: #64748b;
+  --accent-contrast: #f8fafc;
+  --button: #f8fafc;
+}
+
+html[data-theme="Blade Runner"] {
+  --bg: #000000;
+  --text: #00BFFF;
+  --card: #0a1124;
+  --input: #0a1124;
+  --muted: #1a2238;
+  --border: #102040;
+  --accent: #00FFF7;
+  --accent-contrast: #181A1B;
+  /* Extra Blade Runner neon accents */
+  --highlight: #8A2BE2;
+  --secondary: #FFB300;
+  --primary: #00FFF7;
+  --pink: #FF2079;
+  --button: #000000;
+}
+
+html[data-theme="Light"] {
+  --bg: #f8fafc;
+  --text: #0f172a;
+  --card: #eef7ff;
+  --input: #ffffff;
+  --muted: #f1f5f9;
+  --border: #b3d2f9;
+  --accent: #2563eb;
+  --accent-contrast: #ffffff;
+  --button: #d8e9fb;
+}
+
+html[data-theme="Dark"] {
+  --bg: #0b1220;
+  --text: #e5e7eb;
+  --card: #0f172a;
+  --input: #0f172a;
+  --muted: #111827;
+  --border: #1f2937;
+  --accent: #60a5fa;
+  --accent-contrast: #0b1220;
+  --dead: #94a3b8;
+  --deadTint: #64748bE6;
+  --live: #93c5fd;
+  --liveTint: #60a5faD9;
+  --button: #0b1220;
+}
+
+html[data-theme="Emerald"] {
+  --bg: #f0fdf4;
+  --text: #064e3b;
+  --card: #ffffff;
+  --input: #ffffff;
+  --muted: #dcfce7;
+  --border: #bbf7d0;
+  --accent: #10b981;
+  --accent-contrast: #03221a;
+  --button: #f0fdf4;
+}
+
+html[data-theme="Purple Breeze"] {
+  --bg: #faf5ff;
+  --text: #312e81;
+  --card: #ffffff;
+  --input: #ffffff;
+  --muted: #f3e8ff;
+  --border: #e9d5ff;
+  --accent: #7c3aed;
+  --accent-contrast: #fdfcff;
+  --button: #faf5ff;
+}
+
+html[data-theme="Sunset"] {
+  --bg: #fff7ed;
+  --text: #7c2d12;
+  --card: #ffffff;
+  --input: #ffffff;
+  --muted: #ffedd5;
+  --border: #fed7aa;
+  --accent: #f97316;
+  --accent-contrast: #2c0f00;
+  --button: #fff7ed;
+}
+
+html[data-theme="Retro"] {
+  --bg: #ffffff;
+  --text: #2f2a1f;
+  --card: #f7f2e7;
+  --input: #fffaf0;
+  --muted: #efe6d5;
+  --border: #e0d8c9;
+  --accent: #00897b;
+  --accent-contrast: #fff8e7;
+  --button: #fffaf0;
+}
+
+html[data-theme="Ocean"] {
+  --bg: #ecfeff;
+  --text: #082f49;
+  --card: #ffffff;
+  --input: #ffffff;
+  --muted: #cffafe;
+  --border: #a5f3fc;
+  --accent: #06b6d4;
+  --accent-contrast: #05202e;
+  --button: #ecfeff;
+}
+
+html[data-theme="Rose"] {
+  --bg: #fff1f2;
+  --text: #4c0519;
+  --card: #ffffff;
+  --input: #ffffff;
+  --muted: #ffe4e6;
+  --border: #fecdd3;
+  --accent: #f43f5e;
+  --accent-contrast: #fff5f7;
+  --button: #fff1f2;
+}
+
+html[data-theme="Forest Night"] {
+  --bg: #0b1410;
+  --text: #d1fae5;
+  --card: #0e1a14;
+  --input: #0e1a14;
+  --muted: #0a120e;
+  --border: #123020;
+  --accent: #34d399;
+  --accent-contrast: #06120b;
+  --button: #0b1410;
+}
+
+html[data-theme="Slate Pro"] {
+  --bg: #f1f5f9;
+  --text: #0f172a;
+  --card: #f8fafc;
+  --input: #f8fafc;
+  --muted: #e2e8f0;
+  --border: #cbd5e1;
+  --accent: #334155;
+  --accent-contrast: #f8fafc;
+  --button: #f1f5f9;
+}
+
+html[data-theme="High Contrast"] {
+  --bg: #ffffff;
+  --text: #000000;
+  --card: #ffffff;
+  --input: #ffffff;
+  --muted: #efefef;
+  --border: #000000;
+  --accent: #000000;
+  --accent-contrast: #ffffff;
+  --button: #ffffff;
+}
+
+html[data-theme="Solar"] {
+  --bg: #fdf6e3;
+  --text: #073642;
+  --card: #fffdf5;
+  --input: #fffdf5;
+  --muted: #f5ecd1;
+  --border: #e6dcbf;
+  --accent: #b58900;
+  --accent-contrast: #072a35;
+  --button: #fdf6e3;
+}

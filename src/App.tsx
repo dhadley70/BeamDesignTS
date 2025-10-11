@@ -299,65 +299,65 @@ export default function App() {
       <main className="relative mx-auto max-w-7xl p-4 md:ml-[240px] md:p-6 overflow-x-hidden">
         <Tabs defaultValue="overview">
           <TabsContent value="overview" className="mt-0">
-            <Card className="mb-6 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
+            <Card className="mb-6 bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]">
               <CardHeader>
                 <CardTitle className="text-xl">Project Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-[0.2fr_0.6fr_0.2fr] gap-4">
-                  <Input 
-                    placeholder="Project Number" 
+                  <Input
+                    placeholder="Project Number"
                     value={projectInfo.projectNumber || ''}
                     onChange={(e) => setProjectInfo({ projectNumber: e.target.value })}
-                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]" 
+                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]"
                   />
-                  <Input 
-                    placeholder="Project Name" 
+                  <Input
+                    placeholder="Project Name"
                     value={projectInfo.projectName || ''}
                     onChange={(e) => setProjectInfo({ projectName: e.target.value })}
-                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]" 
+                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]"
                   />
-                  <Input 
-                    placeholder="Name" 
+                  <Input
+                    placeholder="Name"
                     value={projectInfo.name || ''}
                     onChange={(e) => setProjectInfo({ name: e.target.value })}
-                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]" 
+                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]"
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-[0.25fr_0.25fr_0.25fr_0.25fr] gap-4">
-                  <Input 
-                    placeholder="Engineer" 
+                  <Input
+                    placeholder="Engineer"
                     value={projectInfo.engineer || ''}
                     onChange={(e) => setProjectInfo({ engineer: e.target.value })}
-                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]" 
+                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]"
                   />
-                  <Input 
+                  <Input
                     type="date"
                     value={projectInfo.engineerDate || ''}
                     onChange={(e) => setProjectInfo({ engineerDate: e.target.value })}
-                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]" 
+                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]"
                   />
-                  <Input 
-                    placeholder="Verifier" 
+                  <Input
+                    placeholder="Verifier"
                     value={projectInfo.verifier || ''}
                     onChange={(e) => setProjectInfo({ verifier: e.target.value })}
-                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]" 
+                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]"
                   />
-                  <Input 
+                  <Input
                     type="date"
                     value={projectInfo.verifierDate || ''}
                     onChange={(e) => setProjectInfo({ verifierDate: e.target.value })}
-                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]" 
+                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]"
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-1 gap-4">
-                  <textarea 
-                    placeholder="Description" 
+                  <textarea
+                    placeholder="Description"
                     value={projectInfo.description || ''}
                     onChange={(e) => setProjectInfo({ description: e.target.value })}
-                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)] h-20 rounded-md p-2 resize-y" 
+                    className="w-full bg-[var(--input)] text-[var(--text)] border-2 border-[color:var(--border)] h-20 rounded-md p-2 resize-y"
                     rows={4}
                   />
                 </div>
@@ -486,7 +486,7 @@ export default function App() {
 
 function Nav() {
   const [openSection, setOpenSection] = useState<string | null>("Navigation")
-  
+
   const sections = [
     {
       title: "Navigation",
@@ -514,7 +514,7 @@ function Nav() {
     <nav className="p-3 space-y-2">
       {sections.map((section) => (
         <div key={section.title} className="border-b border-[color:var(--border)]/20 pb-2">
-          <button 
+          <button
             onClick={() => toggleSection(section.title)}
             className="flex w-full items-center justify-between px-3 py-2 text-left text-sm 
                        hover:bg-[var(--muted)]/40 rounded-lg transition-colors group"
@@ -523,17 +523,17 @@ function Nav() {
               {section.icon}
               <span>{section.title}</span>
             </div>
-            <ChevronDown 
+            <ChevronDown
               className={`size-4 transition-transform 
-                          ${openSection === section.title ? 'rotate-180' : ''}`} 
+                          ${openSection === section.title ? 'rotate-180' : ''}`}
             />
           </button>
-          
-          <div 
+
+          <div
             className={`overflow-hidden transition-all duration-300 ease-in-out 
-                        ${openSection === section.title 
-                          ? 'max-h-96 opacity-100' 
-                          : 'max-h-0 opacity-0'}`}
+                        ${openSection === section.title
+                ? 'max-h-96 opacity-100'
+                : 'max-h-0 opacity-0'}`}
           >
             <div className="space-y-1 pt-2 pl-6">
               {section.items.map((x) => (

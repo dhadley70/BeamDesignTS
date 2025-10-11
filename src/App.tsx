@@ -1,4 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+
+interface ProjectInfoState {
+  projectNumber?: string
+  projectName?: string
+  name?: string
+  engineer?: string
+  engineerDate?: string
+  verifier?: string
+  verifierDate?: string
+  description?: string
+}
+
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -136,10 +148,44 @@ function ThemeDropdown({
   )
 }
 
+/* ---------------- Project Info Hook ---------------- */
+function useProjectInfo() {
+  const [projectInfo, setProjectInfoState] = useState({
+    projectNumber: '',
+    projectName: '',
+    name: '',
+    engineer: '',
+    engineerDate: '',
+    verifier: '',
+    verifierDate: '',
+    description: ''
+  })
+
+  // Load from local storage on initial render
+  useEffect(() => {
+    const savedProjectInfo = localStorage.getItem('projectInfo')
+    if (savedProjectInfo) {
+      setProjectInfoState(JSON.parse(savedProjectInfo))
+    }
+  }, [])
+
+  // Save to local storage whenever projectInfo changes
+  const setProjectInfo = (updates: Partial<typeof projectInfo>) => {
+    const newProjectInfo = { ...projectInfo, ...updates }
+    setProjectInfoState(newProjectInfo)
+    localStorage.setItem('projectInfo', JSON.stringify(newProjectInfo))
+  }
+
+  // Optional: No alias function needed
+
+  return [projectInfo, setProjectInfo] as const
+}
+
 /* ---------------- App ---------------- */
 export default function App() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [theme, setTheme] = useTheme()
+  const [projectInfo, setProjectInfo] = useProjectInfo()
 
   return (
     <div className="relative min-h-screen overflow-x-hidden text-[var(--text)] bg-[var(--bg)]">
@@ -253,6 +299,71 @@ export default function App() {
       <main className="relative mx-auto max-w-7xl p-4 md:ml-[240px] md:p-6 overflow-x-hidden">
         <Tabs defaultValue="overview">
           <TabsContent value="overview" className="mt-0">
+            <Card className="mb-6 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
+              <CardHeader>
+                <CardTitle className="text-xl">Project Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-[0.2fr_0.6fr_0.2fr] gap-4">
+                  <Input 
+                    placeholder="Project Number" 
+                    value={projectInfo.projectNumber || ''}
+                    onChange={(e) => setProjectInfo({ projectNumber: e.target.value })}
+                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]" 
+                  />
+                  <Input 
+                    placeholder="Project Name" 
+                    value={projectInfo.projectName || ''}
+                    onChange={(e) => setProjectInfo({ projectName: e.target.value })}
+                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]" 
+                  />
+                  <Input 
+                    placeholder="Name" 
+                    value={projectInfo.name || ''}
+                    onChange={(e) => setProjectInfo({ name: e.target.value })}
+                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]" 
+                  />
+                </div>
+                
+                <div className="grid grid-cols-[0.25fr_0.25fr_0.25fr_0.25fr] gap-4">
+                  <Input 
+                    placeholder="Engineer" 
+                    value={projectInfo.engineer || ''}
+                    onChange={(e) => setProjectInfo({ engineer: e.target.value })}
+                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]" 
+                  />
+                  <Input 
+                    type="date"
+                    value={projectInfo.engineerDate || ''}
+                    onChange={(e) => setProjectInfo({ engineerDate: e.target.value })}
+                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]" 
+                  />
+                  <Input 
+                    placeholder="Verifier" 
+                    value={projectInfo.verifier || ''}
+                    onChange={(e) => setProjectInfo({ verifier: e.target.value })}
+                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]" 
+                  />
+                  <Input 
+                    type="date"
+                    value={projectInfo.verifierDate || ''}
+                    onChange={(e) => setProjectInfo({ verifierDate: e.target.value })}
+                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]" 
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 gap-4">
+                  <textarea 
+                    placeholder="Description" 
+                    value={projectInfo.description || ''}
+                    onChange={(e) => setProjectInfo({ description: e.target.value })}
+                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)] h-20 rounded-md p-2 resize-y" 
+                    rows={4}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
             <div className="grid gap-4 md:grid-cols-3">
               <StatCard
                 title="Overview"
@@ -284,13 +395,18 @@ export default function App() {
                   <CardTitle className="text-xl">Recent activity</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {Array.from({ length: 5 }).map((_, i) => (
+                  {[
+                    "Beam Design Phase 1 Initiated",
+                    "Structural Analysis Complete",
+                    "Material Procurement Update",
+                    "Environmental Impact Assessment",
+                    "Client Consultation Scheduled"
+                  ].map((projectInfo, i) => (
                     <div
                       key={i}
                       className="flex items-center justify-between rounded-xl border border-[color:var(--border)] bg-[var(--muted)]/40 p-4"
                     >
-                      <div className="text-sm opacity-80">Task #{i + 1} reviewed</div>
-                      <Badge variant="secondary" className="bg-[var(--muted)] text-[var(--text)] border-[color:var(--border)]">ok</Badge>
+                      <div className="text-sm opacity-80">{projectInfo}</div>
                     </div>
                   ))}
                 </CardContent>

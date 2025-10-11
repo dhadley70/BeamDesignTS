@@ -16,6 +16,7 @@ import {
   Paintbrush,
   Check,
   ChevronDown,
+  Circle,
 } from "lucide-react"
 
 /* ---------------- Theming ---------------- */
@@ -78,7 +79,7 @@ function useClickOutside<T extends HTMLElement>(onOutside: () => void) {
     document.addEventListener("mousedown", handler)
     return () => document.removeEventListener("mousedown", handler)
   }, [onOutside])
-  return ref
+  return ref as React.RefObject<T>
 }
 
 function ThemeDropdown({
@@ -141,33 +142,47 @@ export default function App() {
   const [theme, setTheme] = useTheme()
 
   return (
-    <div className="relative min-h-screen text-[var(--text)] bg-[var(--bg)]">
-      {/* Accent blobs */}
-      <div className="pointer-events-none absolute -top-24 -left-24 size-[26rem] rounded-full
-                      blur-2xl [will-change:transform] motion-safe:animate-[blob1_12s_ease-in-out_infinite_alternate]
-                      bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_0%,var(--accent)_40%,transparent_70%)] opacity-30" />
-      <div className="pointer-events-none absolute -bottom-32 -right-16 size-[28rem] rounded-full
-                      blur-2xl [will-change:transform] motion-safe:animate-[blob2_16s_ease-in-out_infinite_alternate]
-                      bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_0%,var(--accent)_40%,transparent_70%)] opacity-25" />
+    <div className="relative min-h-screen overflow-x-hidden text-[var(--text)] bg-[var(--bg)]">
+      {/* BG accents */}
+      <div className="absolute inset-0 -z-10 overflow-x-hidden">
+        <div className="pointer-events-none absolute -top-24 -left-24 size-[26rem] rounded-full
+                        blur-2xl [will-change:transform] motion-safe:animate-[blob1_12s_ease-in-out_infinite_alternate]
+                        bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_0%,var(--accent)_40%,transparent_70%)] opacity-30" />
+        <div className="pointer-events-none absolute -bottom-32 -right-16 size-[28rem] rounded-full
+                        blur-2xl [will-change:transform] motion-safe:animate-[blob2_16s_ease-in-out_infinite_alternate]
+                        bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_0%,var(--accent)_40%,transparent_70%)] opacity-25" />
+      </div>
 
-      {/* Topbar */}
-      <header className="sticky top-0 z-40 border-b bg-[color:var(--card)]/80 border-[color:var(--border)] backdrop-blur supports-[backdrop-filter]:bg-[color:var(--card)]/60">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 md:px-6">
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-[color:var(--border)] text-[color:var(--text)] hover:bg-[var(--muted)] md:hidden"
-            onClick={() => setMobileOpen((v) => !v)}
-          >
-            <AlignLeft className="size-4" />
-          </Button>
-
-          <div className="hidden md:flex items-center gap-2 font-semibold tracking-tight">
-            <Rocket className="size-4" />
-            <span>Beam Design</span>
-            <Badge className="bg-[var(--accent)] text-[var(--accent-contrast)]">demo</Badge>
+      {/* FULL-HEIGHT SIDEBAR (desktop) */}
+      <aside
+        className="fixed inset-y-0 left-0 hidden w-[240px] border-r border-[color:var(--border)]
+                   bg-[var(--card)]/85 backdrop-blur md:block overflow-y-auto overflow-x-hidden z-30"
+      >
+        {/* updated brand: Circle icon + "Radial" link */}
+        <div className="px-4 py-4 sticky top-0 bg-[var(--card)]/90 backdrop-blur border-b border-[color:var(--border)]/50">
+          <div className="flex items-center gap-2 font-semibold">
+            <Circle className="size-4" />
+            <a
+              href="https://www.radialsolutions.com.au"
+              target="_blank"
+              rel="noreferrer"
+              className="underline-offset-2 hover:underline"
+            >
+              Radial
+            </a>
           </div>
+        </div>
+        <Nav />
+      </aside>
 
+      {/* HEADER (unchanged brand) */}
+      <header className="sticky top-0 z-40 border-b bg-[color:var(--card)]/80 border-[color:var(--border)] backdrop-blur supports-[backdrop-filter]:bg-[color:var(--card)]/60 md:ml-[240px]">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 md:px-6">
+          <div className="flex min-w-0 items-center gap-2 font-semibold tracking-tight">
+            <Rocket className="size-4 shrink-0" />
+            <span className="truncate">Beam Design</span>
+            <Badge className="shrink-0 bg-[var(--accent)] text-[var(--accent-contrast)]">demo</Badge>
+          </div>
           <div className="ml-auto flex items-center gap-2">
             <div className="relative hidden sm:block">
               <Search className="pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 opacity-60" />
@@ -176,52 +191,49 @@ export default function App() {
                 className="pl-8 w-56 sm:w-72 bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]"
               />
             </div>
-
-            {/* Visible on all sizes */}
             <ThemeDropdown theme={theme} onChange={setTheme} />
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-[color:var(--border)] text-[color:var(--text)] hover:bg-[var(--muted)] md:hidden"
+              onClick={() => setMobileOpen((v) => !v)}
+            >
+              <AlignLeft className="size-4" />
+            </Button>
           </div>
         </div>
       </header>
 
-      {/* Subheader tabs */}
-      <section className="sticky top-[56px] z-30 border-b bg-[var(--card)]/80 border-[color:var(--border)] backdrop-blur">
+      {/* SUBHEADER */}
+      <section className="sticky top-[56px] z-30 border-b bg-[var(--card)]/80 border-[color:var(--border)] backdrop-blur md:ml-[240px]">
         <div className="mx-auto max-w-7xl px-4 py-2 md:px-6">
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="h-9 bg-[var(--muted)]">
-              <TabsTrigger value="overview" className="data-[state=active]:bg-[var(--accent)] data-[state=active]:text-[var(--accent-contrast)]">Overview</TabsTrigger>
-              <TabsTrigger value="activity" className="data-[state=active]:bg-[var(--accent)] data-[state=active]:text-[var(--accent-contrast)]">Activity</TabsTrigger>
-              <TabsTrigger value="team" className="data-[state=active]:bg-[var(--accent)] data-[state=active]:text-[var(--accent-contrast)]">Team</TabsTrigger>
+            <TabsList className="flex h-9 w-full items-center justify-start gap-1 bg-[var(--muted)] overflow-x-auto">
+              <TabsTrigger value="overview" className="data-[state=active]:bg-[var(--accent)] data-[state=active]:text-[var(--accent-contrast)] whitespace-nowrap">Overview</TabsTrigger>
+              <TabsTrigger value="activity" className="data-[state=active]:bg-[var(--accent)] data-[state=active]:text-[var(--accent-contrast)] whitespace-nowrap">Activity</TabsTrigger>
+              <TabsTrigger value="team" className="data-[state=active]:bg-[var(--accent)] data-[state=active]:text-[var(--accent-contrast)] whitespace-nowrap">Team</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
       </section>
 
-      {/* Fixed sidebar (desktop) */}
-      <aside
-        className="fixed left-0 top-[96px] hidden h-[calc(100dvh-96px)] w-[240px] border-r border-[color:var(--border)]
-                   bg-[var(--card)]/85 backdrop-blur md:block"
-      >
-        <div className="h-full overflow-auto">
-          <div className="px-4 py-3">
-            <div className="flex items-center gap-2 font-semibold">
-              <Rocket className="size-4" />
-              <span>Beam Design</span>
-            </div>
-          </div>
-          <Nav />
-        </div>
-      </aside>
-
-      {/* Mobile overlay sidebar */}
+      {/* MOBILE OVERLAY SIDEBAR (updated brand as well) */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-[240px] border-r border-[color:var(--border)] bg-[var(--card)]/95 backdrop-blur
-                    transition-transform duration-300 md:hidden
+                    transition-transform duration-300 md:hidden overflow-x-hidden
                     ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="flex h-14 items-center justify-between px-4">
           <div className="flex items-center gap-2 font-semibold">
-            <Rocket className="size-4" />
-            <span>Beam Design</span>
+            <Circle className="size-4" />
+            <a
+              href="https://www.radialsolutions.com.au"
+              target="_blank"
+              rel="noreferrer"
+              className="underline-offset-2 hover:underline"
+            >
+              Radial
+            </a>
           </div>
           <Button
             variant="outline"
@@ -232,13 +244,13 @@ export default function App() {
             <ChevronRight className="size-4" />
           </Button>
         </div>
-        <div className="h-[calc(100dvh-56px)] overflow-auto">
+        <div className="h-[calc(100dvh-56px)] overflow-y-auto">
           <Nav />
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="relative mx-auto max-w-7xl p-4 md:ml-[240px] md:p-6">
+      {/* MAIN CONTENT */}
+      <main className="relative mx-auto max-w-7xl p-4 md:ml-[240px] md:p-6 overflow-x-hidden">
         <Tabs defaultValue="overview">
           <TabsContent value="overview" className="mt-0">
             <div className="grid gap-4 md:grid-cols-3">
@@ -341,6 +353,15 @@ export default function App() {
           © {new Date().getFullYear()} Cantilever · Vite · Tailwind v4 · shadcn/ui
         </div>
       </main>
+
+      {/* MOBILE SCRIM */}
+      {mobileOpen && (
+        <button
+          aria-label="Close sidebar scrim"
+          className="fixed inset-0 z-40 bg-black/30 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
     </div>
   )
 }
@@ -354,26 +375,18 @@ function Nav() {
     { label: "Settings", icon: <Settings className="size-4" /> },
   ]
   return (
-    <nav className="p-3">
-      <div className="mb-3 rounded-xl border border-[color:var(--border)]">
-        <div className="rounded-xl bg-[var(--card)] p-3">
-          <div className="text-sm opacity-80">Navigation</div>
-        </div>
-      </div>
-      <ul className="space-y-1">
-        {items.map((x) => (
-          <li key={x.label}>
-            <button
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm
-                         hover:bg-[var(--muted)]/40 data-[active=true]:bg-[var(--muted)]/60 transition-colors"
-              data-active={x.label === "Home"}
-            >
-              {x.icon}
-              <span>{x.label}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
+    <nav className="p-3 space-y-1">
+      {items.map((x) => (
+        <button
+          key={x.label}
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm
+                     hover:bg-[var(--muted)]/40 data-[active=true]:bg-[var(--muted)]/60 transition-colors"
+          data-active={x.label === "Home"}
+        >
+          {x.icon}
+          <span>{x.label}</span>
+        </button>
+      ))}
     </nav>
   )
 }

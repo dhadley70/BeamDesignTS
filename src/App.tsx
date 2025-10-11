@@ -279,7 +279,7 @@ export default function App() {
       <main className="relative mx-auto max-w-7xl p-4 md:p-6 overflow-x-hidden">
         <Tabs defaultValue="overview">
           <TabsContent value="overview" className="mt-0">
-            <Card className="mb-6 bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]">
+            <Card className="mb-6 ">
               <CardHeader>
                 <CardTitle className="text-xl">Project Information</CardTitle>
               </CardHeader>

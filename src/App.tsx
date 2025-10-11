@@ -485,23 +485,71 @@ export default function App() {
 /* ---------------- helpers ---------------- */
 
 function Nav() {
-  const items = [
-    { label: "Home", icon: <Home className="size-4" /> },
-    { label: "Analytics", icon: <BarChart3 className="size-4" /> },
-    { label: "Settings", icon: <Settings className="size-4" /> },
+  const [openSection, setOpenSection] = useState<string | null>("Navigation")
+  
+  const sections = [
+    {
+      title: "Navigation",
+      icon: <Home className="size-4" />,
+      items: [
+        { label: "Home", icon: <Home className="size-4" /> },
+        { label: "Analytics", icon: <BarChart3 className="size-4" /> },
+      ]
+    },
+    {
+      title: "Settings",
+      icon: <Settings className="size-4" />,
+      items: [
+        { label: "Preferences", icon: <Settings className="size-4" /> },
+        { label: "Account", icon: <Circle className="size-4" /> },
+      ]
+    }
   ]
+
+  const toggleSection = (sectionTitle: string) => {
+    setOpenSection(prev => prev === sectionTitle ? null : sectionTitle)
+  }
+
   return (
-    <nav className="p-3 space-y-1">
-      {items.map((x) => (
-        <button
-          key={x.label}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm
-                     hover:bg-[var(--muted)]/40 data-[active=true]:bg-[var(--muted)]/60 transition-colors"
-          data-active={x.label === "Home"}
-        >
-          {x.icon}
-          <span>{x.label}</span>
-        </button>
+    <nav className="p-3 space-y-2">
+      {sections.map((section) => (
+        <div key={section.title} className="border-b border-[color:var(--border)]/20 pb-2">
+          <button 
+            onClick={() => toggleSection(section.title)}
+            className="flex w-full items-center justify-between px-3 py-2 text-left text-sm 
+                       hover:bg-[var(--muted)]/40 rounded-lg transition-colors group"
+          >
+            <div className="flex items-center gap-2">
+              {section.icon}
+              <span>{section.title}</span>
+            </div>
+            <ChevronDown 
+              className={`size-4 transition-transform 
+                          ${openSection === section.title ? 'rotate-180' : ''}`} 
+            />
+          </button>
+          
+          <div 
+            className={`overflow-hidden transition-all duration-300 ease-in-out 
+                        ${openSection === section.title 
+                          ? 'max-h-96 opacity-100' 
+                          : 'max-h-0 opacity-0'}`}
+          >
+            <div className="space-y-1 pt-2 pl-6">
+              {section.items.map((x) => (
+                <button
+                  key={x.label}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm
+                             hover:bg-[var(--muted)]/40 data-[active=true]:bg-[var(--muted)]/60 transition-colors"
+                  data-active={x.label === "Home"}
+                >
+                  {x.icon}
+                  <span>{x.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       ))}
     </nav>
   )

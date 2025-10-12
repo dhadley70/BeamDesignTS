@@ -70,7 +70,6 @@ const THEMES = [
 ] as const
 type ThemeName = typeof THEMES[number]
 
-
 function useTheme(): [ThemeName, (t: ThemeName) => void] {
   const [theme, setTheme] = useState<ThemeName>(() => {
     const saved = (localStorage.getItem(THEME_KEY) as ThemeName) || "Light"
@@ -87,6 +86,15 @@ const memberOptions = [1, 2, 3, 4] as const; // Added missing memberOptions
 const clampSpan = (v: unknown) => {
   const n = typeof v === "number" ? v : Number(v)
   return Number.isFinite(n) ? Math.max(0.1, n) : 0.1
+}
+
+type UsageOption = "Normal" | "No Traffic" | "Storage"
+
+type GeneralInputs = {
+  members: number | undefined
+  span?: number
+  usage?: UsageOption
+  // ...
 }
 
 
@@ -385,7 +393,7 @@ export default function App() {
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-[var(--text)]">Number of members</label>
                 <Select
-                  // Select expects a string value
+                  // SelectComponent expects a string value
                   value={generalInputs.members !== undefined ? String(generalInputs.members) : ""}
                   onValueChange={handleMembersChange}
                 >
@@ -402,20 +410,41 @@ export default function App() {
                   </SelectContent>
                 </Select>
               </div>
+
+
+              {/* * *--------------- USAGE ----------------------- */}
+
               <div className="space-y-1.5">
-                <label htmlFor="usage" className="block text-sm font-medium text-[var(--text)]">
-                  Usage
-                </label>
-                <Input
-                  id="usage"
-                  placeholder="Usage"
-                  value={generalInputs.usage ?? ""}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setGeneralInputs(p => ({ ...p, usage: e.target.value }))
-                  }
-                  className="w-full bg-[var(--input)] border-[color:var(--border)]"
-                />
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-[var(--text)]">
+                    Usage
+                  </label>
+
+                  <Select
+                    // Select expects a string; show placeholder if undefined
+                    value={generalInputs.usage ?? ""}
+                    onValueChange={(val: UsageOption) =>
+                      setGeneralInputs(p => ({ ...p, usage: val }))
+                    }
+                  >
+                    <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
+                      <SelectValue placeholder="Select usage" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      <SelectItem value="Normal">Normal</SelectItem>
+                      <SelectItem value="No Traffic">No Traffic</SelectItem>
+                      <SelectItem value="Storage">Storage</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+
+
+              {/* * *--------------- LATERAL STABILITY ----------------------- */}
+
+
+
               <div className="space-y-1.5">
                 <label htmlFor="lateralRestraint" className="block text-sm font-medium text-[var(--text)]">
                   Lateral Restraint

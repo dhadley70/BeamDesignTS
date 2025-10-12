@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
 import {
   AlignLeft,
   Home,
@@ -230,19 +230,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* SUBHEADER */}
-      <section className="sticky top-[56px] z-30 border-b bg-[var(--card)]/80 border-[color:var(--border)] backdrop-blur">
-        <div className="mx-auto max-w-7xl px-4 py-2 md:px-6">
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="flex h-9 w-full items-center justify-start gap-1 bg-[var(--muted)] overflow-x-auto">
-              <TabsTrigger value="overview" className="data-[state=active]:bg-[var(--accent)] data-[state=active]:text-[var(--accent-contrast)] whitespace-nowrap">Overview</TabsTrigger>
-              <TabsTrigger value="activity" className="data-[state=active]:bg-[var(--accent)] data-[state=active]:text-[var(--accent-contrast)] whitespace-nowrap">Activity</TabsTrigger>
-              <TabsTrigger value="team" className="data-[state=active]:bg-[var(--accent)] data-[state=active]:text-[var(--accent-contrast)] whitespace-nowrap">Team</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-      </section>
-
       {/* MOBILE OVERLAY SIDEBAR (updated brand as well) */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-[240px] border-r border-[color:var(--border)] bg-[var(--card)]/95 backdrop-blur
@@ -277,127 +264,125 @@ export default function App() {
 
       {/* MAIN CONTENT */}
       <main className="relative mx-auto max-w-7xl p-4 md:p-6 overflow-x-hidden">
-        <Tabs defaultValue="overview">
-          <TabsContent value="overview" className="mt-0">
-            <Card className="mb-6 ">
-              <CardHeader>
-                <CardTitle className="text-xl">Project Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-[0.15fr_0.65fr_0.2fr] gap-4">
-                  <Input
-                    placeholder="Project Number"
-                    value={projectInfo.projectNumber || ''}
-                    onChange={(e) => setProjectInfo({ projectNumber: e.target.value })}
-                    className="w-full bg-[var(--input)] border-[color:var(--border)]"
-                  />
-                  <Input
-                    placeholder="Project Name"
-                    value={projectInfo.projectName || ''}
-                    onChange={(e) => setProjectInfo({ projectName: e.target.value })}
-                    className="w-full bg-[var(--input)] border-[color:var(--border)]"
-                  />
-                  <Input
-                    placeholder="Item Name"
-                    value={projectInfo.name || ''}
-                    onChange={(e) => setProjectInfo({ name: e.target.value })}
-                    className="w-full bg-[var(--input)] border-[color:var(--border)]"
-                  />
-                </div>
-
-                <div className="grid grid-cols-[0.25fr_0.25fr_0.25fr_0.25fr] gap-4">
-                  <Input
-                    placeholder="Engineer"
-                    value={projectInfo.engineer || ''}
-                    onChange={(e) => setProjectInfo({ engineer: e.target.value })}
-                    className="w-full bg-[var(--input)] border-[color:var(--border)]"
-                  />
-                  <Input
-                    type="date"
-                    value={projectInfo.engineerDate || ''}
-                    onChange={(e) => setProjectInfo({ engineerDate: e.target.value })}
-                    className="w-full bg-[var(--input)] border-[color:var(--border)]"
-                  />
-                  <Input
-                    placeholder="Verifier"
-                    value={projectInfo.verifier || ''}
-                    onChange={(e) => setProjectInfo({ verifier: e.target.value })}
-                    className="w-full bg-[var(--input)] border-[color:var(--border)]"
-                  />
-                  <Input
-                    type="date"
-                    value={projectInfo.verifierDate || ''}
-                    onChange={(e) => setProjectInfo({ verifierDate: e.target.value })}
-                    className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 gap-4">
-                  <textarea
-                    placeholder="Description"
-                    value={projectInfo.description || ''}
-                    onChange={(e) => setProjectInfo({ description: e.target.value })}
-                    className="w-full bg-[var(--input)] border-1 border-[color:var(--border)] rounded-md p-2 resize-y"
-                    rows={4}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="grid gap-4 md:grid-cols-3">
-              <StatCard
-                title="Overview"
-                kpi="Active jobs"
-                value="12"
-                icon={<Home className="size-4" />}
+        <Card className="mb-6 ">
+          <CardHeader>
+            <CardTitle className="text-xl">Project Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-[0.15fr_0.65fr_0.2fr] gap-4">
+              <Input
+                placeholder="Project Number"
+                value={projectInfo.projectNumber || ''}
+                onChange={(e) => setProjectInfo({ projectNumber: e.target.value })}
+                className="w-full bg-[var(--input)] border-[color:var(--border)]"
               />
-              <StatCard
-                title="Performance"
-                kpi="Efficiency"
-                value="92%"
-                icon={<BarChart3 className="size-4" />}
+              <Input
+                placeholder="Project Name"
+                value={projectInfo.projectName || ''}
+                onChange={(e) => setProjectInfo({ projectName: e.target.value })}
+                className="w-full bg-[var(--input)] border-[color:var(--border)]"
               />
-              <StatCard
-                title="Reputation"
-                kpi="Rating"
-                value={
-                  <span className="inline-flex items-center gap-1">
-                    4.8 <Star className="size-4" />
-                  </span>
-                }
-                icon={<Star className="size-4" />}
+              <Input
+                placeholder="Item Name"
+                value={projectInfo.name || ''}
+                onChange={(e) => setProjectInfo({ name: e.target.value })}
+                className="w-full bg-[var(--input)] border-[color:var(--border)]"
               />
             </div>
 
-            <div className="mt-6 grid gap-6 lg:grid-cols-3">
-              <Card className="lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
-                <CardHeader>
-                  <CardTitle className="text-xl">Recent activity</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {[
-                    "Beam Design Phase 1 Initiated",
-                    "Structural Analysis Complete",
-                    "Material Procurement Update",
-                    "Environmental Impact Assessment",
-                    "Client Consultation Scheduled"
-                  ].map((projectInfo, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between rounded-xl border border-[color:var(--border)] bg-[var(--muted)]/40 p-4"
-                    >
-                      <div className="text-sm opacity-80">{projectInfo}</div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-[0.25fr_0.25fr_0.25fr_0.25fr] gap-4">
+              <Input
+                placeholder="Engineer"
+                value={projectInfo.engineer || ''}
+                onChange={(e) => setProjectInfo({ engineer: e.target.value })}
+                className="w-full bg-[var(--input)] border-[color:var(--border)]"
+              />
+              <Input
+                type="date"
+                value={projectInfo.engineerDate || ''}
+                onChange={(e) => setProjectInfo({ engineerDate: e.target.value })}
+                className="w-full bg-[var(--input)] border-[color:var(--border)]"
+              />
+              <Input
+                placeholder="Verifier"
+                value={projectInfo.verifier || ''}
+                onChange={(e) => setProjectInfo({ verifier: e.target.value })}
+                className="w-full bg-[var(--input)] border-[color:var(--border)]"
+              />
+              <Input
+                type="date"
+                value={projectInfo.verifierDate || ''}
+                onChange={(e) => setProjectInfo({ verifierDate: e.target.value })}
+                className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]"
+              />
+            </div>
 
-              <Card className="bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
-                <CardHeader>
-                  <CardTitle className="text-xl">Quick actions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button className="w-full bg-[var(--accent)] text-[var(--accent-contrast)] hover:opacity-90">
+            <div className="grid grid-cols-1 gap-4">
+              <textarea
+                placeholder="Description"
+                value={projectInfo.description || ''}
+                onChange={(e) => setProjectInfo({ description: e.target.value })}
+                className="w-full bg-[var(--input)] border-1 border-[color:var(--border)] rounded-md p-2 resize-y"
+                rows={4}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <StatCard
+            title="Overview"
+            kpi="Active jobs"
+            value="12"
+            icon={<Home className="size-4" />}
+          />
+          <StatCard
+            title="Performance"
+            kpi="Efficiency"
+            value="92%"
+            icon={<BarChart3 className="size-4" />}
+          />
+          <StatCard
+            title="Reputation"
+            kpi="Rating"
+            value={
+              <span className="inline-flex items-center gap-1">
+                4.8 <Star className="size-4" />
+              </span>
+            }
+            icon={<Star className="size-4" />}
+          />
+        </div>
+
+        <div className="mt-6 grid gap-6 lg:grid-cols-3">
+          <Card className="lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
+            <CardHeader>
+              <CardTitle className="text-xl">Recent activity</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {[
+                "Beam Design Phase 1 Initiated",
+                "Structural Analysis Complete",
+                "Material Procurement Update",
+                "Environmental Impact Assessment",
+                "Client Consultation Scheduled"
+              ].map((projectInfo, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded-xl border border-[color:var(--border)] bg-[var(--muted)]/40 p-4"
+                >
+                  <div className="text-sm opacity-80">{projectInfo}</div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
+            <CardHeader>
+              <CardTitle className="text-xl">Quick actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button className="w-full bg-[var(--accent)] text-[var(--accent-contrast)] hover:opacity-90">
                     New project
                   </Button>
                   <Button variant="outline" className="w-full border-[color:var(--border)]">

@@ -337,33 +337,57 @@ export default function App() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-4 gap-4">
-              <InputWithUnit
-                unit="m"
-                placeholder="Span"
-                value={generalInputs.span ?? ""}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setGeneralInputs(prev => ({ ...prev, span: e.target.value }))
-                }
-                className="w-full bg-[var(--input)] border-[color:var(--border)]"
-              />
-              <Input
-                placeholder="Number of members"
-                value={generalInputs.members || ''}
-                onChange={(e) => setGeneralInputs(prev => ({ ...prev, members: e.target.value }))}
-                className="w-full bg-[var(--input)] border-[color:var(--border)]"
-              />
-              <Input
-                placeholder="Usage"
-                value={generalInputs.usage || ''}
-                onChange={(e) => setGeneralInputs(prev => ({ ...prev, usage: e.target.value }))}
-                className="w-full bg-[var(--input)] border-[color:var(--border)]"
-              />
+              <div className="space-y-1.5">
+                <label htmlFor="span" className="block text-sm font-medium text-[var(--text)]">
+                  Span
+                </label>
+                <InputWithUnit
+                  id="span"
+                  unit="m"
+                  placeholder="Span"
+                  value={generalInputs.span ?? ""}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setGeneralInputs(p => ({ ...p, span: e.target.value }))
+                  }
+                  className="w-full bg-[var(--input)] border-[color:var(--border)]"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label htmlFor="members" className="block text-sm font-medium text-[var(--text)]">
+                  Number of members
+                </label>
+                <Input
+                  placeholder="Number of members"
+                  value={generalInputs.members || ''}
+                  onChange={(e) => setGeneralInputs(prev => ({ ...prev, members: e.target.value }))}
+                  className="w-full bg-[var(--input)] border-[color:var(--border)]"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label htmlFor="usage" className="block text-sm font-medium text-[var(--text)]">
+                  Usage
+                </label>
+                <Input
+                  id="usage"
+                  placeholder="Usage"
+                  value={generalInputs.usage ?? ""}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setGeneralInputs(p => ({ ...p, usage: e.target.value }))
+                  }
+                  className="w-full bg-[var(--input)] border-[color:var(--border)]"
+                />
+              </div>
+                            <div className="space-y-1.5">
+                <label htmlFor="lateralRestraint" className="block text-sm font-medium text-[var(--text)]">
+                  Lateral Restraint
+                </label>
               <Input
                 placeholder="Lateral Restraint"
                 value={generalInputs.lateralRestraint || ''}
                 onChange={(e) => setGeneralInputs(prev => ({ ...prev, lateralRestraint: e.target.value }))}
                 className="w-full bg-[var(--input)] border-[color:var(--border)]"
               />
+              </div>
             </div>
 
           </CardContent>

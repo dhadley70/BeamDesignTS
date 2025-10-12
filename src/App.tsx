@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent } from "@/components/ui/tabs"
+// Tabs import removed
 import {
   AlignLeft,
   Home,
@@ -354,7 +354,7 @@ export default function App() {
           />
         </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
             <CardHeader>
               <CardTitle className="text-xl">Recent activity</CardTitle>
@@ -383,52 +383,20 @@ export default function App() {
             </CardHeader>
             <CardContent className="space-y-3">
               <Button className="w-full bg-[var(--accent)] text-[var(--accent-contrast)] hover:opacity-90">
-                    New project
-                  </Button>
-                  <Button variant="outline" className="w-full border-[color:var(--border)]">
-                    Import data
-                  </Button>
-                  <Button variant="outline" className="w-full border-[color:var(--border)]">
-                    Manage settings
-                  </Button>
-                </CardContent>
-                <CardFooter>
-                  <div className="text-xs opacity-60">Tip: use the top tabs to switch views</div>
-                </CardFooter>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="activity" className="mt-0">
-            <Card className="bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
-              <CardHeader>
-                <CardTitle className="text-xl">Activity feed</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="rounded-lg border border-[color:var(--border)] p-3 text-sm opacity-80 bg-[var(--muted)]/40">
-                    • Job {i + 101} updated — status set to <b>In Review</b>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="team" className="mt-0">
-            <div className="grid gap-4 md:grid-cols-2">
-              {["Alice", "Ben", "Chloe", "Dinesh"].map((name) => (
-                <Card key={name} className="border-[color:var(--border)] bg-[var(--card)] text-[var(--text)]">
-                  <CardHeader>
-                    <CardTitle className="text-lg">{name}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-sm opacity-80">
-                    Role: Engineer · Active jobs: {Math.floor(Math.random() * 5) + 1}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+                New project
+              </Button>
+              <Button variant="outline" className="w-full border-[color:var(--border)]">
+                Import data
+              </Button>
+              <Button variant="outline" className="w-full border-[color:var(--border)]">
+                Manage settings
+              </Button>
+            </CardContent>
+            <CardFooter>
+              <div className="text-xs opacity-60">Tip: projects are tracked dynamically</div>
+            </CardFooter>
+          </Card>
+        </div>
 
         <div className="mt-8 text-xs opacity-60">
           © {new Date().getFullYear()} Cantilever · Vite · Tailwind v4 · shadcn/ui

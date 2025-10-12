@@ -21,7 +21,7 @@ import { AlignLeft, Home, BarChart3, Settings, ChevronRight, Rocket, Star, Paint
 
 /* ---------------- Theming ---------------- */
 const THEME_KEY = "app-theme"
-const THEMES = [  "Light",  "Retro",  "Wes Anderson",  "Slate",  "Octonauts",  "Shaun Tan",  "Rainforest",  "Midnight",  "Citrus",  "Lavender",  "Sandstone",  "Aurora",  "Blade Runner",  "Dark",  "Emerald",  "Purple Breeze",  "Sunset",  "Ocean",  "Rose",  "Forest Night",  "Slate Pro",  "High Contrast",  "Solar",  "C64",  "Star Wars",  "Barbie",  "Matrix",  "Dune",  "Tron",  "Jurassic Park", "Lord of the Rings",] as const
+const THEMES = ["Light", "Retro", "Wes Anderson", "Slate", "Octonauts", "Shaun Tan", "Rainforest", "Midnight", "Citrus", "Lavender", "Sandstone", "Aurora", "Blade Runner", "Dark", "Emerald", "Purple Breeze", "Sunset", "Ocean", "Rose", "Forest Night", "Slate Pro", "High Contrast", "Solar", "C64", "Star Wars", "Barbie", "Matrix", "Dune", "Tron", "Jurassic Park", "Lord of the Rings",] as const
 type ThemeName = typeof THEMES[number]
 
 function useTheme(): [ThemeName, (t: ThemeName) => void] {
@@ -40,7 +40,7 @@ const memberOptions = [1, 2, 3, 4] as const
 
 const clampSpan = (v: unknown) => {
   const n = typeof v === "number" ? v : Number(v)
-  return Number.isFinite(n) ? Math.max(0.1, n) : 0.1
+  return Number.isFinite(n) ? Math.max(0.01, n) : 0.01
 }
 
 
@@ -184,18 +184,27 @@ export default function App() {
   }, [generalInputs])
 
   const [spanDraft, setSpanDraft] = useState<string>(() =>
-    (generalInputs.span ?? 0.1).toString()
+    (generalInputs.span ?? 1).toString()
   )
 
   // If `generalInputs.span` changes elsewhere (e.g., rehydrate), reflect it
   useEffect(() => {
-    setSpanDraft((generalInputs.span ?? 0.1).toString())
+    setSpanDraft((generalInputs.span ?? 1).toString())
   }, [generalInputs.span])
 
   const handleMembersChange = (val: string) => {
     const n = Number(val)
     setGeneralInputs(prev => ({ ...prev, members: Number.isFinite(n) ? n : prev.members }))
   }
+
+  const [spanFocused, setSpanFocused] = useState(false)
+  useEffect(() => {
+    if (!spanFocused) {
+      setSpanDraft((generalInputs.span ?? 1).toString())
+    }
+  }, [generalInputs.span, spanFocused])
+
+
 
   return (
     <div className="relative min-h-screen overflow-x-hidden text-[var(--text)] bg-[var(--bg)]">
@@ -338,29 +347,24 @@ export default function App() {
                   unit="m"
                   type="number"
                   inputMode="decimal"
-                  min={0.1}
-                  step={0.01}
+                  min={1}
+                  step={0.1}
                   placeholder="Span"
-                  value={spanDraft}                              // <-- shows what the user types
+                  value={spanDraft}                           // can be "", "3", "3.", "3.4"…
+                  onFocus={() => setSpanFocused(true)}
+                  onBlur={() => setSpanFocused(false)}        // no snapping; stays "" if user cleared
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const s = e.currentTarget.value
-                    setSpanDraft(s)                              // <-- allow “”, partials, etc.
+                    setSpanDraft(s)                           // allow empty/partials in the UI
 
-                    // Convert for live calculations (strict clamp)
-                    const n = Number(s.replace(",", "."))        // allow comma decimal
+                    // Always keep the numeric state valid for calcs:
+                    const n = Number(s.replace(",", "."))
                     const clamped = Number.isFinite(n) ? Math.max(0.1, n) : 0.1
                     setGeneralInputs(p => ({ ...p, span: clamped }))
                   }}
-                  onBlur={() => {
-                    // If user leaves it empty, snap the display back to the clamped value
-                    if (spanDraft.trim() === "") {
-                      setSpanDraft((generalInputs.span ?? 0.1).toString())
-                    }
-                  }}
-                  onWheel={(e) => e.currentTarget.blur()}       // prevent scroll-wheel changes
+                  onWheel={(e) => e.currentTarget.blur()}
                   className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
                 />
-
               </div>
 
               {/* Members */}

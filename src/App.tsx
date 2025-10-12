@@ -256,7 +256,8 @@ export default function App() {
 
       {/* MAIN CONTENT */}
       <main className="relative mx-auto max-w-7xl p-4 md:p-6 overflow-x-hidden">
-        <Card className="mb-6 ">
+ 
+        <Card className="mb-6 lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
           <CardHeader>
             <CardTitle className="text-xl">Project Information</CardTitle>
           </CardHeader>
@@ -321,7 +322,7 @@ export default function App() {
           </CardContent>
         </Card>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 space-y-4 md:grid-cols-3">
           <StatCard
             title="Overview"
             kpi="Active jobs"
@@ -373,7 +374,7 @@ export default function App() {
             <CardHeader>
               <CardTitle className="text-xl">Quick actions</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               <Button className="w-full bg-[var(--accent)] text-[var(--accent-contrast)] hover:opacity-90">
                 New project
               </Button>

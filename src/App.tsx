@@ -1,15 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 
-interface ProjectInfoState {
-  projectNumber?: string
-  projectName?: string
-  name?: string
-  engineer?: string
-  engineerDate?: string
-  verifier?: string
-  verifierDate?: string
-  description?: string
-}
+// Removed ProjectInfoState interface (now imported from projectInfo.tsx)
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -142,33 +133,7 @@ function ThemeDropdown({
 }
 
 /* ---------------- Project Info Hook ---------------- */
-function useProjectInfo() {
-  const [projectInfo, setProjectInfoState] = useState<ProjectInfoState>({
-    projectNumber: '',
-    projectName: '',
-    name: '',
-    engineer: '',
-    engineerDate: '',
-    verifier: '',
-    verifierDate: '',
-    description: ''
-  })
-
-  useEffect(() => {
-    const savedProjectInfo = localStorage.getItem('projectInfo')
-    if (savedProjectInfo) {
-      try { setProjectInfoState(JSON.parse(savedProjectInfo)) } catch { }
-    }
-  }, [])
-
-  const setProjectInfo = (updates: Partial<ProjectInfoState>) => {
-    const newProjectInfo = { ...projectInfo, ...updates }
-    setProjectInfoState(newProjectInfo)
-    localStorage.setItem('projectInfo', JSON.stringify(newProjectInfo))
-  }
-
-  return [projectInfo, setProjectInfo] as const
-}
+import { useProjectInfo, ProjectInfoCard } from "@/components/projectInfo"
 
 /* ---------------- App ---------------- */
 export default function App() {
@@ -265,70 +230,10 @@ export default function App() {
       {/* MAIN CONTENT */}
       <main className="relative mx-auto max-w-7xl p-4 md:p-6 overflow-x-hidden">
 
-        <Card className="mb-6 lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
-          <CardHeader>
-            <CardTitle className="text-xl">Project Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-[0.15fr_0.65fr_0.2fr] gap-4">
-              <Input
-                placeholder="Project Number"
-                value={projectInfo.projectNumber || ''}
-                onChange={(e) => setProjectInfo({ projectNumber: e.target.value })}
-                className="w-full bg-[var(--input)] border-[color:var(--border)]"
-              />
-              <Input
-                placeholder="Project Name"
-                value={projectInfo.projectName || ''}
-                onChange={(e) => setProjectInfo({ projectName: e.target.value })}
-                className="w-full bg-[var(--input)] border-[color:var(--border)]"
-              />
-              <Input
-                placeholder="Item Name"
-                value={projectInfo.name || ''}
-                onChange={(e) => setProjectInfo({ name: e.target.value })}
-                className="w-full bg-[var(--input)] border-[color:var(--border)]"
-              />
-            </div>
-
-            <div className="grid grid-cols-[0.25fr_0.25fr_0.25fr_0.25fr] gap-4">
-              <Input
-                placeholder="Engineer"
-                value={projectInfo.engineer || ''}
-                onChange={(e) => setProjectInfo({ engineer: e.target.value })}
-                className="w-full bg-[var(--input)] border-[color:var(--border)]"
-              />
-              <Input
-                type="date"
-                value={projectInfo.engineerDate || ''}
-                onChange={(e) => setProjectInfo({ engineerDate: e.target.value })}
-                className="w-full bg-[var(--input)] border-[color:var(--border)]"
-              />
-              <Input
-                placeholder="Verifier"
-                value={projectInfo.verifier || ''}
-                onChange={(e) => setProjectInfo({ verifier: e.target.value })}
-                className="w-full bg-[var(--input)] border-[color:var(--border)]"
-              />
-              <Input
-                type="date"
-                value={projectInfo.verifierDate || ''}
-                onChange={(e) => setProjectInfo({ verifierDate: e.target.value })}
-                className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 gap-4">
-              <textarea
-                placeholder="Description"
-                value={projectInfo.description || ''}
-                onChange={(e) => setProjectInfo({ description: e.target.value })}
-                className="w-full bg-[var(--input)] border-1 border-[color:var(--border)] rounded-md p-2 resize-y"
-                rows={4}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <ProjectInfoCard 
+          projectInfo={projectInfo} 
+          setProjectInfo={setProjectInfo} 
+        />
 
         <Card className="mb-6 lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
           <CardHeader>

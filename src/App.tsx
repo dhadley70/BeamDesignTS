@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
-import { InputWithUnit } from "@/components/ui/InputWithUnit"
+
 
 interface ProjectInfoState {
   projectNumber?: string
@@ -15,6 +15,8 @@ interface ProjectInfoState {
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { InputWithUnit } from "@/components/ui/InputWithUnit"
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 // Tabs import removed
 import {
@@ -68,6 +70,7 @@ const THEMES = [
 ] as const
 type ThemeName = typeof THEMES[number]
 
+
 function useTheme(): [ThemeName, (t: ThemeName) => void] {
   const [theme, setTheme] = useState<ThemeName>(() => {
     const saved = (localStorage.getItem(THEME_KEY) as ThemeName) || "Light"
@@ -79,6 +82,13 @@ function useTheme(): [ThemeName, (t: ThemeName) => void] {
   }, [theme])
   return [theme, setTheme]
 }
+
+const memberOptions = [1, 2, 3, 4] as const; // Added missing memberOptions
+const clampSpan = (v: unknown) => {
+  const n = typeof v === "number" ? v : Number(v)
+  return Number.isFinite(n) ? Math.max(0.1, n) : 0.1
+}
+
 
 /* ---------------- Simple dropdown (no shadcn dependency) ---------------- */
 function useClickOutside<T extends HTMLElement>(onOutside: () => void) {
@@ -187,11 +197,18 @@ export default function App() {
   const [theme, setTheme] = useTheme()
   const [projectInfo, setProjectInfo] = useProjectInfo()
   const [generalInputs, setGeneralInputs] = useState({
-    span: '',
-    usage: '',
-    lateralRestraint: '',
-    members: ''
+    span: '3.0',
+    usage: 'Normal',
+    lateralRestraint: 'Full Lateral Restraint',
+    members: '1'
   })
+
+  const handleMembersChange = (val: string) => {
+    setGeneralInputs(prev => ({
+      ...prev,
+      members: val,
+    }));
+  };
 
   return (
     <div className="relative min-h-screen overflow-x-hidden text-[var(--text)] bg-[var(--bg)]">
@@ -337,31 +354,53 @@ export default function App() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-4 gap-4">
+
+              {/* * *--------------- SPAN ---------------------------- */}
+
               <div className="space-y-1.5">
                 <label htmlFor="span" className="block text-sm font-medium text-[var(--text)]">
                   Span
                 </label>
+
                 <InputWithUnit
                   id="span"
                   unit="m"
+                  type="number"
+                  inputMode="decimal"
+                  min={0.1}            // native hint; JS clamp is the real enforcement
+                  step={0.01}
                   placeholder="Span"
-                  value={generalInputs.span ?? ""}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setGeneralInputs(p => ({ ...p, span: e.target.value }))
-                  }
+                  value={(generalInputs.span ?? 0.1).toString()}  // always valid
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const clamped = clampSpan(e.currentTarget.value)
+                    setGeneralInputs(p => ({ ...p, span: clamped.toString() }))
+                  }}
                   className="w-full bg-[var(--input)] border-[color:var(--border)]"
                 />
               </div>
+
+
+              {/* * *--------------- NUMBER OF MEMBERS ----------------------- */}
+
               <div className="space-y-1.5">
-                <label htmlFor="members" className="block text-sm font-medium text-[var(--text)]">
-                  Number of members
-                </label>
-                <Input
-                  placeholder="Number of members"
-                  value={generalInputs.members || ''}
-                  onChange={(e) => setGeneralInputs(prev => ({ ...prev, members: e.target.value }))}
-                  className="w-full bg-[var(--input)] border-[color:var(--border)]"
-                />
+                <label className="block text-sm font-medium text-[var(--text)]">Number of members</label>
+                <Select
+                  // Select expects a string value
+                  value={generalInputs.members !== undefined ? String(generalInputs.members) : ""}
+                  onValueChange={handleMembersChange}
+                >
+                  <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
+                    <SelectValue placeholder="Number of members" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {[1, 2, 3, 4].map(n => (
+                      <SelectItem key={n} value={String(n)}>
+                        {n}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5">
                 <label htmlFor="usage" className="block text-sm font-medium text-[var(--text)]">
@@ -377,16 +416,16 @@ export default function App() {
                   className="w-full bg-[var(--input)] border-[color:var(--border)]"
                 />
               </div>
-                            <div className="space-y-1.5">
+              <div className="space-y-1.5">
                 <label htmlFor="lateralRestraint" className="block text-sm font-medium text-[var(--text)]">
                   Lateral Restraint
                 </label>
-              <Input
-                placeholder="Lateral Restraint"
-                value={generalInputs.lateralRestraint || ''}
-                onChange={(e) => setGeneralInputs(prev => ({ ...prev, lateralRestraint: e.target.value }))}
-                className="w-full bg-[var(--input)] border-[color:var(--border)]"
-              />
+                <Input
+                  placeholder="Lateral Restraint"
+                  value={generalInputs.lateralRestraint || ''}
+                  onChange={(e) => setGeneralInputs(prev => ({ ...prev, lateralRestraint: e.target.value }))}
+                  className="w-full bg-[var(--input)] border-[color:var(--border)]"
+                />
               </div>
             </div>
 

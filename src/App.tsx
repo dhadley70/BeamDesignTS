@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import { InputWithUnit } from "@/components/ui/InputWithUnit"
 
 interface ProjectInfoState {
   projectNumber?: string
@@ -33,15 +34,9 @@ import {
 /* ---------------- Theming ---------------- */
 const THEME_KEY = "app-theme"
 const THEMES = [
-  "C64",
-  "Star Wars",
-  "Barbie",
-  "Matrix",
-  "Dune",
-  "Tron",
-  "Jurassic Park",
-  "Lord of the Rings",
+  "Light",
   "Wes Anderson",
+  "Slate",
   "Octonauts",
   "Shaun Tan",
   "Rainforest",
@@ -50,9 +45,7 @@ const THEMES = [
   "Lavender",
   "Sandstone",
   "Aurora",
-  "Slate",
   "Blade Runner",
-  "Light",
   "Dark",
   "Emerald",
   "Purple Breeze",
@@ -64,6 +57,14 @@ const THEMES = [
   "Slate Pro",
   "High Contrast",
   "Solar",
+  "C64",
+  "Star Wars",
+  "Barbie",
+  "Matrix",
+  "Dune",
+  "Tron",
+  "Jurassic Park",
+  "Lord of the Rings",
 ] as const
 type ThemeName = typeof THEMES[number]
 
@@ -185,6 +186,12 @@ export default function App() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [theme, setTheme] = useTheme()
   const [projectInfo, setProjectInfo] = useProjectInfo()
+  const [generalInputs, setGeneralInputs] = useState({
+    span: '',
+    usage: '',
+    lateralRestraint: '',
+    members: ''
+  })
 
   return (
     <div className="relative min-h-screen overflow-x-hidden text-[var(--text)] bg-[var(--bg)]">
@@ -256,7 +263,7 @@ export default function App() {
 
       {/* MAIN CONTENT */}
       <main className="relative mx-auto max-w-7xl p-4 md:p-6 overflow-x-hidden">
- 
+
         <Card className="mb-6 lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
           <CardHeader>
             <CardTitle className="text-xl">Project Information</CardTitle>
@@ -321,6 +328,51 @@ export default function App() {
             </div>
           </CardContent>
         </Card>
+
+        {/* STATS CARDS */}
+
+        <Card className="mb-6 lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
+          <CardHeader>
+            <CardTitle className="text-xl">General Inputs</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-4 gap-4">
+              <InputWithUnit
+                unit="m"
+                placeholder="Span"
+                value={generalInputs.span ?? ""}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setGeneralInputs(prev => ({ ...prev, span: e.target.value }))
+                }
+                className="w-full bg-[var(--input)] border-[color:var(--border)]"
+              />
+              <Input
+                placeholder="Number of members"
+                value={generalInputs.members || ''}
+                onChange={(e) => setGeneralInputs(prev => ({ ...prev, members: e.target.value }))}
+                className="w-full bg-[var(--input)] border-[color:var(--border)]"
+              />
+              <Input
+                placeholder="Usage"
+                value={generalInputs.usage || ''}
+                onChange={(e) => setGeneralInputs(prev => ({ ...prev, usage: e.target.value }))}
+                className="w-full bg-[var(--input)] border-[color:var(--border)]"
+              />
+              <Input
+                placeholder="Lateral Restraint"
+                value={generalInputs.lateralRestraint || ''}
+                onChange={(e) => setGeneralInputs(prev => ({ ...prev, lateralRestraint: e.target.value }))}
+                className="w-full bg-[var(--input)] border-[color:var(--border)]"
+              />
+            </div>
+
+          </CardContent>
+        </Card>
+
+
+        {/* ---------------- */}
+
+
 
         <div className="grid gap-4 space-y-4 md:grid-cols-3">
           <StatCard

@@ -123,11 +123,20 @@
 /* ---break---
 */
 @layer base {
+  /* existing base */
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* global placeholder style */
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--text);
+    opacity: 0.5;
+    font-style: italic;
   }
 }
 

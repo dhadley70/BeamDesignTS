@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 
-
 interface ProjectInfoState {
   projectNumber?: string
   projectName?: string
@@ -18,56 +17,11 @@ import { Input } from "@/components/ui/input"
 import { InputWithUnit } from "@/components/ui/InputWithUnit"
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-// Tabs import removed
-import {
-  AlignLeft,
-  Home,
-  BarChart3,
-  Settings,
-  ChevronRight,
-  Rocket,
-  Star,
-  Paintbrush,
-  Check,
-  ChevronDown,
-  Circle,
-} from "lucide-react"
+import { AlignLeft, Home, BarChart3, Settings, ChevronRight, Rocket, Star, Paintbrush, Check, ChevronDown, Circle, } from "lucide-react"
 
 /* ---------------- Theming ---------------- */
 const THEME_KEY = "app-theme"
-const THEMES = [
-  "Light",
-  "Wes Anderson",
-  "Slate",
-  "Octonauts",
-  "Shaun Tan",
-  "Rainforest",
-  "Midnight",
-  "Citrus",
-  "Lavender",
-  "Sandstone",
-  "Aurora",
-  "Blade Runner",
-  "Dark",
-  "Emerald",
-  "Purple Breeze",
-  "Sunset",
-  "Retro",
-  "Ocean",
-  "Rose",
-  "Forest Night",
-  "Slate Pro",
-  "High Contrast",
-  "Solar",
-  "C64",
-  "Star Wars",
-  "Barbie",
-  "Matrix",
-  "Dune",
-  "Tron",
-  "Jurassic Park",
-  "Lord of the Rings",
-] as const
+const THEMES = [  "Light",  "Retro",  "Wes Anderson",  "Slate",  "Octonauts",  "Shaun Tan",  "Rainforest",  "Midnight",  "Citrus",  "Lavender",  "Sandstone",  "Aurora",  "Blade Runner",  "Dark",  "Emerald",  "Purple Breeze",  "Sunset",  "Ocean",  "Rose",  "Forest Night",  "Slate Pro",  "High Contrast",  "Solar",  "C64",  "Star Wars",  "Barbie",  "Matrix",  "Dune",  "Tron",  "Jurassic Park", "Lord of the Rings",] as const
 type ThemeName = typeof THEMES[number]
 
 function useTheme(): [ThemeName, (t: ThemeName) => void] {
@@ -82,21 +36,42 @@ function useTheme(): [ThemeName, (t: ThemeName) => void] {
   return [theme, setTheme]
 }
 
-const memberOptions = [1, 2, 3, 4] as const; // Added missing memberOptions
+const memberOptions = [1, 2, 3, 4] as const
+
 const clampSpan = (v: unknown) => {
   const n = typeof v === "number" ? v : Number(v)
   return Number.isFinite(n) ? Math.max(0.1, n) : 0.1
 }
 
+
+
 type UsageOption = "Normal" | "No Traffic" | "Storage"
 
 type GeneralInputs = {
-  members: number | undefined
-  span?: number
-  usage?: UsageOption
-  // ...
+  span: number            // metres, >= 0.1
+  members: number         // 1..4
+  usage: UsageOption      // enum
+  lateralRestraint: string
 }
 
+const GENERAL_INPUTS_KEY = "generalInputs"
+
+function loadGeneralInputs(): GeneralInputs {
+  try {
+    const raw = localStorage.getItem(GENERAL_INPUTS_KEY)
+    if (raw) {
+      const data = JSON.parse(raw)
+      return {
+        span: clampSpan(data.span),
+        members: Number.isFinite(Number(data.members)) ? Number(data.members) : 1,
+        usage: (["Normal", "No Traffic", "Storage"] as const).includes(data.usage) ? data.usage : "Normal",
+        lateralRestraint: typeof data.lateralRestraint === "string" ? data.lateralRestraint : "",
+      }
+    }
+  } catch { }
+  // defaults
+  return { span: 3.0, members: 1, usage: "Normal", lateralRestraint: "" }
+}
 
 /* ---------------- Simple dropdown (no shadcn dependency) ---------------- */
 function useClickOutside<T extends HTMLElement>(onOutside: () => void) {
@@ -168,7 +143,7 @@ function ThemeDropdown({
 
 /* ---------------- Project Info Hook ---------------- */
 function useProjectInfo() {
-  const [projectInfo, setProjectInfoState] = useState({
+  const [projectInfo, setProjectInfoState] = useState<ProjectInfoState>({
     projectNumber: '',
     projectName: '',
     name: '',
@@ -179,22 +154,18 @@ function useProjectInfo() {
     description: ''
   })
 
-  // Load from local storage on initial render
   useEffect(() => {
     const savedProjectInfo = localStorage.getItem('projectInfo')
     if (savedProjectInfo) {
-      setProjectInfoState(JSON.parse(savedProjectInfo))
+      try { setProjectInfoState(JSON.parse(savedProjectInfo)) } catch { }
     }
   }, [])
 
-  // Save to local storage whenever projectInfo changes
-  const setProjectInfo = (updates: Partial<typeof projectInfo>) => {
+  const setProjectInfo = (updates: Partial<ProjectInfoState>) => {
     const newProjectInfo = { ...projectInfo, ...updates }
     setProjectInfoState(newProjectInfo)
     localStorage.setItem('projectInfo', JSON.stringify(newProjectInfo))
   }
-
-  // Optional: No alias function needed
 
   return [projectInfo, setProjectInfo] as const
 }
@@ -204,34 +175,30 @@ export default function App() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [theme, setTheme] = useTheme()
   const [projectInfo, setProjectInfo] = useProjectInfo()
-  const [generalInputs, setGeneralInputs] = useState({
-    span: '3.0',
-    usage: 'Normal',
-    lateralRestraint: 'Full Lateral Restraint',
-    members: '1'
-  })
+
+  // Load general inputs once on mount, then persist on change
+  const [generalInputs, setGeneralInputs] = useState<GeneralInputs>(() => loadGeneralInputs())
+  useEffect(() => {
+    // persist any change
+    localStorage.setItem(GENERAL_INPUTS_KEY, JSON.stringify(generalInputs))
+  }, [generalInputs])
+
+  const [spanDraft, setSpanDraft] = useState<string>(() =>
+    (generalInputs.span ?? 0.1).toString()
+  )
+
+  // If `generalInputs.span` changes elsewhere (e.g., rehydrate), reflect it
+  useEffect(() => {
+    setSpanDraft((generalInputs.span ?? 0.1).toString())
+  }, [generalInputs.span])
 
   const handleMembersChange = (val: string) => {
-    setGeneralInputs(prev => ({
-      ...prev,
-      members: val,
-    }));
-  };
+    const n = Number(val)
+    setGeneralInputs(prev => ({ ...prev, members: Number.isFinite(n) ? n : prev.members }))
+  }
 
   return (
     <div className="relative min-h-screen overflow-x-hidden text-[var(--text)] bg-[var(--bg)]">
-      {/* BG accents */}
-      <div className="absolute inset-0 -z-10 overflow-x-hidden">
-        <div className="pointer-events-none absolute -top-24 -left-24 size-[26rem] rounded-full
-                        blur-2xl [will-change:transform] motion-safe:animate-[blob1_12s_ease-in-out_infinite_alternate]
-                        bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_0%,var(--accent)_40%,transparent_70%)] opacity-30" />
-        <div className="pointer-events-none absolute -bottom-32 -right-16 size-[28rem] rounded-full
-                        blur-2xl [will-change:transform] motion-safe:animate-[blob2_16s_ease-in-out_infinite_alternate]
-                        bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_0%,var(--accent)_40%,transparent_70%)] opacity-25" />
-      </div>
-
-      {/* Sidebar removed */}
-
       {/* HEADER */}
       <header className="sticky top-0 z-40 border-b bg-[color:var(--card)]/80 border-[color:var(--border)] backdrop-blur supports-[backdrop-filter]:bg-[color:var(--card)]/60">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 md:px-6">
@@ -254,7 +221,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* MOBILE OVERLAY SIDEBAR (updated brand as well) */}
+      {/* MOBILE OVERLAY SIDEBAR (optional) */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-[240px] border-r border-[color:var(--border)] bg-[var(--card)]/95 backdrop-blur
                     transition-transform duration-300 md:hidden overflow-x-hidden
@@ -354,8 +321,6 @@ export default function App() {
           </CardContent>
         </Card>
 
-        {/* STATS CARDS */}
-
         <Card className="mb-6 lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
           <CardHeader>
             <CardTitle className="text-xl">General Inputs</CardTitle>
@@ -363,46 +328,56 @@ export default function App() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-4 gap-4">
 
-              {/* * *--------------- SPAN ---------------------------- */}
-
+              {/* Span (strict clamp) */}
               <div className="space-y-1.5">
                 <label htmlFor="span" className="block text-sm font-medium text-[var(--text)]">
                   Span
                 </label>
-
                 <InputWithUnit
                   id="span"
                   unit="m"
                   type="number"
                   inputMode="decimal"
-                  min={0.1}            // native hint; JS clamp is the real enforcement
+                  min={0.1}
                   step={0.01}
                   placeholder="Span"
-                  value={(generalInputs.span ?? 0.1).toString()}  // always valid
+                  value={spanDraft}                              // <-- shows what the user types
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const clamped = clampSpan(e.currentTarget.value)
-                    setGeneralInputs(p => ({ ...p, span: clamped.toString() }))
+                    const s = e.currentTarget.value
+                    setSpanDraft(s)                              // <-- allow “”, partials, etc.
+
+                    // Convert for live calculations (strict clamp)
+                    const n = Number(s.replace(",", "."))        // allow comma decimal
+                    const clamped = Number.isFinite(n) ? Math.max(0.1, n) : 0.1
+                    setGeneralInputs(p => ({ ...p, span: clamped }))
                   }}
-                  className="w-full bg-[var(--input)] border-[color:var(--border)]"
+                  onBlur={() => {
+                    // If user leaves it empty, snap the display back to the clamped value
+                    if (spanDraft.trim() === "") {
+                      setSpanDraft((generalInputs.span ?? 0.1).toString())
+                    }
+                  }}
+                  onWheel={(e) => e.currentTarget.blur()}       // prevent scroll-wheel changes
+                  className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
                 />
+
               </div>
 
-
-              {/* * *--------------- NUMBER OF MEMBERS ----------------------- */}
-
+              {/* Members */}
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-[var(--text)]">Number of members</label>
                 <Select
-                  // SelectComponent expects a string value
-                  value={generalInputs.members !== undefined ? String(generalInputs.members) : ""}
-                  onValueChange={handleMembersChange}
+                  value={String(generalInputs.members)}
+                  onValueChange={(val) => {
+                    const n = Number(val)
+                    setGeneralInputs(p => ({ ...p, members: Number.isFinite(n) ? n : p.members }))
+                  }}
                 >
                   <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
                     <SelectValue placeholder="Number of members" />
                   </SelectTrigger>
-
                   <SelectContent>
-                    {[1, 2, 3, 4].map(n => (
+                    {memberOptions.map(n => (
                       <SelectItem key={n} value={String(n)}>
                         {n}
                       </SelectItem>
@@ -411,91 +386,60 @@ export default function App() {
                 </Select>
               </div>
 
-
-              {/* * *--------------- USAGE ----------------------- */}
-
+              {/* Usage */}
               <div className="space-y-1.5">
-                <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-[var(--text)]">
-                    Usage
-                  </label>
-
-                  <Select
-                    // Select expects a string; show placeholder if undefined
-                    value={generalInputs.usage ?? ""}
-                    onValueChange={(val: UsageOption) =>
-                      setGeneralInputs(p => ({ ...p, usage: val }))
-                    }
-                  >
-                    <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
-                      <SelectValue placeholder="Select usage" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="Normal">Normal</SelectItem>
-                      <SelectItem value="No Traffic">No Traffic</SelectItem>
-                      <SelectItem value="Storage">Storage</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <label className="block text-sm font-medium text-[var(--text)]">Usage</label>
+                <Select
+                  value={generalInputs.usage}
+                  onValueChange={(val: UsageOption) =>
+                    setGeneralInputs(p => ({ ...p, usage: val }))
+                  }
+                >
+                  <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
+                    <SelectValue placeholder="Select usage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Normal">Normal</SelectItem>
+                    <SelectItem value="No Traffic">No Traffic</SelectItem>
+                    <SelectItem value="Storage">Storage</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-
-              {/* * *--------------- LATERAL STABILITY ----------------------- */}
-
-
-
+              {/* Lateral Restraint */}
               <div className="space-y-1.5">
                 <label htmlFor="lateralRestraint" className="block text-sm font-medium text-[var(--text)]">
                   Lateral Restraint
                 </label>
                 <Input
+                  id="lateralRestraint"
                   placeholder="Lateral Restraint"
-                  value={generalInputs.lateralRestraint || ''}
-                  onChange={(e) => setGeneralInputs(prev => ({ ...prev, lateralRestraint: e.target.value }))}
+                  value={generalInputs.lateralRestraint}
+                  onChange={(e) =>
+                    setGeneralInputs(prev => ({ ...prev, lateralRestraint: e.currentTarget.value }))
+                  }
                   className="w-full bg-[var(--input)] border-[color:var(--border)]"
                 />
               </div>
             </div>
-
           </CardContent>
         </Card>
 
-
-        {/* ---------------- */}
-
-
-
+        {/* Stats */}
         <div className="grid gap-4 space-y-4 md:grid-cols-3">
-          <StatCard
-            title="Overview"
-            kpi="Active jobs"
-            value="12"
-            icon={<Home className="size-4" />}
-          />
-          <StatCard
-            title="Performance"
-            kpi="Efficiency"
-            value="92%"
-            icon={<BarChart3 className="size-4" />}
-          />
+          <StatCard title="Overview" kpi="Active jobs" value="12" icon={<Home className="size-4" />} />
+          <StatCard title="Performance" kpi="Efficiency" value="92%" icon={<BarChart3 className="size-4" />} />
           <StatCard
             title="Reputation"
             kpi="Rating"
-            value={
-              <span className="inline-flex items-center gap-1">
-                4.8 <Star className="size-4" />
-              </span>
-            }
+            value={<span className="inline-flex items-center gap-1">4.8 <Star className="size-4" /></span>}
             icon={<Star className="size-4" />}
           />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
-            <CardHeader>
-              <CardTitle className="text-xl">Recent activity</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-xl">Recent activity</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               {[
                 "Beam Design Phase 1 Initiated",
@@ -503,35 +447,22 @@ export default function App() {
                 "Material Procurement Update",
                 "Environmental Impact Assessment",
                 "Client Consultation Scheduled"
-              ].map((projectInfo, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between rounded-xl border border-[color:var(--border)] bg-[var(--muted)]/40 p-4"
-                >
-                  <div className="text-sm opacity-80">{projectInfo}</div>
+              ].map((txt, i) => (
+                <div key={i} className="flex items-center justify-between rounded-xl border border-[color:var(--border)] bg-[var(--muted)]/40 p-4">
+                  <div className="text-sm opacity-80">{txt}</div>
                 </div>
               ))}
             </CardContent>
           </Card>
 
           <Card className="bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
-            <CardHeader>
-              <CardTitle className="text-xl">Quick actions</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-xl">Quick actions</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <Button className="w-full bg-[var(--accent)] text-[var(--accent-contrast)] hover:opacity-90">
-                New project
-              </Button>
-              <Button variant="outline" className="w-full border-[color:var(--border)]">
-                Import data
-              </Button>
-              <Button variant="outline" className="w-full border-[color:var(--border)]">
-                Manage settings
-              </Button>
+              <Button className="w-full bg-[var(--accent)] text-[var(--accent-contrast)] hover:opacity-90">New project</Button>
+              <Button variant="outline" className="w-full border-[color:var(--border)]">Import data</Button>
+              <Button variant="outline" className="w-full border-[color:var(--border)]">Manage settings</Button>
             </CardContent>
-            <CardFooter>
-              <div className="text-xs opacity-60">Tip: projects are tracked dynamically</div>
-            </CardFooter>
+            <CardFooter><div className="text-xs opacity-60">Tip: projects are tracked dynamically</div></CardFooter>
           </Card>
         </div>
 
@@ -541,14 +472,16 @@ export default function App() {
       </main>
 
       {/* MOBILE SCRIM */}
-      {mobileOpen && (
-        <button
-          aria-label="Close sidebar scrim"
-          className="fixed inset-0 z-40 bg-black/30 md:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
-    </div>
+      {
+        mobileOpen && (
+          <button
+            aria-label="Close sidebar scrim"
+            className="fixed inset-0 z-40 bg-black/30 md:hidden"
+            onClick={() => setMobileOpen(false)}
+          />
+        )
+      }
+    </div >
   )
 }
 

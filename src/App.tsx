@@ -21,7 +21,6 @@ import {
   Home,
   BarChart3,
   Settings,
-  Search,
   ChevronRight,
   Rocket,
   Star,
@@ -210,13 +209,6 @@ export default function App() {
             <Badge className="shrink-0 bg-[var(--accent)] text-[var(--accent-contrast)]">demo</Badge>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <div className="relative hidden sm:block">
-              <Search className="pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 opacity-60" />
-              <Input
-                placeholder="Search…"
-                className="pl-8 w-56 sm:w-72 bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]"
-              />
-            </div>
             <ThemeDropdown theme={theme} onChange={setTheme} />
             <Button
               variant="outline"

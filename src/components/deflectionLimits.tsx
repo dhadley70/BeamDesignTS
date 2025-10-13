@@ -286,13 +286,13 @@ export const DeflectionLimitsCard: React.FC<{
           </div>
         </div>
             {/* Preset Buttons */}
-            <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="mt-4 grid grid-cols-3 gap-4 appearance-none">
               {presets.map((preset) => (
                 <Button 
                   key={preset.id}
                   variant={matchPreset(preset) ? "outline" : "outline"}
                   size="sm"
-                  className={matchPreset(preset) ? "border-accent" : ""}
+                  className={`${matchPreset(preset) ? "border-accent" : ""} border-[color:var(--border)] bg-[var(--card)]`}
                   onClick={() => {
                     setDeflectionLimits({
                       initial: {

@@ -33,17 +33,18 @@ export const DeflectionLimitsCard: React.FC<{
     value: number
   ) => {
     setDeflectionLimits(prev => {
-      // Determine the new values
+      // Determine the new values, allowing zero
       const newValues = {
         ...prev[type],
         [field]: value
       }
       
       // Recalculate max deflection with updated values
-      const maxDeflection = calculateMaxDeflection(
+      // Use 0 as a special case to prevent division by zero
+      const maxDeflection = value === 0 ? 0 : calculateMaxDeflection(
         span, 
-        newValues.spanRatio || prev[type].spanRatio, 
-        newValues.maxLimit || prev[type].maxLimit
+        field === 'spanRatio' ? value : (newValues.spanRatio || prev[type].spanRatio), 
+        field === 'maxLimit' ? value : (newValues.maxLimit || prev[type].maxLimit)
       )
       
       return {
@@ -61,6 +62,12 @@ export const DeflectionLimitsCard: React.FC<{
     // Convert span to mm
     const spanMm = beamSpan * 1000
     
+    // Handle zero spanRatio as a special case
+    if (spanRatio === 0) {
+      // If spanRatio is zero, return the max limit (converted to mm if needed)
+      return Math.round(maxLimit < 1 ? maxLimit * 1000 : maxLimit)
+    }
+    
     // Calculate deflection by span ratio
     const ratioDeflection = spanMm / spanRatio
     
@@ -74,9 +81,9 @@ export const DeflectionLimitsCard: React.FC<{
   // Calculate default span ratios if not set
   const getDefaultSpanRatio = (type: 'initial' | 'short' | 'long') => {
     switch(type) {
-      case 'initial': return 240  // More restrictive for initial deflection
-      case 'short': return 180    // Standard short-term deflection limit
-      case 'long': return 120     // More allowance for long-term deflection
+      case 'initial': return 0  // More restrictive for initial deflection
+      case 'short': return 0    // Standard short-term deflection limit
+      case 'long': return 0     // More allowance for long-term deflection
     }
   }
 
@@ -106,11 +113,17 @@ export const DeflectionLimitsCard: React.FC<{
                 placeholder="Initial Span Ratio"
                 value={(deflectionLimits.initial.spanRatio || getDefaultSpanRatio('initial')).toString()}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = parseInt(e.currentTarget.value, 10)
-                  if (!isNaN(value)) {
-                    updateDeflectionLimit('initial', 'spanRatio', value)
+                  const value = e.currentTarget.value.trim()
+                  if (value === '') {
+                    updateDeflectionLimit('initial', 'spanRatio', 0)
+                  } else {
+                    const parsedValue = parseInt(value, 10)
+                    if (!isNaN(parsedValue)) {
+                      updateDeflectionLimit('initial', 'spanRatio', parsedValue)
+                    }
                   }
                 }}
+                min="0"
                 className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
               />
             </div>
@@ -125,8 +138,13 @@ export const DeflectionLimitsCard: React.FC<{
                 placeholder="Initial Max Limit"
                 value={(deflectionLimits.initial.maxLimit * 1000).toFixed(0)}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = Number(e.currentTarget.value) / 1000
-                  updateDeflectionLimit('initial', 'maxLimit', value)
+                  const value = e.currentTarget.value.trim()
+                  if (value === '') {
+                    updateDeflectionLimit('initial', 'maxLimit', 0)
+                  } else {
+                    const numericValue = Number(value)
+                    updateDeflectionLimit('initial', 'maxLimit', numericValue / 1000)
+                  }
                 }}
                 className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
               />
@@ -152,11 +170,17 @@ export const DeflectionLimitsCard: React.FC<{
                 placeholder="Short Span Ratio"
                 value={(deflectionLimits.short.spanRatio || getDefaultSpanRatio('short')).toString()}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = parseInt(e.currentTarget.value, 10)
-                  if (!isNaN(value)) {
-                    updateDeflectionLimit('short', 'spanRatio', value)
+                  const value = e.currentTarget.value.trim()
+                  if (value === '') {
+                    updateDeflectionLimit('short', 'spanRatio', 0)
+                  } else {
+                    const parsedValue = parseInt(value, 10)
+                    if (!isNaN(parsedValue)) {
+                      updateDeflectionLimit('short', 'spanRatio', parsedValue)
+                    }
                   }
                 }}
+                min="0"
                 className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
               />
             </div>
@@ -171,8 +195,13 @@ export const DeflectionLimitsCard: React.FC<{
                 placeholder="Short Max Limit"
                 value={(deflectionLimits.short.maxLimit * 1000).toFixed(0)}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = Number(e.currentTarget.value) / 1000
-                  updateDeflectionLimit('short', 'maxLimit', value)
+                  const value = e.currentTarget.value.trim()
+                  if (value === '') {
+                    updateDeflectionLimit('short', 'maxLimit', 0)
+                  } else {
+                    const numericValue = Number(value)
+                    updateDeflectionLimit('short', 'maxLimit', numericValue / 1000)
+                  }
                 }}
                 className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
               />
@@ -198,11 +227,17 @@ export const DeflectionLimitsCard: React.FC<{
                 placeholder="Long Span Ratio"
                 value={(deflectionLimits.long.spanRatio || getDefaultSpanRatio('long')).toString()}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = parseInt(e.currentTarget.value, 10)
-                  if (!isNaN(value)) {
-                    updateDeflectionLimit('long', 'spanRatio', value)
+                  const value = e.currentTarget.value.trim()
+                  if (value === '') {
+                    updateDeflectionLimit('long', 'spanRatio', 0)
+                  } else {
+                    const parsedValue = parseInt(value, 10)
+                    if (!isNaN(parsedValue)) {
+                      updateDeflectionLimit('long', 'spanRatio', parsedValue)
+                    }
                   }
                 }}
+                min="0"
                 className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
               />
             </div>
@@ -217,8 +252,13 @@ export const DeflectionLimitsCard: React.FC<{
                 placeholder="Long Max Limit"
                 value={(deflectionLimits.long.maxLimit * 1000).toFixed(0)}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = Number(e.currentTarget.value) / 1000
-                  updateDeflectionLimit('long', 'maxLimit', value)
+                  const value = e.currentTarget.value.trim()
+                  if (value === '') {
+                    updateDeflectionLimit('long', 'maxLimit', 0)
+                  } else {
+                    const numericValue = Number(value)
+                    updateDeflectionLimit('long', 'maxLimit', numericValue / 1000)
+                  }
                 }}
                 className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
               />

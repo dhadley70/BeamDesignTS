@@ -197,8 +197,8 @@ export default function App() {
         const data = JSON.parse(raw)
         console.log('Loaded deflection limits data:', data)
         
-        // Handle migrating from old 'instant' key to 'initial'
-        const initialData = data.initial || data.instant || {}
+        // Using 'initial' key consistently
+        const initialData = data.initial || {}
         const shortData = data.short || {}
         const longData = data.long || {}
         
@@ -265,7 +265,7 @@ export default function App() {
 
   // Persist deflection limits changes
   useEffect(() => {
-    // Always use 'initial' key, never 'instant'
+    // Use 'initial' key consistently
     localStorage.setItem(DEFLECTION_LIMITS_KEY, JSON.stringify(deflectionLimits))
   }, [deflectionLimits])
 

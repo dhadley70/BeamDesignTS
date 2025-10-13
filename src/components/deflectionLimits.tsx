@@ -40,7 +40,7 @@ export const DeflectionLimitsCard: React.FC<{
     }
 
     return (
-      checkSection(deflectionLimits.initial, preset.initial) &&
+      checkSection(deflectionLimits.initial, preset.inst) &&
       checkSection(deflectionLimits.short, preset.short) &&
       checkSection(deflectionLimits.long, preset.long)
     )
@@ -296,9 +296,9 @@ export const DeflectionLimitsCard: React.FC<{
                   onClick={() => {
                     setDeflectionLimits({
                       initial: {
-                        spanRatio: preset.initial.ratio,
-                        maxLimit: preset.initial.max / 1000,
-                        maxDeflection: calculateMaxDeflection(span, preset.initial.ratio, preset.initial.max / 1000)
+                        spanRatio: preset.inst.ratio,
+                        maxLimit: preset.inst.max / 1000,
+                        maxDeflection: calculateMaxDeflection(span, preset.inst.ratio, preset.inst.max / 1000)
                       },
                       short: {
                         spanRatio: preset.short.ratio,

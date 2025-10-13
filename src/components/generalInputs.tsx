@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { InputWithUnit } from '@/components/ui/InputWithUnit'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
 
 // Define local types
 export type UsageOption = 'Normal' | 'No Traffic' | 'Storage'
@@ -122,18 +121,22 @@ export const GeneralInputsCard: React.FC<{
 
           {/* Lateral Restraint */}
           <div className="space-y-1.5">
-            <label htmlFor="lateralRestraint" className="block text-sm font-medium text-[var(--text)]">
+            <label className="block text-sm font-medium text-[var(--text)]">
               Lateral Restraint
             </label>
-            <Input
-              id="lateralRestraint"
-              placeholder="Lateral Restraint"
-              value={generalInputs.lateralRestraint}
-              onChange={(e) =>
-                setGeneralInputs(prev => ({ ...prev, lateralRestraint: e.currentTarget.value }))
+            <Select
+              value={generalInputs.lateralRestraint || "Lateral Restraint"}
+              onValueChange={(val) =>
+                setGeneralInputs(prev => ({ ...prev, lateralRestraint: val }))
               }
-              className="w-full bg-[var(--input)] border-[color:var(--border)]"
-            />
+            >
+              <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
+                <SelectValue placeholder="Select Lateral Restraint" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Lateral Restraint">Lateral Restraint</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </CardContent>

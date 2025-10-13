@@ -1,6 +1,8 @@
 import React from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { InputWithUnit } from '@/components/ui/InputWithUnit'
+import { Button } from '@/components/ui/button'
+import presets from '@/data/deflection_presets.json'
 
 // Define deflection limits types and constants
 export interface DeflectionLimits {
@@ -26,6 +28,24 @@ export const DeflectionLimitsCard: React.FC<{
   setDeflectionLimits: React.Dispatch<React.SetStateAction<DeflectionLimits>>
   span: number  // Pass span from parent to help with default calculations
 }> = ({ deflectionLimits, setDeflectionLimits, span }) => {
+  // Check if current limits exactly match a preset
+  const matchPreset = (preset: typeof presets[number]) => {
+    const checkSection = (
+      current: { spanRatio: number, maxLimit: number, maxDeflection?: number }, 
+      presetSection: { ratio: number, max: number }
+    ) => {
+      // Compare span ratio and max limit, converting max limit to meters
+      return current.spanRatio === presetSection.ratio && 
+             Math.abs(current.maxLimit - presetSection.max / 1000) < 0.001
+    }
+
+    return (
+      checkSection(deflectionLimits.initial, preset.initial) &&
+      checkSection(deflectionLimits.short, preset.short) &&
+      checkSection(deflectionLimits.long, preset.long)
+    )
+  }
+
   // Update a specific part of the deflection limits
   const updateDeflectionLimit = (
     type: 'initial' | 'short' | 'long', 
@@ -265,7 +285,39 @@ export const DeflectionLimitsCard: React.FC<{
             </div>
           </div>
         </div>
-      </CardContent>
+            {/* Preset Buttons */}
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {presets.map((preset) => (
+                <Button 
+                  key={preset.id}
+                  variant={matchPreset(preset) ? "outline" : "outline"}
+                  size="sm"
+                  className={matchPreset(preset) ? "border-accent" : ""}
+                  onClick={() => {
+                    setDeflectionLimits({
+                      initial: {
+                        spanRatio: preset.initial.ratio,
+                        maxLimit: preset.initial.max / 1000,
+                        maxDeflection: calculateMaxDeflection(span, preset.initial.ratio, preset.initial.max / 1000)
+                      },
+                      short: {
+                        spanRatio: preset.short.ratio,
+                        maxLimit: preset.short.max / 1000,
+                        maxDeflection: calculateMaxDeflection(span, preset.short.ratio, preset.short.max / 1000)
+                      },
+                      long: {
+                        spanRatio: preset.long.ratio,
+                        maxLimit: preset.long.max / 1000,
+                        maxDeflection: calculateMaxDeflection(span, preset.long.ratio, preset.long.max / 1000)
+                      }
+                    })
+                  }}
+                >
+                  {preset.name}
+                </Button>
+              ))}
+            </div>
+          </CardContent>
     </Card>
   )
 }

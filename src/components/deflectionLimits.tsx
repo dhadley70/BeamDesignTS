@@ -7,14 +7,17 @@ export interface DeflectionLimits {
   initial: {
     spanRatio: number  // Integer representing span division (e.g., 240 means span/240)
     maxLimit: number
+    maxDeflection?: number  // Calculated maximum deflection in mm as an integer
   }
   short: {
     spanRatio: number  // Integer representing span division (e.g., 180 means span/180)
     maxLimit: number
+    maxDeflection?: number  // Calculated maximum deflection in mm as an integer
   }
   long: {
     spanRatio: number  // Integer representing span division (e.g., 120 means span/120)
     maxLimit: number
+    maxDeflection?: number  // Calculated maximum deflection in mm as an integer
   }
 }
 
@@ -29,13 +32,43 @@ export const DeflectionLimitsCard: React.FC<{
     field: 'spanRatio' | 'maxLimit', 
     value: number
   ) => {
-    setDeflectionLimits(prev => ({
-      ...prev,
-      [type]: {
+    setDeflectionLimits(prev => {
+      // Determine the new values
+      const newValues = {
         ...prev[type],
         [field]: value
       }
-    }))
+      
+      // Recalculate max deflection with updated values
+      const maxDeflection = calculateMaxDeflection(
+        span, 
+        newValues.spanRatio || prev[type].spanRatio, 
+        newValues.maxLimit || prev[type].maxLimit
+      )
+      
+      return {
+        ...prev,
+        [type]: {
+          ...newValues,
+          maxDeflection
+        }
+      }
+    })
+  }
+
+  // Calculate maximum deflection based on span and limits
+  const calculateMaxDeflection = (beamSpan: number, spanRatio: number, maxLimit: number) => {
+    // Convert span to mm
+    const spanMm = beamSpan * 1000
+    
+    // Calculate deflection by span ratio
+    const ratioDeflection = spanMm / spanRatio
+    
+    // Convert maxLimit to mm if it's in meters
+    const maxLimitMm = maxLimit < 1 ? maxLimit * 1000 : maxLimit
+    
+    // Return the lesser of ratio-based deflection or max limit as an integer
+    return Math.round(Math.min(ratioDeflection, maxLimitMm))
   }
 
   // Calculate default span ratios if not set
@@ -56,15 +89,20 @@ export const DeflectionLimitsCard: React.FC<{
         <div className="grid grid-cols-3 gap-4">
           {/* Initial Deflection */}
           <div className="space-y-2">
-            <h3 className="text-sm font-medium text-[var(--text)]">Initial</h3>
+            <h3 className="text-sm font-medium text-[var(--text)] flex items-center gap-2">
+              Initial 
+              <span className="block text-xs font-medium text-[var(--text)] opacity-70">
+                (Max: {calculateMaxDeflection(span, deflectionLimits.initial.spanRatio, deflectionLimits.initial.maxLimit)} mm)
+              </span>
+            </h3>
             <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-[var(--text)] opacity-70">Span Ratio (L/x)</label>
+              <label className="block text-xs font-medium text-[var(--text)] opacity-70">Span Ratio</label>
               <InputWithUnit
                 id="initialSpanRatio"
                 unit="L/x"
                 type="number"
                 inputMode="decimal"
-                step={0.1}
+                step={10}
                 placeholder="Initial Span Ratio"
                 value={(deflectionLimits.initial.spanRatio || getDefaultSpanRatio('initial')).toString()}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,15 +135,20 @@ export const DeflectionLimitsCard: React.FC<{
 
           {/* Short-Term Deflection */}
           <div className="space-y-2">
-            <h3 className="text-sm font-medium text-[var(--text)]">Short</h3>
+            <h3 className="text-sm font-medium text-[var(--text)] flex items-center gap-2">
+              Short 
+              <span className="block text-xs font-medium text-[var(--text)] opacity-70">
+                (Max: {calculateMaxDeflection(span, deflectionLimits.short.spanRatio, deflectionLimits.short.maxLimit)} mm)
+              </span>
+            </h3>
             <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-[var(--text)] opacity-70">Span Ratio (L/x)</label>
+              <label className="block text-xs font-medium text-[var(--text)] opacity-70">Span Ratio</label>
               <InputWithUnit
                 id="shortSpanRatio"
                 unit="L/x"
                 type="number"
                 inputMode="decimal"
-                step={0.1}
+                step={10}
                 placeholder="Short Span Ratio"
                 value={(deflectionLimits.short.spanRatio || getDefaultSpanRatio('short')).toString()}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,15 +181,20 @@ export const DeflectionLimitsCard: React.FC<{
 
           {/* Long-Term Deflection */}
           <div className="space-y-2">
-            <h3 className="text-sm font-medium text-[var(--text)]">Long</h3>
+            <h3 className="text-sm font-medium text-[var(--text)] flex items-center gap-2">
+              Long 
+              <span className="block text-xs font-medium text-[var(--text)] opacity-70">
+                (Max: {calculateMaxDeflection(span, deflectionLimits.long.spanRatio, deflectionLimits.long.maxLimit)} mm)
+              </span>
+            </h3>
             <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-[var(--text)] opacity-70">Span Ratio (L/x)</label>
+              <label className="block text-xs font-medium text-[var(--text)] opacity-70">Span Ratio</label>
               <InputWithUnit
                 id="longSpanRatio"
                 unit="L/x"
                 type="number"
                 inputMode="decimal"
-                step={0.1}
+                step={10}
                 placeholder="Long Span Ratio"
                 value={(deflectionLimits.long.spanRatio || getDefaultSpanRatio('long')).toString()}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {

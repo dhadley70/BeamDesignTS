@@ -179,6 +179,17 @@ export default function App() {
   }, [generalInputs])
 
   // Load deflection limits from local storage
+  const calculateMaxDeflection = (span: number, spanRatio: number, maxLimit: number) => {
+    // Convert span to mm
+    const spanMm = span * 1000
+    
+    // Calculate deflection by span ratio
+    const ratioDeflection = spanMm / spanRatio
+    
+    // Return the lesser of ratio-based deflection or max limit
+    return Math.min(ratioDeflection, maxLimit)
+  }
+
   const loadDeflectionLimits = (): DeflectionLimits => {
     try {
       const raw = localStorage.getItem(DEFLECTION_LIMITS_KEY)
@@ -198,15 +209,30 @@ export default function App() {
         return {
           initial: {
             spanRatio: Number.isInteger(initialData.spanRatio) ? initialData.spanRatio : 240,
-            maxLimit: Number.isFinite(initialData.maxLimit) ? initialData.maxLimit : (generalInputs.span * 1000 / 240) / 1000
+            maxLimit: Number.isFinite(initialData.maxLimit) ? initialData.maxLimit : (generalInputs.span * 1000 / 240) / 1000,
+            maxDeflection: calculateMaxDeflection(
+              generalInputs.span, 
+              Number.isInteger(initialData.spanRatio) ? initialData.spanRatio : 240, 
+              Number.isFinite(initialData.maxLimit) ? initialData.maxLimit : (generalInputs.span * 1000 / 240) / 1000
+            )
           },
           short: {
             spanRatio: Number.isInteger(shortData.spanRatio) ? shortData.spanRatio : 180,
-            maxLimit: Number.isFinite(shortData.maxLimit) ? shortData.maxLimit : (generalInputs.span * 1000 / 180) / 1000
+            maxLimit: Number.isFinite(shortData.maxLimit) ? shortData.maxLimit : (generalInputs.span * 1000 / 180) / 1000,
+            maxDeflection: calculateMaxDeflection(
+              generalInputs.span, 
+              Number.isInteger(shortData.spanRatio) ? shortData.spanRatio : 180, 
+              Number.isFinite(shortData.maxLimit) ? shortData.maxLimit : (generalInputs.span * 1000 / 180) / 1000
+            )
           },
           long: {
             spanRatio: Number.isInteger(longData.spanRatio) ? longData.spanRatio : 120,
-            maxLimit: Number.isFinite(longData.maxLimit) ? longData.maxLimit : (generalInputs.span * 1000 / 120) / 1000
+            maxLimit: Number.isFinite(longData.maxLimit) ? longData.maxLimit : (generalInputs.span * 1000 / 120) / 1000,
+            maxDeflection: calculateMaxDeflection(
+              generalInputs.span, 
+              Number.isInteger(longData.spanRatio) ? longData.spanRatio : 120, 
+              Number.isFinite(longData.maxLimit) ? longData.maxLimit : (generalInputs.span * 1000 / 120) / 1000
+            )
           }
         }
       }
@@ -218,15 +244,18 @@ export default function App() {
     return {
       initial: {
         spanRatio: 240,  // Span/240
-        maxLimit: (generalInputs.span * 1000 / 240) / 1000
+        maxLimit: (generalInputs.span * 1000 / 240) / 1000,
+        maxDeflection: calculateMaxDeflection(generalInputs.span, 240, (generalInputs.span * 1000 / 240) / 1000)
       },
       short: {
         spanRatio: 180,  // Span/180
-        maxLimit: (generalInputs.span * 1000 / 180) / 1000
+        maxLimit: (generalInputs.span * 1000 / 180) / 1000,
+        maxDeflection: calculateMaxDeflection(generalInputs.span, 180, (generalInputs.span * 1000 / 180) / 1000)
       },
       long: {
         spanRatio: 120,  // Span/120
-        maxLimit: (generalInputs.span * 1000 / 120) / 1000
+        maxLimit: (generalInputs.span * 1000 / 120) / 1000,
+        maxDeflection: calculateMaxDeflection(generalInputs.span, 120, (generalInputs.span * 1000 / 120) / 1000)
       }
     }
   }

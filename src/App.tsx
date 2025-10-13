@@ -184,36 +184,49 @@ export default function App() {
       const raw = localStorage.getItem(DEFLECTION_LIMITS_KEY)
       if (raw) {
         const data = JSON.parse(raw)
+        console.log('Loaded deflection limits data:', data)
+        
+        // Handle migrating from old 'instant' key to 'initial'
+        const initialData = data.initial || data.instant || {}
+        const shortData = data.short || {}
+        const longData = data.long || {}
+        
+        console.log('Initial Data:', initialData)
+        console.log('Short Data:', shortData)
+        console.log('Long Data:', longData)
+        
         return {
-          instant: {
-            spanRatio: Number.isFinite(data.instant?.spanRatio) ? data.instant.spanRatio : generalInputs.span / 240,
-            maxLimit: Number.isFinite(data.instant?.maxLimit) ? data.instant.maxLimit : generalInputs.span / 240
+          initial: {
+            spanRatio: Number.isInteger(initialData.spanRatio) ? initialData.spanRatio : 240,
+            maxLimit: Number.isFinite(initialData.maxLimit) ? initialData.maxLimit : (generalInputs.span * 1000 / 240) / 1000
           },
           short: {
-            spanRatio: Number.isFinite(data.short?.spanRatio) ? data.short.spanRatio : generalInputs.span / 180,
-            maxLimit: Number.isFinite(data.short?.maxLimit) ? data.short.maxLimit : generalInputs.span / 180
+            spanRatio: Number.isInteger(shortData.spanRatio) ? shortData.spanRatio : 180,
+            maxLimit: Number.isFinite(shortData.maxLimit) ? shortData.maxLimit : (generalInputs.span * 1000 / 180) / 1000
           },
           long: {
-            spanRatio: Number.isFinite(data.long?.spanRatio) ? data.long.spanRatio : generalInputs.span / 120,
-            maxLimit: Number.isFinite(data.long?.maxLimit) ? data.long.maxLimit : generalInputs.span / 120
+            spanRatio: Number.isInteger(longData.spanRatio) ? longData.spanRatio : 120,
+            maxLimit: Number.isFinite(longData.maxLimit) ? longData.maxLimit : (generalInputs.span * 1000 / 120) / 1000
           }
         }
       }
-    } catch { }
+    } catch (error) { 
+      console.error('Error loading deflection limits:', error)
+    }
     
-    // Default limits based on span
+    // Default limits 
     return {
-      instant: {
-        spanRatio: generalInputs.span / 240,
-        maxLimit: generalInputs.span / 240
+      initial: {
+        spanRatio: 240,  // Span/240
+        maxLimit: (generalInputs.span * 1000 / 240) / 1000
       },
       short: {
-        spanRatio: generalInputs.span / 180,
-        maxLimit: generalInputs.span / 180
+        spanRatio: 180,  // Span/180
+        maxLimit: (generalInputs.span * 1000 / 180) / 1000
       },
       long: {
-        spanRatio: generalInputs.span / 120,
-        maxLimit: generalInputs.span / 120
+        spanRatio: 120,  // Span/120
+        maxLimit: (generalInputs.span * 1000 / 120) / 1000
       }
     }
   }
@@ -223,6 +236,7 @@ export default function App() {
 
   // Persist deflection limits changes
   useEffect(() => {
+    // Always use 'initial' key, never 'instant'
     localStorage.setItem(DEFLECTION_LIMITS_KEY, JSON.stringify(deflectionLimits))
   }, [deflectionLimits])
 

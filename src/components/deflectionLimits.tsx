@@ -4,16 +4,16 @@ import { InputWithUnit } from '@/components/ui/InputWithUnit'
 
 // Define deflection limits types and constants
 export interface DeflectionLimits {
-  instant: {
-    spanRatio: number
+  initial: {
+    spanRatio: number  // Integer representing span division (e.g., 240 means span/240)
     maxLimit: number
   }
   short: {
-    spanRatio: number
+    spanRatio: number  // Integer representing span division (e.g., 180 means span/180)
     maxLimit: number
   }
   long: {
-    spanRatio: number
+    spanRatio: number  // Integer representing span division (e.g., 120 means span/120)
     maxLimit: number
   }
 }
@@ -25,7 +25,7 @@ export const DeflectionLimitsCard: React.FC<{
 }> = ({ deflectionLimits, setDeflectionLimits, span }) => {
   // Update a specific part of the deflection limits
   const updateDeflectionLimit = (
-    type: 'instant' | 'short' | 'long', 
+    type: 'initial' | 'short' | 'long', 
     field: 'spanRatio' | 'maxLimit', 
     value: number
   ) => {
@@ -39,11 +39,11 @@ export const DeflectionLimitsCard: React.FC<{
   }
 
   // Calculate default span ratios if not set
-  const getDefaultSpanRatio = (type: 'instant' | 'short' | 'long') => {
+  const getDefaultSpanRatio = (type: 'initial' | 'short' | 'long') => {
     switch(type) {
-      case 'instant': return span / 240  // More restrictive for instant deflection
-      case 'short': return span / 180    // Standard short-term deflection limit
-      case 'long': return span / 120     // More allowance for long-term deflection
+      case 'initial': return 240  // More restrictive for initial deflection
+      case 'short': return 180    // Standard short-term deflection limit
+      case 'long': return 120     // More allowance for long-term deflection
     }
   }
 
@@ -54,39 +54,41 @@ export const DeflectionLimitsCard: React.FC<{
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-3 gap-4">
-          {/* Instant Deflection */}
+          {/* Initial Deflection */}
           <div className="space-y-2">
-            <h3 className="text-sm font-medium text-[var(--text)] text-center">Instant</h3>
+            <h3 className="text-sm font-medium text-[var(--text)]">Initial</h3>
             <div className="space-y-1.5">
               <label className="block text-xs font-medium text-[var(--text)] opacity-70">Span Ratio (L/x)</label>
               <InputWithUnit
-                id="instantSpanRatio"
+                id="initialSpanRatio"
                 unit="L/x"
                 type="number"
                 inputMode="decimal"
                 step={0.1}
-                placeholder="Instant Span Ratio"
-                value={(deflectionLimits.instant.spanRatio || getDefaultSpanRatio('instant')).toFixed(2)}
+                placeholder="Initial Span Ratio"
+                value={(deflectionLimits.initial.spanRatio || getDefaultSpanRatio('initial')).toString()}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = Number(e.currentTarget.value)
-                  updateDeflectionLimit('instant', 'spanRatio', value)
+                  const value = parseInt(e.currentTarget.value, 10)
+                  if (!isNaN(value)) {
+                    updateDeflectionLimit('initial', 'spanRatio', value)
+                  }
                 }}
                 className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
               />
             </div>
             <div className="space-y-1.5">
               <label className="block text-xs font-medium text-[var(--text)] opacity-70">Maximum Limit</label>
-              <InputWithUnit
-                id="instantMaxLimit"
-                unit="m"
+                <InputWithUnit
+                id="initialMaxLimit"
+                unit="mm"
                 type="number"
                 inputMode="decimal"
-                step={0.001}
-                placeholder="Instant Max Limit"
-                value={deflectionLimits.instant.maxLimit.toFixed(3)}
+                step={1}
+                placeholder="Initial Max Limit"
+                value={(deflectionLimits.initial.maxLimit * 1000).toFixed(0)}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = Number(e.currentTarget.value)
-                  updateDeflectionLimit('instant', 'maxLimit', value)
+                  const value = Number(e.currentTarget.value) / 1000
+                  updateDeflectionLimit('initial', 'maxLimit', value)
                 }}
                 className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
               />
@@ -95,7 +97,7 @@ export const DeflectionLimitsCard: React.FC<{
 
           {/* Short-Term Deflection */}
           <div className="space-y-2">
-            <h3 className="text-sm font-medium text-[var(--text)] text-center">Short</h3>
+            <h3 className="text-sm font-medium text-[var(--text)]">Short</h3>
             <div className="space-y-1.5">
               <label className="block text-xs font-medium text-[var(--text)] opacity-70">Span Ratio (L/x)</label>
               <InputWithUnit
@@ -105,26 +107,28 @@ export const DeflectionLimitsCard: React.FC<{
                 inputMode="decimal"
                 step={0.1}
                 placeholder="Short Span Ratio"
-                value={(deflectionLimits.short.spanRatio || getDefaultSpanRatio('short')).toFixed(2)}
+                value={(deflectionLimits.short.spanRatio || getDefaultSpanRatio('short')).toString()}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = Number(e.currentTarget.value)
-                  updateDeflectionLimit('short', 'spanRatio', value)
+                  const value = parseInt(e.currentTarget.value, 10)
+                  if (!isNaN(value)) {
+                    updateDeflectionLimit('short', 'spanRatio', value)
+                  }
                 }}
                 className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
               />
             </div>
             <div className="space-y-1.5">
               <label className="block text-xs font-medium text-[var(--text)] opacity-70">Maximum Limit</label>
-              <InputWithUnit
+                <InputWithUnit
                 id="shortMaxLimit"
-                unit="m"
+                unit="mm"
                 type="number"
                 inputMode="decimal"
-                step={0.001}
+                step={1}
                 placeholder="Short Max Limit"
-                value={deflectionLimits.short.maxLimit.toFixed(3)}
+                value={(deflectionLimits.short.maxLimit * 1000).toFixed(0)}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = Number(e.currentTarget.value)
+                  const value = Number(e.currentTarget.value) / 1000
                   updateDeflectionLimit('short', 'maxLimit', value)
                 }}
                 className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
@@ -134,7 +138,7 @@ export const DeflectionLimitsCard: React.FC<{
 
           {/* Long-Term Deflection */}
           <div className="space-y-2">
-            <h3 className="text-sm font-medium text-[var(--text)] text-center">Long</h3>
+            <h3 className="text-sm font-medium text-[var(--text)]">Long</h3>
             <div className="space-y-1.5">
               <label className="block text-xs font-medium text-[var(--text)] opacity-70">Span Ratio (L/x)</label>
               <InputWithUnit
@@ -144,26 +148,28 @@ export const DeflectionLimitsCard: React.FC<{
                 inputMode="decimal"
                 step={0.1}
                 placeholder="Long Span Ratio"
-                value={(deflectionLimits.long.spanRatio || getDefaultSpanRatio('long')).toFixed(2)}
+                value={(deflectionLimits.long.spanRatio || getDefaultSpanRatio('long')).toString()}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = Number(e.currentTarget.value)
-                  updateDeflectionLimit('long', 'spanRatio', value)
+                  const value = parseInt(e.currentTarget.value, 10)
+                  if (!isNaN(value)) {
+                    updateDeflectionLimit('long', 'spanRatio', value)
+                  }
                 }}
                 className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
               />
             </div>
             <div className="space-y-1.5">
               <label className="block text-xs font-medium text-[var(--text)] opacity-70">Maximum Limit</label>
-              <InputWithUnit
+                <InputWithUnit
                 id="longMaxLimit"
-                unit="m"
+                unit="mm"
                 type="number"
                 inputMode="decimal"
-                step={0.001}
+                step={1}
                 placeholder="Long Max Limit"
-                value={deflectionLimits.long.maxLimit.toFixed(3)}
+                value={(deflectionLimits.long.maxLimit * 1000).toFixed(0)}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = Number(e.currentTarget.value)
+                  const value = Number(e.currentTarget.value) / 1000
                   updateDeflectionLimit('long', 'maxLimit', value)
                 }}
                 className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"

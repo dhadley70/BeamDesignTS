@@ -125,7 +125,12 @@ export const GeneralInputsCard: React.FC<{
 
           {/* Usage */}
               <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-[var(--text)]">Usage</label>
+            <label className="block text-sm font-medium text-[var(--text)]">Usage
+                    <span className="ml-2 text-[var(--text)] opacity-70 text-xs">
+                      (ws: {generalInputs.ws}, wl: {generalInputs.wl})
+                    </span>
+
+            </label>
             <Select
               value={generalInputs.usage}
               onValueChange={(val: UsageOption) => {
@@ -142,9 +147,7 @@ export const GeneralInputsCard: React.FC<{
                 <SelectValue placeholder="Select usage">
                   <div className="flex items-center">
                     <span>{generalInputs.usage}</span>
-                    <span className="ml-2 text-[var(--text)] opacity-70 text-xs">
-                      (ws: {generalInputs.ws}, wl: {generalInputs.wl})
-                    </span>
+
                   </div>
                 </SelectValue>
               </SelectTrigger>
@@ -155,9 +158,7 @@ export const GeneralInputsCard: React.FC<{
                     <SelectItem key={usage} value={usage}>
                       <div className="flex justify-between items-center w-full">
                         <span>{usage}</span>
-                        <span className="text-xs opacity-70 ml-2">
-                          (ws: {details.ws}, wl: {details.wl})
-                        </span>
+
                       </div>
                     </SelectItem>
                   )

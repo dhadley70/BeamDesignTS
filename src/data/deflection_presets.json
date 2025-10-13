@@ -8,11 +8,11 @@
     },
     "short": {
       "ratio": 400,
-      "max": 9.0
+      "max": 9
     },
     "long": {
       "ratio": 300,
-      "max": 15.0
+      "max": 15
     }
   },
   {
@@ -20,15 +20,15 @@
     "name": "Load bearing floor",
     "inst": {
       "ratio": 500,
-      "max": 12.5
+      "max": 12
     },
     "short": {
       "ratio": 400,
-      "max": 9.0
+      "max": 9
     },
     "long": {
       "ratio": 300,
-      "max": 15.0
+      "max": 15
     }
   },
   {
@@ -36,15 +36,15 @@
     "name": "Brittle ceiling",
     "inst": {
       "ratio": 400,
-      "max": 12.5
+      "max": 14
     },
     "short": {
       "ratio": 400,
-      "max": 9.0
+      "max": 9
     },
     "long": {
       "ratio": 300,
-      "max": 15.0
+      "max": 15
     }
   },
   {

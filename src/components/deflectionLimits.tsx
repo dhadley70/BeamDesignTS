@@ -292,7 +292,7 @@ export const DeflectionLimitsCard: React.FC<{
                   key={preset.id}
                   variant={matchPreset(preset) ? "outline" : "outline"}
                   size="sm"
-                  className={`${matchPreset(preset) ? "border-accent" : ""} border-[color:var(--border)] bg-[var(--card)]`}
+                  className={`${matchPreset(preset) ? "border-accent" : ""}  bg-[var(--card)]`}
                   onClick={() => {
                     setDeflectionLimits({
                       initial: {

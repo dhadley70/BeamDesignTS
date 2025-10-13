@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { GeneralInputsCard } from "@/components/generalInputs"
+import { DeflectionLimitsCard } from "@/components/deflectionLimits"
 import { AlignLeft, Home, BarChart3, Settings, ChevronRight, Rocket, Star, Paintbrush, Check, ChevronDown, Circle, } from "lucide-react"
 
 /* ---------------- Theming ---------------- */
@@ -46,8 +47,10 @@ type GeneralInputs = {
 }
 
 const GENERAL_INPUTS_KEY = "generalInputs"
+const DEFLECTION_LIMITS_KEY = "deflectionLimits"
 
 import usageData from '@/data/usage.json'
+import type { DeflectionLimits } from "@/components/deflectionLimits"
 
 type UsageDataType = {
   Normal: { ws: number; wl: number },
@@ -175,6 +178,54 @@ export default function App() {
     localStorage.setItem(GENERAL_INPUTS_KEY, JSON.stringify(generalInputs))
   }, [generalInputs])
 
+  // Load deflection limits from local storage
+  const loadDeflectionLimits = (): DeflectionLimits => {
+    try {
+      const raw = localStorage.getItem(DEFLECTION_LIMITS_KEY)
+      if (raw) {
+        const data = JSON.parse(raw)
+        return {
+          instant: {
+            spanRatio: Number.isFinite(data.instant?.spanRatio) ? data.instant.spanRatio : generalInputs.span / 240,
+            maxLimit: Number.isFinite(data.instant?.maxLimit) ? data.instant.maxLimit : generalInputs.span / 240
+          },
+          short: {
+            spanRatio: Number.isFinite(data.short?.spanRatio) ? data.short.spanRatio : generalInputs.span / 180,
+            maxLimit: Number.isFinite(data.short?.maxLimit) ? data.short.maxLimit : generalInputs.span / 180
+          },
+          long: {
+            spanRatio: Number.isFinite(data.long?.spanRatio) ? data.long.spanRatio : generalInputs.span / 120,
+            maxLimit: Number.isFinite(data.long?.maxLimit) ? data.long.maxLimit : generalInputs.span / 120
+          }
+        }
+      }
+    } catch { }
+    
+    // Default limits based on span
+    return {
+      instant: {
+        spanRatio: generalInputs.span / 240,
+        maxLimit: generalInputs.span / 240
+      },
+      short: {
+        spanRatio: generalInputs.span / 180,
+        maxLimit: generalInputs.span / 180
+      },
+      long: {
+        spanRatio: generalInputs.span / 120,
+        maxLimit: generalInputs.span / 120
+      }
+    }
+  }
+
+  // Deflection Limits State
+  const [deflectionLimits, setDeflectionLimits] = useState<DeflectionLimits>(() => loadDeflectionLimits())
+
+  // Persist deflection limits changes
+  useEffect(() => {
+    localStorage.setItem(DEFLECTION_LIMITS_KEY, JSON.stringify(deflectionLimits))
+  }, [deflectionLimits])
+
   // Removed local states related to general inputs
 
 
@@ -214,6 +265,12 @@ export default function App() {
         <GeneralInputsCard
           generalInputs={generalInputs}
           setGeneralInputs={setGeneralInputs}
+        />
+
+        <DeflectionLimitsCard
+          deflectionLimits={deflectionLimits}
+          setDeflectionLimits={setDeflectionLimits}
+          span={generalInputs.span}
         />
 
         {/* Stats */}

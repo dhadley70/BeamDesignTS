@@ -4,10 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react"
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { InputWithUnit } from "@/components/ui/InputWithUnit"
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { GeneralInputsCard } from "@/components/generalInputs"
 import { AlignLeft, Home, BarChart3, Settings, ChevronRight, Rocket, Star, Paintbrush, Check, ChevronDown, Circle, } from "lucide-react"
 
 /* ---------------- Theming ---------------- */
@@ -27,7 +25,7 @@ function useTheme(): [ThemeName, (t: ThemeName) => void] {
   return [theme, setTheme]
 }
 
-const memberOptions = [1, 2, 3, 4] as const
+// memberOptions removed
 
 const clampSpan = (v: unknown) => {
   const n = typeof v === "number" ? v : Number(v)
@@ -148,26 +146,7 @@ export default function App() {
     localStorage.setItem(GENERAL_INPUTS_KEY, JSON.stringify(generalInputs))
   }, [generalInputs])
 
-  const [spanDraft, setSpanDraft] = useState<string>(() =>
-    (generalInputs.span ?? 1).toString()
-  )
-
-  // If `generalInputs.span` changes elsewhere (e.g., rehydrate), reflect it
-  useEffect(() => {
-    setSpanDraft((generalInputs.span ?? 1).toString())
-  }, [generalInputs.span])
-
-  const handleMembersChange = (val: string) => {
-    const n = Number(val)
-    setGeneralInputs(prev => ({ ...prev, members: Number.isFinite(n) ? n : prev.members }))
-  }
-
-  const [spanFocused, setSpanFocused] = useState(false)
-  useEffect(() => {
-    if (!spanFocused) {
-      setSpanDraft((generalInputs.span ?? 1).toString())
-    }
-  }, [generalInputs.span, spanFocused])
+  // Removed local states related to general inputs
 
 
 
@@ -235,115 +214,22 @@ export default function App() {
           setProjectInfo={setProjectInfo} 
         />
 
-        <Card className="mb-6 lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
-          <CardHeader>
-            <CardTitle className="text-xl">General Inputs</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-4 gap-4">
-
-              {/* Span (strict clamp) */}
-              <div className="space-y-1.5">
-                <label htmlFor="span" className="block text-sm font-medium text-[var(--text)]">
-                  Span
-                </label>
-                <InputWithUnit
-                  id="span"
-                  unit="m"
-                  type="number"
-                  inputMode="decimal"
-                  min={1}
-                  step={0.1}
-                  placeholder="Span"
-                  value={spanDraft}                           // can be "", "3", "3.", "3.4"…
-                  onFocus={() => setSpanFocused(true)}
-                  onBlur={() => setSpanFocused(false)}        // no snapping; stays "" if user cleared
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const s = e.currentTarget.value
-                    setSpanDraft(s)                           // allow empty/partials in the UI
-
-                    // Always keep the numeric state valid for calcs:
-                    const n = Number(s.replace(",", "."))
-                    const clamped = Number.isFinite(n) ? Math.max(0.1, n) : 0.1
-                    setGeneralInputs(p => ({ ...p, span: clamped }))
-                  }}
-                  onWheel={(e) => e.currentTarget.blur()}
-                  className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
-                />
-              </div>
-
-              {/* Members */}
-              <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-[var(--text)]">Number of members</label>
-                <Select
-                  value={String(generalInputs.members)}
-                  onValueChange={(val) => {
-                    const n = Number(val)
-                    setGeneralInputs(p => ({ ...p, members: Number.isFinite(n) ? n : p.members }))
-                  }}
-                >
-                  <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
-                    <SelectValue placeholder="Number of members" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {memberOptions.map(n => (
-                      <SelectItem key={n} value={String(n)}>
-                        {n}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Usage */}
-              <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-[var(--text)]">Usage</label>
-                <Select
-                  value={generalInputs.usage}
-                  onValueChange={(val: UsageOption) =>
-                    setGeneralInputs(p => ({ ...p, usage: val }))
-                  }
-                >
-                  <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
-                    <SelectValue placeholder="Select usage" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Normal">Normal</SelectItem>
-                    <SelectItem value="No Traffic">No Traffic</SelectItem>
-                    <SelectItem value="Storage">Storage</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Lateral Restraint */}
-              <div className="space-y-1.5">
-                <label htmlFor="lateralRestraint" className="block text-sm font-medium text-[var(--text)]">
-                  Lateral Restraint
-                </label>
-                <Input
-                  id="lateralRestraint"
-                  placeholder="Lateral Restraint"
-                  value={generalInputs.lateralRestraint}
-                  onChange={(e) =>
-                    setGeneralInputs(prev => ({ ...prev, lateralRestraint: e.currentTarget.value }))
-                  }
-                  className="w-full bg-[var(--input)] border-[color:var(--border)]"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <GeneralInputsCard 
+          generalInputs={generalInputs} 
+          setGeneralInputs={setGeneralInputs} 
+        />
 
         {/* Stats */}
         <div className="grid gap-4 space-y-4 md:grid-cols-3">
           <StatCard title="Overview" kpi="Active jobs" value="12" icon={<Home className="size-4" />} />
-          <StatCard title="Performance" kpi="Efficiency" value="92%" icon={<BarChart3 className="size-4" />} />
           <StatCard
             title="Reputation"
             kpi="Rating"
             value={<span className="inline-flex items-center gap-1">4.8 <Star className="size-4" /></span>}
             icon={<Star className="size-4" />}
           />
+           <StatCard title="Performance" kpi="Efficiency" value="92%" icon={<BarChart3 className="size-4" />} />
+
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -375,7 +261,7 @@ export default function App() {
           </Card>
         </div>
 
-        <div className="mt-8 text-xs opacity-60">
+        <div className="mt-8 space-y-4 text-xs opacity-60">
           © {new Date().getFullYear()} Cantilever · Vite · Tailwind v4 · shadcn/ui
         </div>
       </main>

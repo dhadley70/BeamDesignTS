@@ -41,25 +41,54 @@ type GeneralInputs = {
   members: number         // 1..4
   usage: UsageOption      // enum
   lateralRestraint: string
+  ws: number             // short-term deflection variable
+  wl: number             // long-term deflection variable
 }
 
 const GENERAL_INPUTS_KEY = "generalInputs"
+
+import usageData from '@/data/usage.json'
+
+type UsageDataType = {
+  Normal: { ws: number; wl: number },
+  "No Traffic": { ws: number; wl: number },
+  Storage: { ws: number; wl: number }
+}
+
+const typedUsageData = usageData as UsageDataType
 
 function loadGeneralInputs(): GeneralInputs {
   try {
     const raw = localStorage.getItem(GENERAL_INPUTS_KEY)
     if (raw) {
       const data = JSON.parse(raw)
+      const usage = (["Normal", "No Traffic", "Storage"] as const).includes(data.usage) 
+        ? data.usage 
+        : "Normal"
+      const usageDetails = typedUsageData[usage as keyof UsageDataType]
       return {
         span: clampSpan(data.span),
         members: Number.isFinite(Number(data.members)) ? Number(data.members) : 1,
-        usage: (["Normal", "No Traffic", "Storage"] as const).includes(data.usage) ? data.usage : "Normal",
-        lateralRestraint: typeof data.lateralRestraint === "string" ? data.lateralRestraint : "",
+        usage: usage,
+        lateralRestraint: typeof data.lateralRestraint === "string" 
+          ? data.lateralRestraint 
+          : "Lateral Restraint",
+        ws: data.ws ?? usageDetails.ws,
+        wl: data.wl ?? usageDetails.wl,
       }
     }
   } catch { }
   // defaults
-  return { span: 3.0, members: 1, usage: "Normal", lateralRestraint: "" }
+  const defaultUsage = "Normal"
+  const usageDetails = typedUsageData[defaultUsage]
+  return { 
+    span: 3.0, 
+    members: 1, 
+    usage: defaultUsage, 
+    lateralRestraint: "Lateral Restraint",
+    ws: usageDetails.ws,
+    wl: usageDetails.wl
+  }
 }
 
 /* ---------------- Simple dropdown (no shadcn dependency) ---------------- */
@@ -174,53 +203,21 @@ export default function App() {
         </div>
       </header>
 
-      {/* MOBILE OVERLAY SIDEBAR (optional) */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-[240px] border-r border-[color:var(--border)] bg-[var(--card)]/95 backdrop-blur
-                    transition-transform duration-300 md:hidden overflow-x-hidden
-                    ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
-      >
-        <div className="flex h-14 items-center justify-between px-4">
-          <div className="flex items-center gap-2 font-semibold">
-            <Circle className="size-4" />
-            <a
-              href="https://www.radialsolutions.com.au"
-              target="_blank"
-              rel="noreferrer"
-              className="underline-offset-2 hover:underline"
-            >
-              Radial
-            </a>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-[color:var(--border)]"
-            onClick={() => setMobileOpen(false)}
-          >
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
-        <div className="h-[calc(100dvh-56px)] overflow-y-auto">
-          <Nav />
-        </div>
-      </aside>
-
       {/* MAIN CONTENT */}
       <main className="relative mx-auto max-w-7xl p-4 md:p-6 overflow-x-hidden">
 
-        <ProjectInfoCard 
-          projectInfo={projectInfo} 
-          setProjectInfo={setProjectInfo} 
+        <ProjectInfoCard
+          projectInfo={projectInfo}
+          setProjectInfo={setProjectInfo}
         />
 
-        <GeneralInputsCard 
-          generalInputs={generalInputs} 
-          setGeneralInputs={setGeneralInputs} 
+        <GeneralInputsCard
+          generalInputs={generalInputs}
+          setGeneralInputs={setGeneralInputs}
         />
 
         {/* Stats */}
-        <div className="grid gap-4 space-y-4 md:grid-cols-3">
+        <div className="grid gap-4 space-y-4 md:grid-cols-4">
           <StatCard title="Overview" kpi="Active jobs" value="12" icon={<Home className="size-4" />} />
           <StatCard
             title="Reputation"
@@ -228,10 +225,10 @@ export default function App() {
             value={<span className="inline-flex items-center gap-1">4.8 <Star className="size-4" /></span>}
             icon={<Star className="size-4" />}
           />
-           <StatCard title="Performance" kpi="Efficiency" value="92%" icon={<BarChart3 className="size-4" />} />
-
+          <StatCard title="Performance" kpi="Efficiency" value="92%" icon={<BarChart3 className="size-4" />} />
+     
         </div>
-
+        {/* Recent activity + Quick actions */}
         <div className="grid gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
             <CardHeader><CardTitle className="text-xl">Recent activity</CardTitle></CardHeader>

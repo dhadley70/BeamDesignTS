@@ -138,13 +138,30 @@ export const GeneralInputsCard: React.FC<{
                 }))
               }}
             >
-              <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
-                <SelectValue placeholder="Select usage" />
+                <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
+                <SelectValue placeholder="Select usage">
+                  <div className="flex items-center">
+                    <span>{generalInputs.usage}</span>
+                    <span className="ml-2 text-[var(--text)] opacity-70 text-xs">
+                      (ws: {generalInputs.ws}, wl: {generalInputs.wl})
+                    </span>
+                  </div>
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                {Object.keys(usageData).map((usage) => (
-                  <SelectItem key={usage} value={usage}>{usage}</SelectItem>
-                ))}
+                {Object.keys(usageData).map((usage) => {
+                  const details = usageData[usage as UsageOption]
+                  return (
+                    <SelectItem key={usage} value={usage}>
+                      <div className="flex justify-between items-center w-full">
+                        <span>{usage}</span>
+                        <span className="text-xs opacity-70 ml-2">
+                          (ws: {details.ws}, wl: {details.wl})
+                        </span>
+                      </div>
+                    </SelectItem>
+                  )
+                })}
               </SelectContent>
             </Select>
           </div>          {/* Lateral Restraint */}

@@ -1,0 +1,98 @@
+[
+  {
+    "id": "0",
+    "name": "Non load bearing floor",
+    "inst": {
+      "ratio": 400,
+      "max": 12
+    },
+    "short": {
+      "ratio": 400,
+      "max": 9.0
+    },
+    "long": {
+      "ratio": 300,
+      "max": 15.0
+    }
+  },
+  {
+    "id": "1",
+    "name": "Load bearing floor",
+    "inst": {
+      "ratio": 500,
+      "max": 12.5
+    },
+    "short": {
+      "ratio": 400,
+      "max": 9.0
+    },
+    "long": {
+      "ratio": 300,
+      "max": 15.0
+    }
+  },
+  {
+    "id": "2",
+    "name": "Brittle ceiling",
+    "inst": {
+      "ratio": 400,
+      "max": 12.5
+    },
+    "short": {
+      "ratio": 400,
+      "max": 9.0
+    },
+    "long": {
+      "ratio": 300,
+      "max": 15.0
+    }
+  },
+  {
+    "id": "3",
+    "name": "Roof",
+    "inst": {
+      "ratio": 300,
+      "max": 20.0
+    },
+    "short": {
+      "ratio": 300,
+      "max": 15.0
+    },
+    "long": {
+      "ratio": 250,
+      "max": 20.0
+    }
+  },
+  {
+    "id": "4",
+    "name": "Supporting masonry",
+    "inst": {
+      "ratio": 500,
+      "max": 12.5
+    },
+    "short": {
+      "ratio": 400,
+      "max": 9.0
+    },
+    "long": {
+      "ratio": 500,
+      "max": 15.0
+    }
+  },
+  {
+    "id": "5",
+    "name": "Supporting existing masonry",
+    "inst": {
+      "ratio": 750,
+      "max": 12.5
+    },
+    "short": {
+      "ratio": 400,
+      "max": 9.0
+    },
+    "long": {
+      "ratio": 500,
+      "max": 9.0
+    }
+  }
+]

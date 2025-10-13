@@ -2,14 +2,17 @@ import React, { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { InputWithUnit } from '@/components/ui/InputWithUnit'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
+import usageData from '@/data/usage.json'
 
 // Define local types
-export type UsageOption = 'Normal' | 'No Traffic' | 'Storage'
+export type UsageOption = keyof typeof usageData
 export interface GeneralInputs {
   span: number
   members: number
   usage: UsageOption
   lateralRestraint: string
+  ws: number
+  wl: number
 }
 
 const memberOptions = [1, 2, 3, 4, 5, 6]
@@ -26,11 +29,32 @@ export const GeneralInputsCard: React.FC<{
     if (savedGeneralInputs) {
       try {
         const parsedInputs = JSON.parse(savedGeneralInputs)
-        setGeneralInputs(parsedInputs)
-        setSpanDraft(String(parsedInputs.span || ''))
+        
+        // Ensure ws and wl are set from usage data if not present
+        const usageDetails = usageData[parsedInputs.usage as UsageOption] || usageData.Normal
+        const inputsWithDefaults = {
+          ...parsedInputs,
+          ws: parsedInputs.ws ?? usageDetails.ws,
+          wl: parsedInputs.wl ?? usageDetails.wl
+        }
+        
+        setGeneralInputs(inputsWithDefaults)
+        setSpanDraft(String(inputsWithDefaults.span || ''))
       } catch (error) {
         console.error('Error parsing saved general inputs:', error)
       }
+    } else {
+      // Set default usage if no saved inputs
+      const defaultUsage = 'Normal'
+      const usageDetails = usageData[defaultUsage]
+      setGeneralInputs({
+        span: 1,
+        members: 1,
+        usage: defaultUsage,
+        lateralRestraint: 'Lateral Restraint',
+        ws: usageDetails.ws,
+        wl: usageDetails.wl
+      })
     }
   }, [])
 
@@ -100,26 +124,30 @@ export const GeneralInputsCard: React.FC<{
           </div>
 
           {/* Usage */}
-          <div className="space-y-1.5">
+              <div className="space-y-1.5">
             <label className="block text-sm font-medium text-[var(--text)]">Usage</label>
             <Select
               value={generalInputs.usage}
-              onValueChange={(val: UsageOption) =>
-                setGeneralInputs(p => ({ ...p, usage: val }))
-              }
+              onValueChange={(val: UsageOption) => {
+                const usageDetails = usageData[val]
+                setGeneralInputs(p => ({ 
+                  ...p, 
+                  usage: val,
+                  ws: usageDetails.ws,
+                  wl: usageDetails.wl 
+                }))
+              }}
             >
               <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
                 <SelectValue placeholder="Select usage" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Normal">Normal</SelectItem>
-                <SelectItem value="No Traffic">No Traffic</SelectItem>
-                <SelectItem value="Storage">Storage</SelectItem>
+                {Object.keys(usageData).map((usage) => (
+                  <SelectItem key={usage} value={usage}>{usage}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
-          </div>
-
-          {/* Lateral Restraint */}
+          </div>          {/* Lateral Restraint */}
           <div className="space-y-1.5">
             <label className="block text-sm font-medium text-[var(--text)]">
               Lateral Restraint
@@ -134,7 +162,7 @@ export const GeneralInputsCard: React.FC<{
                 <SelectValue placeholder="Select Lateral Restraint" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Lateral Restraint">Lateral Restraint</SelectItem>
+                <SelectItem value="Lateral Restraint">Full Lateral Restraint</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -323,6 +323,7 @@ export default function App() {
         <LoadsInputCard
           loads={loads}
           setLoads={setLoads}
+          span={generalInputs.span}
         />
 
         {/* Stats */}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { InputWithUnit } from '@/components/ui/InputWithUnit'
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './ui/table'
 
 // Define types for UDL load entry
 export interface UDLLoad {
@@ -16,9 +16,10 @@ export interface UDLLoad {
 interface LoadsInputProps {
   loads: UDLLoad[];
   setLoads: React.Dispatch<React.SetStateAction<UDLLoad[]>>;
+  span: number; // Beam span in meters
 }
 
-export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads }) => {
+export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, span }) => {
   // State to manage form inputs for new load
   const [newLoad, setNewLoad] = useState<Omit<UDLLoad, 'id'>>({
     start: 0,
@@ -32,8 +33,20 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads }) =
 
   // Handler for adding a new load
   const handleAddLoad = () => {
+    // Create a copy with final validation/adjustment
+    const finalLoad = { ...newLoad };
+    
+    // Ensure finish is always >= start (if both are not zero)
+    if (finalLoad.start > 0 && finalLoad.finish < finalLoad.start) {
+      finalLoad.finish = finalLoad.start;
+    }
+    
+    // Clamp values to span
+    finalLoad.start = Math.min(finalLoad.start, span);
+    finalLoad.finish = Math.min(finalLoad.finish, span);
+    
     const loadWithId: UDLLoad = {
-      ...newLoad,
+      ...finalLoad,
       id: generateId()
     };
     
@@ -77,7 +90,27 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads }) =
       return;
     }
     
-    const numValue = parseFloat(value) || 0;
+    let numValue = parseFloat(value) || 0;
+    
+    // Apply clamping for start and finish values
+    if (field === 'start') {
+      // Clamp start between 0 and span
+      numValue = Math.max(0, Math.min(span, numValue));
+      
+      // If start is greater than current finish, update finish too
+      if (numValue > newLoad.finish && newLoad.finish !== 0) {
+        setNewLoad(prev => ({
+          ...prev,
+          start: numValue,
+          finish: numValue
+        }));
+        return;
+      }
+    } else if (field === 'finish') {
+      // Clamp finish between start and span
+      numValue = Math.max(newLoad.start, Math.min(span, numValue));
+    }
+    
     setNewLoad(prev => ({
       ...prev,
       [field]: numValue
@@ -87,6 +120,10 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads }) =
   // Handler for editing existing loads
   const handleEditLoad = (id: string, field: keyof Omit<UDLLoad, 'id'>, e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    
+    // Get the current load being edited
+    const currentLoad = loads.find(load => load.id === id);
+    if (!currentLoad) return;
     
     // Allow direct typing in the field
     if (value === '--' || value === '') {
@@ -101,7 +138,30 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads }) =
       return;
     }
     
-    const numValue = parseFloat(value) || 0;
+    let numValue = parseFloat(value) || 0;
+    
+    // Apply clamping for start and finish values
+    if (field === 'start') {
+      // Clamp start between 0 and span
+      numValue = Math.max(0, Math.min(span, numValue));
+      
+      // If new start is greater than current finish, update finish too
+      if (numValue > currentLoad.finish && currentLoad.finish !== 0) {
+        const updatedLoads = loads.map(load => {
+          if (load.id === id) {
+            return { ...load, start: numValue, finish: numValue };
+          }
+          return load;
+        });
+        setLoads(updatedLoads);
+        localStorage.setItem('beamLoads', JSON.stringify(updatedLoads));
+        return;
+      }
+    } else if (field === 'finish') {
+      // Clamp finish between start and span
+      numValue = Math.max(currentLoad.start, Math.min(span, numValue));
+    }
+    
     const updatedLoads = loads.map(load => {
       if (load.id === id) {
         return { ...load, [field]: numValue };
@@ -114,9 +174,9 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads }) =
   };
 
   return (
-    <Card className="col-span-full">
+    <Card className="mb-6 lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
       <CardHeader>
-        <CardTitle>Loads</CardTitle>
+        <CardTitle className="text-xl">Loads</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -124,11 +184,11 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads }) =
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Start (m)</TableHead>
-                <TableHead>Finish (m)</TableHead>
-                <TableHead>UDL G (kN/m)</TableHead>
-                <TableHead>UDL Q (kN/m)</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-[var(--text)]">Start</TableHead>
+                <TableHead className="text-[var(--text)]">Finish</TableHead>
+                <TableHead className="text-[var(--text)]">UDL Dead G</TableHead>
+                <TableHead className="text-[var(--text)]">UDL Live Q</TableHead>
+                <TableHead className="text-[var(--text)]">.</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -141,7 +201,7 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads }) =
                         onChange={(e) => handleEditLoad(load.id, 'start', e)}
                         onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
                         unit="m"
-                        className="w-full"
+                        className="w-full bg-[var(--input-bg)]"
                       />
                     </TableCell>
                     <TableCell>
@@ -173,7 +233,7 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads }) =
                     </TableCell>
                     <TableCell>
                       <button
-                        className="text-red-500 hover:text-red-700"
+                        className="text-var(--text) hover:text-var(--accent)"
                         onClick={() => {
                           const updatedLoads = loads.filter(l => l.id !== load.id);
                           setLoads(updatedLoads);

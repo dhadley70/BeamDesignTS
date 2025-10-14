@@ -104,7 +104,7 @@ function ThemeDropdown({
     <div className="relative" ref={ref}>
       <Button
         variant="outline"
-        className="border-[color:var(--border)] text-[var(--text)] bg-[var(--card)] hover:bg-[var(--muted)]/60"
+        className="border-[color:var(--border)] text-[var(--text)] bg-[var(--card)] hover:bg-[var(--accent)] hover:text-[color:var(--card)]"
         onClick={() => setOpen((v) => !v)}
       >
         <Paintbrush className="mr-2 size-4" />
@@ -271,7 +271,7 @@ export default function App() {
             <Button
               variant="outline"
               size="sm"
-              className="border-[color:var(--border)] text-[color:var(--text)] hover:bg-[var(--muted)] md:hidden"
+              className="border-[color:var(--border)] text-[color:var(--text)] hover:bg-[var(--muted)] hover:text-[color:var(--card)] md:hidden"
               onClick={() => setMobileOpen((v) => !v)}
             >
               <AlignLeft className="size-4" />

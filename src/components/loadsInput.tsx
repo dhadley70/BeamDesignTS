@@ -333,7 +333,7 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                 <TableHead className="text-[var(--text)]">UDL Live Q</TableHead>
                 <TableHead className="text-left">
                   <button
-                    className="bg-[var(--accent)] hover:opacity-80 text-[var(--card)] font-bold py-1 px-3 rounded text-sm"
+                    className="border-[color:var(--accent)] text-[var(--text)] bg-[var(--card)] hover:bg-[var(--accent)] hover:text-[var(--card)] font-bold py-1 px-3 rounded text-sm"
                     onClick={addDefaultLoad}
                   >
                     Add
@@ -419,7 +419,7 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                 <TableHead className="text-[var(--text)]">Live Q</TableHead>
                 <TableHead className="text-left">
                   <button
-                    className="bg-[var(--accent)] hover:opacity-80 text-[var(--card)] font-bold py-1 px-3 rounded text-sm"
+                    className="border-[color:var(--accent)] text-[var(--text)] bg-[var(--card)] hover:bg-[var(--accent)] hover:text-[var(--card)] font-bold py-1 px-3 rounded text-sm"
                     onClick={addDefaultPointLoad}
                   >
                     Add
@@ -494,7 +494,7 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                 <TableHead className="text-[var(--text)]">Live Q</TableHead>
                 <TableHead className="text-left">
                   <button
-                    className="bg-[var(--accent)] hover:opacity-80 text-[var(--card)] font-bold py-1 px-3 rounded text-sm"
+                    className="border-[color:var(--accent)] text-[var(--text)] bg-[var(--card)] hover:bg-[var(--accent)] hover:text-[var(--card)] font-bold py-1 px-3 rounded text-sm"
                     onClick={addDefaultMoment}
                   >
                     Add

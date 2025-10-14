@@ -336,7 +336,7 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow>
+              <TableRow className="border-0">
                 <TableCell>
                   <InputWithUnit
                     value={fullUDL.tributaryWidth.toString()}

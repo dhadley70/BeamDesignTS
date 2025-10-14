@@ -45,6 +45,7 @@ import type { DeflectionLimits } from "@/components/deflectionLimits"
 
 /* ---------------- Project Info Hook ---------------- */
 import { useProjectInfo, ProjectInfoCard } from "@/components/projectInfo"
+import deflectionPresets from "@/data/deflection_presets.json"
 
 /* ---------------- App ---------------- */
 export default function App() {
@@ -120,22 +121,24 @@ export default function App() {
       console.error('Error loading deflection limits:', error)
     }
     
-    // Default limits 
+    // Use first preset from deflection_presets.json as default
+    const firstPreset = deflectionPresets[0];
+    
     return {
       initial: {
-        spanRatio: 240,  // Span/240
-        maxLimit: (generalInputs.span * 1000 / 240) / 1000,
-        maxDeflection: calculateMaxDeflection(generalInputs.span, 240, (generalInputs.span * 1000 / 240) / 1000)
+        spanRatio: firstPreset.inst.ratio,
+        maxLimit: firstPreset.inst.max / 1000, // Convert from mm to meters
+        maxDeflection: calculateMaxDeflection(generalInputs.span, firstPreset.inst.ratio, firstPreset.inst.max / 1000)
       },
       short: {
-        spanRatio: 180,  // Span/180
-        maxLimit: (generalInputs.span * 1000 / 180) / 1000,
-        maxDeflection: calculateMaxDeflection(generalInputs.span, 180, (generalInputs.span * 1000 / 180) / 1000)
+        spanRatio: firstPreset.short.ratio,
+        maxLimit: firstPreset.short.max / 1000, // Convert from mm to meters
+        maxDeflection: calculateMaxDeflection(generalInputs.span, firstPreset.short.ratio, firstPreset.short.max / 1000)
       },
       long: {
-        spanRatio: 120,  // Span/120
-        maxLimit: (generalInputs.span * 1000 / 120) / 1000,
-        maxDeflection: calculateMaxDeflection(generalInputs.span, 120, (generalInputs.span * 1000 / 120) / 1000)
+        spanRatio: firstPreset.long.ratio,
+        maxLimit: firstPreset.long.max / 1000, // Convert from mm to meters
+        maxDeflection: calculateMaxDeflection(generalInputs.span, firstPreset.long.ratio, firstPreset.long.max / 1000)
       }
     }
   }

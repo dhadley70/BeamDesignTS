@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Paintbrush, ChevronDown, Check } from "lucide-react"
+import useLocalStorage from "@/hooks/useLocalStorage"
 
 /* ---------------- Theme Types ---------------- */
 export const THEMES = ["Light", "Retro", "Wes Anderson", "Slate", "Octonauts", "Shaun Tan", 
@@ -10,6 +11,19 @@ export const THEMES = ["Light", "Retro", "Wes Anderson", "Slate", "Octonauts", "
   "Jurassic Park", "Lord of the Rings",] as const
 
 export type ThemeName = typeof THEMES[number]
+
+/* ---------------- Theme Hook ---------------- */
+const THEME_KEY = "app-theme"
+
+export function useTheme(): [ThemeName, (t: ThemeName) => void] {
+  const [theme, setTheme] = useLocalStorage<ThemeName>(THEME_KEY, "Light")
+  
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme)
+  }, [theme])
+  
+  return [theme, setTheme]
+}
 
 /* ---------------- Simple dropdown hook (no shadcn dependency) ---------------- */
 function useClickOutside<T extends HTMLElement>(onOutside: () => void) {

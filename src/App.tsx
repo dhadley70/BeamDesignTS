@@ -11,21 +11,10 @@ import { DeflectionLimitsCard } from "@/components/deflectionLimits"
 import { LoadsInputCard, type UDLLoad } from "@/components/loadsInput"
 import { SaveLoadDesign } from "@/components/saveLoadDesign"
 import { HeaderSaveButtons } from "@/components/headerSaveButtons"
-import { ThemeDropdown, type ThemeName } from "@/components/theme-dropdown"
+import { ThemeDropdown, type ThemeName, useTheme } from "@/components/theme-dropdown"
 import { AlignLeft, Home, BarChart3, Settings, Rocket, Star, Circle, ChevronDown } from "lucide-react"
 
 /* ---------------- Theming ---------------- */
-const THEME_KEY = "app-theme"
-
-function useTheme(): [ThemeName, (t: ThemeName) => void] {
-  const [theme, setTheme] = useLocalStorage<ThemeName>(THEME_KEY, "Light")
-  
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme)
-  }, [theme])
-  
-  return [theme, setTheme]
-}
 
 // memberOptions removed
 

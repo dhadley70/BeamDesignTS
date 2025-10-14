@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge"
 import { GeneralInputsCard } from "@/components/generalInputs"
 import { DeflectionLimitsCard } from "@/components/deflectionLimits"
 import { LoadsInputCard, type UDLLoad } from "@/components/loadsInput"
-import { AlignLeft, Home, BarChart3, Settings, ChevronRight, Rocket, Star, Paintbrush, Check, ChevronDown, Circle, } from "lucide-react"
+import { SaveLoadDesign } from "@/components/saveLoadDesign"
+import { AlignLeft, Home, BarChart3, Settings, Rocket, Star, Paintbrush, Check, ChevronDown, Circle, } from "lucide-react"
 
 /* ---------------- Theming ---------------- */
 const THEME_KEY = "app-theme"
@@ -300,6 +301,11 @@ export default function App() {
           span={generalInputs.span}
         />
 
+        {/* Save & Load Design */}
+        <SaveLoadDesign 
+          onImportComplete={() => window.location.reload()}
+        />
+
         {/* Stats */}
         <div className="grid gap-4 space-y-4 md:grid-cols-4">
           <StatCard title="Overview" kpi="Active jobs" value="12" icon={<Home className="size-4" />} />
@@ -335,7 +341,16 @@ export default function App() {
             <CardHeader><CardTitle className="text-xl">Quick actions</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <Button className="w-full bg-[var(--accent)] text-[var(--accent-contrast)] hover:opacity-90">New project</Button>
-              <Button variant="outline" className="w-full border-[color:var(--border)]">Import data</Button>
+              <Button 
+                variant="outline" 
+                className="w-full border-[color:var(--border)]"
+                onClick={() => {
+                  const importFileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+                  if (importFileInput) importFileInput.click();
+                }}
+              >
+                Import design
+              </Button>
               <Button variant="outline" className="w-full border-[color:var(--border)]">Manage settings</Button>
             </CardContent>
             <CardFooter><div className="text-xs opacity-60">Tip: projects are tracked dynamically</div></CardFooter>

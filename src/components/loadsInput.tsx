@@ -20,6 +20,9 @@ interface LoadsInputProps {
 }
 
 export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, span }) => {
+  // State to manage visibility of the add load form
+  const [showAddForm, setShowAddForm] = useState<boolean>(false);
+  
   // State to manage form inputs for new load
   const [newLoad, setNewLoad] = useState<Omit<UDLLoad, 'id'>>({
     start: 0,
@@ -30,6 +33,20 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
 
   // Generate a unique ID for new loads
   const generateId = () => `load_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+  // Toggle the add form visibility
+  const toggleAddForm = () => {
+    setShowAddForm(!showAddForm);
+    if (!showAddForm) {
+      // Reset form when opening
+      setNewLoad({
+        start: 0,
+        finish: 0,
+        udlG: 0,
+        udlQ: 0
+      });
+    }
+  };
 
   // Handler for adding a new load
   const handleAddLoad = () => {
@@ -52,13 +69,14 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     
     setLoads(prevLoads => [...prevLoads, loadWithId]);
     
-    // Reset form
+    // Reset form and hide it
     setNewLoad({
       start: 0,
       finish: 0,
       udlG: 0,
       udlQ: 0
     });
+    setShowAddForm(false);
     
     // Save to local storage
     localStorage.setItem('beamLoads', JSON.stringify([...loads, loadWithId]));
@@ -109,6 +127,21 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     } else if (field === 'finish') {
       // Clamp finish between start and span
       numValue = Math.max(newLoad.start, Math.min(span, numValue));
+      
+      // Auto-add if start and finish are set properly
+      if (newLoad.start > 0 && numValue > 0) {
+        // First update state
+        const updatedLoad = {
+          ...newLoad,
+          finish: numValue
+        };
+        
+        setNewLoad(updatedLoad);
+        
+        // Then add the load after a small delay to ensure state is updated
+        setTimeout(() => handleAddLoad(), 100);
+        return;
+      }
     }
     
     setNewLoad(prev => ({
@@ -117,6 +150,7 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     }));
   };
 
+  
   // Handler for editing existing loads
   const handleEditLoad = (id: string, field: keyof Omit<UDLLoad, 'id'>, e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -188,10 +222,67 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                 <TableHead className="text-[var(--text)]">Finish</TableHead>
                 <TableHead className="text-[var(--text)]">UDL Dead G</TableHead>
                 <TableHead className="text-[var(--text)]">UDL Live Q</TableHead>
-                <TableHead className="text-[var(--text)]">.</TableHead>
+                <TableHead className="text-left">
+                  <button
+                    className="bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded text-sm"
+                    onClick={toggleAddForm}
+                  >
+                    {showAddForm ? 'Cancel' : 'Add Load'}
+                  </button>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
+              {/* Show add form when showAddForm is true */}
+              {showAddForm && (
+                <TableRow>
+                  <TableCell>
+                    <InputWithUnit
+                      value={newLoad.start === 0 ? "--" : newLoad.start.toString()}
+                      onChange={(e) => handleInputChange('start', e)}
+                      onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
+                      unit="m"
+                      className="w-full bg-[var(--input-bg)]"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <InputWithUnit
+                      value={newLoad.finish === 0 ? "--" : newLoad.finish.toString()}
+                      onChange={(e) => handleInputChange('finish', e)}
+                      onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
+                      unit="m"
+                      className="w-full"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <InputWithUnit
+                      value={newLoad.udlG === 0 ? "--" : newLoad.udlG.toString()}
+                      onChange={(e) => handleInputChange('udlG', e)}
+                      onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
+                      unit="kN/m"
+                      className="w-full"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <InputWithUnit
+                      value={newLoad.udlQ === 0 ? "--" : newLoad.udlQ.toString()}
+                      onChange={(e) => handleInputChange('udlQ', e)}
+                      onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
+                      unit="kN/m"
+                      className="w-full"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <button
+                      className="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded text-sm"
+                      onClick={() => setShowAddForm(false)}
+                    >
+                      Remove
+                    </button>
+                  </TableCell>
+                </TableRow>
+              )}
+              
               {loads.length > 0 ? (
                 loads.map((load) => (
                   <TableRow key={load.id}>
@@ -233,7 +324,7 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                     </TableCell>
                     <TableCell>
                       <button
-                        className="text-var(--text) hover:text-var(--accent)"
+                        className="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded text-sm"
                         onClick={() => {
                           const updatedLoads = loads.filter(l => l.id !== load.id);
                           setLoads(updatedLoads);
@@ -247,58 +338,11 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4 text-gray-500">
+                  <TableCell colSpan={5} className="text-center py-4 text-var(--muted)">
                     No loads added yet
                   </TableCell>
                 </TableRow>
               )}
-              {/* Add new load row */}
-              <TableRow>
-                <TableCell>
-                  <InputWithUnit
-                    value={newLoad.start === 0 ? "--" : newLoad.start.toString()}
-                    onChange={(e) => handleInputChange('start', e)}
-                    onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
-                    unit="m"
-                    className="w-full"
-                  />
-                </TableCell>
-                <TableCell>
-                  <InputWithUnit
-                    value={newLoad.finish === 0 ? "--" : newLoad.finish.toString()}
-                    onChange={(e) => handleInputChange('finish', e)}
-                    onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
-                    unit="m"
-                    className="w-full"
-                  />
-                </TableCell>
-                <TableCell>
-                  <InputWithUnit
-                    value={newLoad.udlG === 0 ? "--" : newLoad.udlG.toString()}
-                    onChange={(e) => handleInputChange('udlG', e)}
-                    onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
-                    unit="kN/m"
-                    className="w-full"
-                  />
-                </TableCell>
-                <TableCell>
-                  <InputWithUnit
-                    value={newLoad.udlQ === 0 ? "--" : newLoad.udlQ.toString()}
-                    onChange={(e) => handleInputChange('udlQ', e)}
-                    onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
-                    unit="kN/m"
-                    className="w-full"
-                  />
-                </TableCell>
-                <TableCell>
-                  <button
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={handleAddLoad}
-                  >
-                    Add
-                  </button>
-                </TableCell>
-              </TableRow>
             </TableBody>
           </Table>
         </div>

@@ -47,9 +47,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           type={type}
           className={cn(
             // Base field
-            "flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-base shadow-sm transition-colors md:text-sm",
+            "flex h-9 w-full rounded-md border bg-[var(--input)] px-3 py-1 text-base shadow-sm transition-colors md:text-sm",
             // Theme tokens
-            "border-[color:var(--border)] text-[var(--text)] focus-visible:ring-1 focus-visible:ring-[color:var(--ring)]",
+            "border-[color:var(--border)] text-[var(--input-text)] focus-visible:ring-1 focus-visible:ring-[color:var(--ring)]",
             // File input normalization
             "file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--text)]",
             // Disabled

@@ -72,7 +72,7 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     if (!currentLoad) return;
     
     // Allow direct typing in the field
-    if (value === '--' || value === '') {
+    if (value === '') {
       const updatedLoads = loads.map(load => {
         if (load.id === id) {
           return { ...load, [field]: 0 };
@@ -136,10 +136,10 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                 <TableHead className="text-[var(--text)]">UDL Live Q</TableHead>
                 <TableHead className="text-left">
                   <button
-                    className="bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded text-sm"
+                    className="bg-green-400  hover:bg-green-800 text-white font-bold py-1 px-3 rounded text-sm"
                     onClick={addDefaultLoad}
                   >
-                    Add Load
+                    +
                   </button>
                 </TableHead>
               </TableRow>
@@ -149,53 +149,53 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
               
               {loads.length > 0 ? (
                 loads.map((load) => (
-                  <TableRow key={load.id}>
+                  <TableRow key={load.id} className="border-0">
                     <TableCell>
                       <InputWithUnit
-                        value={load.start === 0 ? "--" : load.start.toString()}
+                        value={load.start.toString()}
                         onChange={(e) => handleEditLoad(load.id, 'start', e)}
-                        onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
-                        unit="m"
-                        className="w-full bg-[var(--input-bg)]"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <InputWithUnit
-                        value={load.finish === 0 ? "--" : load.finish.toString()}
-                        onChange={(e) => handleEditLoad(load.id, 'finish', e)}
-                        onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
+                        onFocus={(e) => e.target.value === "0" && e.target.select()}
                         unit="m"
                         className="w-full"
                       />
                     </TableCell>
                     <TableCell>
                       <InputWithUnit
-                        value={load.udlG === 0 ? "--" : load.udlG.toString()}
+                        value={load.finish.toString()}
+                        onChange={(e) => handleEditLoad(load.id, 'finish', e)}
+                        onFocus={(e) => e.target.value === "0" && e.target.select()}
+                        unit="m"
+                        className="w-full"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <InputWithUnit
+                        value={load.udlG.toString()}
                         onChange={(e) => handleEditLoad(load.id, 'udlG', e)}
-                        onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
+                        onFocus={(e) => e.target.value === "0" && e.target.select()}
                         unit="kN/m"
                         className="w-full"
                       />
                     </TableCell>
                     <TableCell>
                       <InputWithUnit
-                        value={load.udlQ === 0 ? "--" : load.udlQ.toString()}
+                        value={load.udlQ.toString()}
                         onChange={(e) => handleEditLoad(load.id, 'udlQ', e)}
-                        onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
+                        onFocus={(e) => e.target.value === "0" && e.target.select()}
                         unit="kN/m"
                         className="w-full"
                       />
                     </TableCell>
                     <TableCell>
                       <button
-                        className="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded text-sm"
+                        className="bg-red-400 hover:bg-red-800 text-white font-bold py-1 px-3 rounded text-sm"
                         onClick={() => {
                           const updatedLoads = loads.filter(l => l.id !== load.id);
                           setLoads(updatedLoads);
                           localStorage.setItem('beamLoads', JSON.stringify(updatedLoads));
                         }}
                       >
-                        Remove
+                        X
                       </button>
                     </TableCell>
                   </TableRow>

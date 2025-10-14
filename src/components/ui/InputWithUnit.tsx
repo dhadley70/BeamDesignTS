@@ -23,11 +23,11 @@ export function InputWithUnit({
 
   return (
     <div className="relative">
-      <Input {...props} className={cn(pad, className)} />
+      <Input {...props} className={cn(pad, "bg-[var(--input)] text-[var(--input-text)]", className)} />
       <span
         className={cn(
           "pointer-events-none absolute inset-y-0 flex items-center text-xs",
-          "text-[color:var(--text)]/80", // or var(--deadTint) / var(--muted)
+          "text-[color:var(--input-text)]/80", // or var(--deadTint) / var(--muted)
           side,
           unitClassName
         )}

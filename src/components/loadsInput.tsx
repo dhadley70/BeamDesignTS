@@ -67,6 +67,16 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads }) =
   // Handler for input changes for new load
   const handleInputChange = (field: keyof Omit<UDLLoad, 'id'>, e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    
+    // Allow direct typing in the field
+    if (value === '--' || value === '') {
+      setNewLoad(prev => ({
+        ...prev,
+        [field]: 0
+      }));
+      return;
+    }
+    
     const numValue = parseFloat(value) || 0;
     setNewLoad(prev => ({
       ...prev,
@@ -77,8 +87,21 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads }) =
   // Handler for editing existing loads
   const handleEditLoad = (id: string, field: keyof Omit<UDLLoad, 'id'>, e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    const numValue = parseFloat(value) || 0;
     
+    // Allow direct typing in the field
+    if (value === '--' || value === '') {
+      const updatedLoads = loads.map(load => {
+        if (load.id === id) {
+          return { ...load, [field]: 0 };
+        }
+        return load;
+      });
+      setLoads(updatedLoads);
+      localStorage.setItem('beamLoads', JSON.stringify(updatedLoads));
+      return;
+    }
+    
+    const numValue = parseFloat(value) || 0;
     const updatedLoads = loads.map(load => {
       if (load.id === id) {
         return { ...load, [field]: numValue };
@@ -93,7 +116,7 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads }) =
   return (
     <Card className="col-span-full">
       <CardHeader>
-        <CardTitle>Uniformly Distributed Loads (UDL)</CardTitle>
+        <CardTitle>Loads</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -114,32 +137,36 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads }) =
                   <TableRow key={load.id}>
                     <TableCell>
                       <InputWithUnit
-                        value={load.start.toString()}
+                        value={load.start === 0 ? "--" : load.start.toString()}
                         onChange={(e) => handleEditLoad(load.id, 'start', e)}
+                        onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
                         unit="m"
                         className="w-full"
                       />
                     </TableCell>
                     <TableCell>
                       <InputWithUnit
-                        value={load.finish.toString()}
+                        value={load.finish === 0 ? "--" : load.finish.toString()}
                         onChange={(e) => handleEditLoad(load.id, 'finish', e)}
+                        onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
                         unit="m"
                         className="w-full"
                       />
                     </TableCell>
                     <TableCell>
                       <InputWithUnit
-                        value={load.udlG.toString()}
+                        value={load.udlG === 0 ? "--" : load.udlG.toString()}
                         onChange={(e) => handleEditLoad(load.id, 'udlG', e)}
+                        onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
                         unit="kN/m"
                         className="w-full"
                       />
                     </TableCell>
                     <TableCell>
                       <InputWithUnit
-                        value={load.udlQ.toString()}
+                        value={load.udlQ === 0 ? "--" : load.udlQ.toString()}
                         onChange={(e) => handleEditLoad(load.id, 'udlQ', e)}
+                        onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
                         unit="kN/m"
                         className="w-full"
                       />
@@ -169,32 +196,36 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads }) =
               <TableRow>
                 <TableCell>
                   <InputWithUnit
-                    value={newLoad.start.toString()}
+                    value={newLoad.start === 0 ? "--" : newLoad.start.toString()}
                     onChange={(e) => handleInputChange('start', e)}
+                    onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
                     unit="m"
                     className="w-full"
                   />
                 </TableCell>
                 <TableCell>
                   <InputWithUnit
-                    value={newLoad.finish.toString()}
+                    value={newLoad.finish === 0 ? "--" : newLoad.finish.toString()}
                     onChange={(e) => handleInputChange('finish', e)}
+                    onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
                     unit="m"
                     className="w-full"
                   />
                 </TableCell>
                 <TableCell>
                   <InputWithUnit
-                    value={newLoad.udlG.toString()}
+                    value={newLoad.udlG === 0 ? "--" : newLoad.udlG.toString()}
                     onChange={(e) => handleInputChange('udlG', e)}
+                    onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
                     unit="kN/m"
                     className="w-full"
                   />
                 </TableCell>
                 <TableCell>
                   <InputWithUnit
-                    value={newLoad.udlQ.toString()}
+                    value={newLoad.udlQ === 0 ? "--" : newLoad.udlQ.toString()}
                     onChange={(e) => handleInputChange('udlQ', e)}
+                    onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
                     unit="kN/m"
                     className="w-full"
                   />

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import useLocalStorage from "@/hooks/useLocalStorage"
 
 // Removed ProjectInfoState interface (now imported from projectInfo.tsx)
@@ -11,12 +11,11 @@ import { DeflectionLimitsCard } from "@/components/deflectionLimits"
 import { LoadsInputCard, type UDLLoad } from "@/components/loadsInput"
 import { SaveLoadDesign } from "@/components/saveLoadDesign"
 import { HeaderSaveButtons } from "@/components/headerSaveButtons"
-import { AlignLeft, Home, BarChart3, Settings, Rocket, Star, Paintbrush, Check, ChevronDown, Circle, } from "lucide-react"
+import { ThemeDropdown, type ThemeName } from "@/components/theme-dropdown"
+import { AlignLeft, Home, BarChart3, Settings, Rocket, Star, Circle, ChevronDown } from "lucide-react"
 
 /* ---------------- Theming ---------------- */
 const THEME_KEY = "app-theme"
-const THEMES = ["Light", "Retro", "Wes Anderson", "Slate", "Octonauts", "Shaun Tan", "Rainforest", "Midnight", "Citrus", "Lavender", "Sandstone", "Aurora", "Blade Runner", "Dark", "Emerald", "Purple Breeze", "Sunset", "Ocean", "Rose", "Forest Night", "Slate Pro", "High Contrast", "Solar", "C64", "Star Wars", "Barbie", "Matrix", "Dune", "Tron", "Jurassic Park", "Lord of the Rings",] as const
-type ThemeName = typeof THEMES[number]
 
 function useTheme(): [ThemeName, (t: ThemeName) => void] {
   const [theme, setTheme] = useLocalStorage<ThemeName>(THEME_KEY, "Light")
@@ -75,73 +74,7 @@ function getDefaultGeneralInputs(): GeneralInputs {
   }
 }
 
-/* ---------------- Simple dropdown (no shadcn dependency) ---------------- */
-function useClickOutside<T extends HTMLElement>(onOutside: () => void) {
-  const ref = useRef<T | null>(null)
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (!ref.current) return
-      if (!ref.current.contains(e.target as Node)) onOutside()
-    }
-    document.addEventListener("mousedown", handler)
-    return () => document.removeEventListener("mousedown", handler)
-  }, [onOutside])
-  return ref as React.RefObject<T>
-}
-
-function ThemeDropdown({
-  theme,
-  onChange,
-}: {
-  theme: ThemeName
-  onChange: (t: ThemeName) => void
-}) {
-  const [open, setOpen] = useState(false)
-  const ref = useClickOutside<HTMLDivElement>(() => setOpen(false))
-  const short = useMemo(() => (theme.length > 14 ? theme.slice(0, 14) + "…" : theme), [theme])
-
-  return (
-    <div className="relative" ref={ref}>
-      <Button
-        variant="outline"
-        className="border-[color:var(--border)] text-[var(--text)] bg-[var(--card)] hover:bg-[var(--accent)] hover:text-[color:var(--card)]"
-        onClick={() => setOpen((v) => !v)}
-      >
-        <Paintbrush className="mr-2 size-4" />
-        {short}
-        <ChevronDown className="ml-1 size-4 opacity-70" />
-      </Button>
-
-      {open && (
-        <div
-          className="absolute right-0 mt-2 w-64 max-h-[60vh] overflow-y-auto rounded-lg border border-[color:var(--border)]
-                     bg-[var(--card)] text-[var(--text)] shadow-lg z-50"
-        >
-          <div className="sticky top-0 z-10 bg-[var(--card)]/90 backdrop-blur px-3 py-2 text-xs opacity-70 border-b border-[color:var(--border)]/40">
-            Theme
-          </div>
-          <ul className="py-1">
-            {THEMES.map((t) => (
-              <li key={t}>
-                <button
-                  onClick={() => { onChange(t); setOpen(false) }}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-[var(--muted)]/60"
-                >
-                  <span
-                    className="inline-flex size-4 items-center justify-center rounded-full border border-[color:var(--border)]"
-                    style={{ background: "var(--accent)" }}
-                  />
-                  <span className="flex-1">{t}</span>
-                  {t === theme ? <Check className="size-4" /> : null}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  )
-}
+/* ---------------- Theme Utils ---------------- */
 
 /* ---------------- Project Info Hook ---------------- */
 import { useProjectInfo, ProjectInfoCard } from "@/components/projectInfo"

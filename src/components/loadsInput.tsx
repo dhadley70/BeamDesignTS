@@ -327,7 +327,7 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
         <div className="space-y-4">
           {/* FULL UDL Section */}
           <h3 className="text-lg font-medium mb-2">Full UDL</h3>
-          <Table>
+          <Table className="mb-4">
             <TableHeader>
               <TableRow>
                 <TableHead className="text-[var(--text)]">Tributary Width</TableHead>
@@ -336,7 +336,7 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow className="border-0">
+              <TableRow>
                 <TableCell>
                   <InputWithUnit
                     value={fullUDL.tributaryWidth.toString()}
@@ -365,29 +365,17 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                   />
                 </TableCell>
               </TableRow>
-            </TableBody>
-          </Table>
-          
-          <Table className="mt-2 mb-4">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-[var(--text)]">Calculated</TableHead>
-                <TableHead className="text-[var(--text)]">Dead Load (G)</TableHead>
-                <TableHead className="text-[var(--text)]">Live Load (Q)</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
               <TableRow className="border-0">
                 <TableCell>
-                  <div className="text-center text-[var(--text)]">UDL Values</div>
+                  <div className="font-medium text-[var(--text)]">Calculated UDL</div>
                 </TableCell>
                 <TableCell>
-                  <div className="text-center font-bold text-[var(--text)]">
+                  <div className="font-bold text-[var(--text)]">
                     {(fullUDL.tributaryWidth * fullUDL.deadGkPa).toFixed(2)} kN/m
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="text-center font-bold text-[var(--text)]">
+                  <div className="font-bold text-[var(--text)]">
                     {(fullUDL.tributaryWidth * fullUDL.liveQkPa).toFixed(2)} kN/m
                   </div>
                 </TableCell>

@@ -20,6 +20,14 @@ export interface PointLoad {
   pointQ: number;
 }
 
+// Define types for Moment entry
+export interface Moment {
+  id: string;
+  location: number;
+  momentG: number;
+  momentQ: number;
+}
+
 // Define props type for the component
 interface LoadsInputProps {
   loads: UDLLoad[];
@@ -30,6 +38,8 @@ interface LoadsInputProps {
 export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, span }) => {
   // State for point loads
   const [pointLoads, setPointLoads] = useState<PointLoad[]>([]);
+  // State for moments
+  const [moments, setMoments] = useState<Moment[]>([]);
 
   // Generate a unique ID for new loads
   const generateId = () => `load_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -69,6 +79,23 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     localStorage.setItem('beamPointLoads', JSON.stringify([...pointLoads, defaultPointLoad]));
   };
   
+  // Add a default moment
+  const addDefaultMoment = () => {
+    // Create a default moment at the middle of the beam
+    const defaultMoment: Moment = {
+      id: generateId(),
+      location: span / 2,
+      momentG: 0,
+      momentQ: 0
+    };
+    
+    // Add to moments array
+    setMoments(prevMoments => [...prevMoments, defaultMoment]);
+    
+    // Save to local storage
+    localStorage.setItem('beamMoments', JSON.stringify([...moments, defaultMoment]));
+  };
+  
 
 
   // Note: The handleAddLoad function has been removed since we now use addDefaultLoad
@@ -94,6 +121,17 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
         setPointLoads(parsedPointLoads);
       } catch (e) {
         console.error('Failed to parse saved point loads:', e);
+      }
+    }
+    
+    // Load moments
+    const savedMoments = localStorage.getItem('beamMoments');
+    if (savedMoments) {
+      try {
+        const parsedMoments = JSON.parse(savedMoments);
+        setMoments(parsedMoments);
+      } catch (e) {
+        console.error('Failed to parse saved moments:', e);
       }
     }
   }, [setLoads]);
@@ -195,6 +233,46 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     
     setPointLoads(updatedLoads);
     localStorage.setItem('beamPointLoads', JSON.stringify(updatedLoads));
+  };
+  
+  // Handler for editing existing moments
+  const handleEditMoment = (id: string, field: keyof Omit<Moment, 'id'>, e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    
+    // Get the current moment being edited
+    const currentMoment = moments.find(moment => moment.id === id);
+    if (!currentMoment) return;
+    
+    // Allow direct typing in the field
+    if (value === '') {
+      const updatedMoments = moments.map(moment => {
+        if (moment.id === id) {
+          return { ...moment, [field]: 0 };
+        }
+        return moment;
+      });
+      setMoments(updatedMoments);
+      localStorage.setItem('moments', JSON.stringify(updatedMoments));
+      return;
+    }
+    
+    let numValue = parseFloat(value) || 0;
+    
+    // Apply clamping for location value
+    if (field === 'location') {
+      // Clamp location between 0 and span
+      numValue = Math.max(0, Math.min(span, numValue));
+    }
+    
+    const updatedMoments = moments.map(moment => {
+      if (moment.id === id) {
+        return { ...moment, [field]: numValue };
+      }
+      return moment;
+    });
+    
+    setMoments(updatedMoments);
+    localStorage.setItem('beamMoments', JSON.stringify(updatedMoments));
   };
 
   return (
@@ -359,6 +437,82 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-4 text-[var(--muted)]">
                     No point loads added yet
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+          
+          {/* Divider */}
+          <div className="border-t border-[color:var(--border)] my-6"></div>
+          
+          {/* Moments Table */}
+          <h3 className="text-lg font-medium mb-2">Moments</h3>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-[var(--text)]">Location</TableHead>
+                <TableHead className="text-[var(--text)]">Dead G</TableHead>
+                <TableHead className="text-[var(--text)]">Live Q</TableHead>
+                <TableHead className="text-left">
+                  <button
+                    className="bg-[var(--accent)] hover:opacity-80 text-[var(--card)] font-bold py-1 px-3 rounded text-sm"
+                    onClick={addDefaultMoment}
+                  >
+                    Add
+                  </button>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {moments.length > 0 ? (
+                moments.map((moment) => (
+                  <TableRow key={moment.id} className="border-0">
+                    <TableCell>
+                      <InputWithUnit
+                        value={moment.location.toString()}
+                        onChange={(e) => handleEditMoment(moment.id, 'location', e)}
+                        onFocus={(e) => e.target.value === "0" && e.target.select()}
+                        unit="m"
+                        className="w-full"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <InputWithUnit
+                        value={moment.momentG.toString()}
+                        onChange={(e) => handleEditMoment(moment.id, 'momentG', e)}
+                        onFocus={(e) => e.target.value === "0" && e.target.select()}
+                        unit="kNm"
+                        className="w-full"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <InputWithUnit
+                        value={moment.momentQ.toString()}
+                        onChange={(e) => handleEditMoment(moment.id, 'momentQ', e)}
+                        onFocus={(e) => e.target.value === "0" && e.target.select()}
+                        unit="kNm"
+                        className="w-full"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <button
+                        className="bg-red-400 hover:bg-red-800 text-white font-bold py-1 px-3 rounded text-sm"
+                        onClick={() => {
+                          const updatedMoments = moments.filter(m => m.id !== moment.id);
+                          setMoments(updatedMoments);
+                          localStorage.setItem('beamMoments', JSON.stringify(updatedMoments));
+                        }}
+                      >
+                        X
+                      </button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-4 text-[var(--muted)]">
+                    No moments added yet
                   </TableCell>
                 </TableRow>
               )}

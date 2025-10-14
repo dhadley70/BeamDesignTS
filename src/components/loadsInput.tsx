@@ -28,6 +28,13 @@ export interface Moment {
   momentQ: number;
 }
 
+// Define type for FULL UDL
+export interface FullUDL {
+  tributaryWidth: number;
+  deadGkPa: number;
+  liveQkPa: number;
+}
+
 // Define props type for the component
 interface LoadsInputProps {
   loads: UDLLoad[];
@@ -40,6 +47,12 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
   const [pointLoads, setPointLoads] = useState<PointLoad[]>([]);
   // State for moments
   const [moments, setMoments] = useState<Moment[]>([]);
+  // State for FULL UDL
+  const [fullUDL, setFullUDL] = useState<FullUDL>({
+    tributaryWidth: 0,
+    deadGkPa: 0,
+    liveQkPa: 0
+  });
 
   // Generate a unique ID for new loads
   const generateId = () => `load_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -132,6 +145,17 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
         setMoments(parsedMoments);
       } catch (e) {
         console.error('Failed to parse saved moments:', e);
+      }
+    }
+    
+    // Load FULL UDL
+    const savedFullUDL = localStorage.getItem('beamFullUDL');
+    if (savedFullUDL) {
+      try {
+        const parsedFullUDL = JSON.parse(savedFullUDL);
+        setFullUDL(parsedFullUDL);
+      } catch (e) {
+        console.error('Failed to parse saved FULL UDL:', e);
       }
     }
   }, [setLoads]);
@@ -252,7 +276,7 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
         return moment;
       });
       setMoments(updatedMoments);
-      localStorage.setItem('moments', JSON.stringify(updatedMoments));
+      localStorage.setItem('beamMoments', JSON.stringify(updatedMoments));
       return;
     }
     
@@ -274,6 +298,25 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     setMoments(updatedMoments);
     localStorage.setItem('beamMoments', JSON.stringify(updatedMoments));
   };
+  
+  // Handler for editing FULL UDL values
+  const handleEditFullUDL = (field: keyof FullUDL, e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    
+    // Allow direct typing in the field
+    if (value === '') {
+      const updatedFullUDL = { ...fullUDL, [field]: 0 };
+      setFullUDL(updatedFullUDL);
+      localStorage.setItem('beamFullUDL', JSON.stringify(updatedFullUDL));
+      return;
+    }
+    
+    const numValue = parseFloat(value) || 0;
+    const updatedFullUDL = { ...fullUDL, [field]: numValue };
+    
+    setFullUDL(updatedFullUDL);
+    localStorage.setItem('beamFullUDL', JSON.stringify(updatedFullUDL));
+  };
 
   return (
     <Card className="mb-6 lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
@@ -282,6 +325,56 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          {/* FULL UDL Section */}
+          <h3 className="text-lg font-medium mb-2">Full UDL</h3>
+          <div className="bg-[var(--background)] p-4 rounded-lg border border-[var(--border)]">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="text-sm font-medium block mb-2 text-[var(--text)]">Tributary Width</label>
+                <InputWithUnit
+                  value={fullUDL.tributaryWidth.toString()}
+                  onChange={(e) => handleEditFullUDL('tributaryWidth', e)}
+                  onFocus={(e) => e.target.value === "0" && e.target.select()}
+                  unit="m"
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-2 text-[var(--text)]">Dead Load (G)</label>
+                <InputWithUnit
+                  value={fullUDL.deadGkPa.toString()}
+                  onChange={(e) => handleEditFullUDL('deadGkPa', e)}
+                  onFocus={(e) => e.target.value === "0" && e.target.select()}
+                  unit="kPa"
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-2 text-[var(--text)]">Live Load (Q)</label>
+                <InputWithUnit
+                  value={fullUDL.liveQkPa.toString()}
+                  onChange={(e) => handleEditFullUDL('liveQkPa', e)}
+                  onFocus={(e) => e.target.value === "0" && e.target.select()}
+                  unit="kPa"
+                  className="w-full"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-2 bg-[var(--muted)] rounded">
+              <div className="flex items-center">
+                <span className="font-medium mr-2 text-[var(--text)]">Calculated UDL (G):</span>
+                <span className="text-[var(--text)] font-bold">{(fullUDL.tributaryWidth * fullUDL.deadGkPa).toFixed(2)} kN/m</span>
+              </div>
+              <div className="flex items-center">
+                <span className="font-medium mr-2 text-[var(--text)]">Calculated UDL (Q):</span>
+                <span className="text-[var(--text)] font-bold">{(fullUDL.tributaryWidth * fullUDL.liveQkPa).toFixed(2)} kN/m</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Divider */}
+          <div className="border-t border-[color:var(--border)] mt-8 mb-6"></div>
+          
           {/* UDL Table */}
           <h3 className="text-lg font-medium mb-2">Uniform Distributed Loads</h3>
           <Table>

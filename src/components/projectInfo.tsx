@@ -59,19 +59,19 @@ export function ProjectInfoCard({
             placeholder="Project Number"
             value={projectInfo.projectNumber || ''}
             onChange={(e) => setProjectInfo({ projectNumber: e.target.value })}
-            className="w-full bg-[var(--input)] border-[color:var(--border)]"
+            className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)]"
           />
           <Input
             placeholder="Project Name"
             value={projectInfo.projectName || ''}
             onChange={(e) => setProjectInfo({ projectName: e.target.value })}
-            className="w-full bg-[var(--input)] border-[color:var(--border)]"
+            className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)]"
           />
           <Input
             placeholder="Item Name"
             value={projectInfo.name || ''}
             onChange={(e) => setProjectInfo({ name: e.target.value })}
-            className="w-full bg-[var(--input)] border-[color:var(--border)]"
+            className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)]"
           />
         </div>
 
@@ -80,25 +80,25 @@ export function ProjectInfoCard({
             placeholder="Engineer"
             value={projectInfo.engineer || ''}
             onChange={(e) => setProjectInfo({ engineer: e.target.value })}
-            className="w-full bg-[var(--input)] border-[color:var(--border)]"
+            className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)]"
           />
           <Input
             type="date"
             value={projectInfo.engineerDate || ''}
             onChange={(e) => setProjectInfo({ engineerDate: e.target.value })}
-            className="w-full bg-[var(--input)] border-[color:var(--border)]"
+            className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)]"
           />
           <Input
             placeholder="Verifier"
             value={projectInfo.verifier || ''}
             onChange={(e) => setProjectInfo({ verifier: e.target.value })}
-            className="w-full bg-[var(--input)] border-[color:var(--border)]"
+            className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)]"
           />
           <Input
             type="date"
             value={projectInfo.verifierDate || ''}
             onChange={(e) => setProjectInfo({ verifierDate: e.target.value })}
-            className="w-full bg-[var(--input)] text-[var(--text)] border-[color:var(--border)]"
+            className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)]"
           />
         </div>
 
@@ -107,7 +107,7 @@ export function ProjectInfoCard({
             placeholder="Description"
             value={projectInfo.description || ''}
             onChange={(e) => setProjectInfo({ description: e.target.value })}
-            className="w-full bg-[var(--input)] border-1 border-[color:var(--border)] rounded-md p-2 resize-y"
+            className="w-full bg-[var(--input)] text-[var(--input-text)] border-1 border-[color:var(--border)] rounded-md p-2 resize-y"
             rows={4}
           />
         </div>

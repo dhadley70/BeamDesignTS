@@ -96,7 +96,7 @@ export const GeneralInputsCard: React.FC<{
                 setGeneralInputs(p => ({ ...p, span: clamped }))
               }}
               onWheel={(e) => e.currentTarget.blur()}
-              className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
+              className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)] appearance-none"
             />
           </div>
 
@@ -110,7 +110,7 @@ export const GeneralInputsCard: React.FC<{
                 setGeneralInputs(p => ({ ...p, members: Number.isFinite(n) ? n : p.members }))
               }}
             >
-              <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
+              <SelectTrigger className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)]">
                 <SelectValue placeholder="Number of members" />
               </SelectTrigger>
               <SelectContent>
@@ -143,7 +143,7 @@ export const GeneralInputsCard: React.FC<{
                 }))
               }}
             >
-                <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
+                <SelectTrigger className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)]">
                 <SelectValue placeholder="Select usage">
                   <div className="flex items-center">
                     <span>{generalInputs.usage}</span>
@@ -165,18 +165,20 @@ export const GeneralInputsCard: React.FC<{
                 })}
               </SelectContent>
             </Select>
-          </div>          {/* Lateral Restraint */}
-          <div className="space-y-1.5">
+          </div>          
+          {/* Lateral Restraint */}
+          <div className="space-y-1.5 ">
             <label className="block text-sm font-medium text-[var(--text)]">
               Lateral Restraint
             </label>
+            
             <Select
               value={generalInputs.lateralRestraint || "Lateral Restraint"}
               onValueChange={(val) =>
                 setGeneralInputs(prev => ({ ...prev, lateralRestraint: val }))
               }
             >
-              <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
+              <SelectTrigger className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)]">
                 <SelectValue placeholder="Select Lateral Restraint" />
               </SelectTrigger>
               <SelectContent>

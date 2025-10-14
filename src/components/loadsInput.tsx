@@ -136,10 +136,10 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                 <TableHead className="text-[var(--text)]">UDL Live Q</TableHead>
                 <TableHead className="text-left">
                   <button
-                    className="bg-green-400  hover:bg-green-800 text-white font-bold py-1 px-3 rounded text-sm"
+                    className="bg-[var(--accent)] hover:opacity-80 text-[var(--card)] font-bold py-1 px-3 rounded text-sm"
                     onClick={addDefaultLoad}
                   >
-                    +
+                    Add
                   </button>
                 </TableHead>
               </TableRow>
@@ -202,8 +202,8 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4 text-var(--muted)">
-                    No loads added yet
+                  <TableCell colSpan={5} className="text-center py-4 text-[var(--muted)]">
+                    No partial UDL loads added yet
                   </TableCell>
                 </TableRow>
               )}

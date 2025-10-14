@@ -75,7 +75,7 @@ export const SaveLoadDesign: React.FC<SaveLoadDesignProps> = ({ onImportComplete
     return (
         <Card className="mb-6 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
             <CardHeader className="pb-2">
-                <CardTitle className="text-xl">Save and Load Design</CardTitle>
+                <CardTitle className="text-xl">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="flex flex-col gap-4 sm:flex-row">

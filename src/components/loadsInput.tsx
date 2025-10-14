@@ -323,14 +323,14 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
           <div className="border-t border-[color:var(--border)] mt-4 mb-6"></div>
           
           {/* UDL Table */}
-          <h3 className="text-lg font-medium mb-2">Uniform Distributed Loads</h3>
+          <h3 className="text-lg font-medium mb-2">Partial UDL</h3>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="text-[var(--text)]">Start</TableHead>
                 <TableHead className="text-[var(--text)]">Finish</TableHead>
-                <TableHead className="text-[var(--text)]">UDL Dead G</TableHead>
-                <TableHead className="text-[var(--text)]">UDL Live Q</TableHead>
+                <TableHead className="text-[var(--text)]">Dead Load (G)</TableHead>
+                <TableHead className="text-[var(--text)]">Live Load (Q)</TableHead>
                 <TableHead className="text-left">
                   <button
                     className="border-[color:var(--accent)] text-[var(--text)] bg-[var(--card)] hover:bg-[var(--accent)] hover:text-[var(--card)] font-bold py-1 px-3 rounded text-sm"
@@ -415,8 +415,8 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
             <TableHeader>
               <TableRow>
                 <TableHead className="text-[var(--text)]">Location</TableHead>
-                <TableHead className="text-[var(--text)]">Dead G</TableHead>
-                <TableHead className="text-[var(--text)]">Live Q</TableHead>
+                <TableHead className="text-[var(--text)]">Dead Load (G)</TableHead>
+                <TableHead className="text-[var(--text)]">Live Load (Q)</TableHead>
                 <TableHead className="text-left">
                   <button
                     className="border-[color:var(--accent)] text-[var(--text)] bg-[var(--card)] hover:bg-[var(--accent)] hover:text-[var(--card)] font-bold py-1 px-3 rounded text-sm"
@@ -490,8 +490,8 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
             <TableHeader>
               <TableRow>
                 <TableHead className="text-[var(--text)]">Location</TableHead>
-                <TableHead className="text-[var(--text)]">Dead G</TableHead>
-                <TableHead className="text-[var(--text)]">Live Q</TableHead>
+                <TableHead className="text-[var(--text)]">Dead Load (G)</TableHead>
+                <TableHead className="text-[var(--text)]">Live Load (Q)</TableHead>
                 <TableHead className="text-left">
                   <button
                     className="border-[color:var(--accent)] text-[var(--text)] bg-[var(--card)] hover:bg-[var(--accent)] hover:text-[var(--card)] font-bold py-1 px-3 rounded text-sm"

@@ -327,53 +327,76 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
         <div className="space-y-4">
           {/* FULL UDL Section */}
           <h3 className="text-lg font-medium mb-2">Full UDL</h3>
-          <div className="bg-[var(--background)] p-4 rounded-lg border border-[var(--border)]">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div>
-                <label className="text-sm font-medium block mb-2 text-[var(--text)]">Tributary Width</label>
-                <InputWithUnit
-                  value={fullUDL.tributaryWidth.toString()}
-                  onChange={(e) => handleEditFullUDL('tributaryWidth', e)}
-                  onFocus={(e) => e.target.value === "0" && e.target.select()}
-                  unit="m"
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-2 text-[var(--text)]">Dead Load (G)</label>
-                <InputWithUnit
-                  value={fullUDL.deadGkPa.toString()}
-                  onChange={(e) => handleEditFullUDL('deadGkPa', e)}
-                  onFocus={(e) => e.target.value === "0" && e.target.select()}
-                  unit="kPa"
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-2 text-[var(--text)]">Live Load (Q)</label>
-                <InputWithUnit
-                  value={fullUDL.liveQkPa.toString()}
-                  onChange={(e) => handleEditFullUDL('liveQkPa', e)}
-                  onFocus={(e) => e.target.value === "0" && e.target.select()}
-                  unit="kPa"
-                  className="w-full"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-2 bg-[var(--muted)] rounded">
-              <div className="flex items-center">
-                <span className="font-medium mr-2 text-[var(--text)]">Calculated UDL (G):</span>
-                <span className="text-[var(--text)] font-bold">{(fullUDL.tributaryWidth * fullUDL.deadGkPa).toFixed(2)} kN/m</span>
-              </div>
-              <div className="flex items-center">
-                <span className="font-medium mr-2 text-[var(--text)]">Calculated UDL (Q):</span>
-                <span className="text-[var(--text)] font-bold">{(fullUDL.tributaryWidth * fullUDL.liveQkPa).toFixed(2)} kN/m</span>
-              </div>
-            </div>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-[var(--text)]">Tributary Width</TableHead>
+                <TableHead className="text-[var(--text)]">Dead Load (G)</TableHead>
+                <TableHead className="text-[var(--text)]">Live Load (Q)</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow className="border-0">
+                <TableCell>
+                  <InputWithUnit
+                    value={fullUDL.tributaryWidth.toString()}
+                    onChange={(e) => handleEditFullUDL('tributaryWidth', e)}
+                    onFocus={(e) => e.target.value === "0" && e.target.select()}
+                    unit="m"
+                    className="w-full"
+                  />
+                </TableCell>
+                <TableCell>
+                  <InputWithUnit
+                    value={fullUDL.deadGkPa.toString()}
+                    onChange={(e) => handleEditFullUDL('deadGkPa', e)}
+                    onFocus={(e) => e.target.value === "0" && e.target.select()}
+                    unit="kPa"
+                    className="w-full"
+                  />
+                </TableCell>
+                <TableCell>
+                  <InputWithUnit
+                    value={fullUDL.liveQkPa.toString()}
+                    onChange={(e) => handleEditFullUDL('liveQkPa', e)}
+                    onFocus={(e) => e.target.value === "0" && e.target.select()}
+                    unit="kPa"
+                    className="w-full"
+                  />
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+          
+          <Table className="mt-2 mb-4">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-[var(--text)]">Calculated</TableHead>
+                <TableHead className="text-[var(--text)]">Dead Load (G)</TableHead>
+                <TableHead className="text-[var(--text)]">Live Load (Q)</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow className="border-0">
+                <TableCell>
+                  <div className="text-center text-[var(--text)]">UDL Values</div>
+                </TableCell>
+                <TableCell>
+                  <div className="text-center font-bold text-[var(--text)]">
+                    {(fullUDL.tributaryWidth * fullUDL.deadGkPa).toFixed(2)} kN/m
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="text-center font-bold text-[var(--text)]">
+                    {(fullUDL.tributaryWidth * fullUDL.liveQkPa).toFixed(2)} kN/m
+                  </div>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
           
           {/* Divider */}
-          <div className="border-t border-[color:var(--border)] mt-8 mb-6"></div>
+          <div className="border-t border-[color:var(--border)] mt-4 mb-6"></div>
           
           {/* UDL Table */}
           <h3 className="text-lg font-medium mb-2">Uniform Distributed Loads</h3>

@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { InputWithUnit } from '@/components/ui/InputWithUnit'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './ui/table'
+import useLocalStorage from '@/hooks/useLocalStorage'
 
 // Define types for UDL load entry
 export interface UDLLoad {
@@ -44,11 +45,11 @@ interface LoadsInputProps {
 
 export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, span }) => {
   // State for point loads
-  const [pointLoads, setPointLoads] = useState<PointLoad[]>([]);
+  const [pointLoads, setPointLoads] = useLocalStorage<PointLoad[]>('beamPointLoads', []);
   // State for moments
-  const [moments, setMoments] = useState<Moment[]>([]);
+  const [moments, setMoments] = useLocalStorage<Moment[]>('beamMoments', []);
   // State for FULL UDL
-  const [fullUDL, setFullUDL] = useState<FullUDL>({
+  const [fullUDL, setFullUDL] = useLocalStorage<FullUDL>('beamFullUDL', {
     tributaryWidth: 0,
     deadGkPa: 0,
     liveQkPa: 0
@@ -70,9 +71,6 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     
     // Add to loads array
     setLoads(prevLoads => [...prevLoads, defaultLoad]);
-    
-    // Save to local storage
-    localStorage.setItem('beamLoads', JSON.stringify([...loads, defaultLoad]));
   };
   
   // Add a default point load
@@ -87,9 +85,6 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     
     // Add to point loads array
     setPointLoads(prevLoads => [...prevLoads, defaultPointLoad]);
-    
-    // Save to local storage
-    localStorage.setItem('beamPointLoads', JSON.stringify([...pointLoads, defaultPointLoad]));
   };
   
   // Add a default moment
@@ -104,61 +99,11 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     
     // Add to moments array
     setMoments(prevMoments => [...prevMoments, defaultMoment]);
-    
-    // Save to local storage
-    localStorage.setItem('beamMoments', JSON.stringify([...moments, defaultMoment]));
   };
   
 
 
   // Note: The handleAddLoad function has been removed since we now use addDefaultLoad
-
-  // Load from local storage on component mount
-  useEffect(() => {
-    // Load UDL loads
-    const savedLoads = localStorage.getItem('beamLoads');
-    if (savedLoads) {
-      try {
-        const parsedLoads = JSON.parse(savedLoads);
-        setLoads(parsedLoads);
-      } catch (e) {
-        console.error('Failed to parse saved UDL loads:', e);
-      }
-    }
-    
-    // Load point loads
-    const savedPointLoads = localStorage.getItem('beamPointLoads');
-    if (savedPointLoads) {
-      try {
-        const parsedPointLoads = JSON.parse(savedPointLoads);
-        setPointLoads(parsedPointLoads);
-      } catch (e) {
-        console.error('Failed to parse saved point loads:', e);
-      }
-    }
-    
-    // Load moments
-    const savedMoments = localStorage.getItem('beamMoments');
-    if (savedMoments) {
-      try {
-        const parsedMoments = JSON.parse(savedMoments);
-        setMoments(parsedMoments);
-      } catch (e) {
-        console.error('Failed to parse saved moments:', e);
-      }
-    }
-    
-    // Load FULL UDL
-    const savedFullUDL = localStorage.getItem('beamFullUDL');
-    if (savedFullUDL) {
-      try {
-        const parsedFullUDL = JSON.parse(savedFullUDL);
-        setFullUDL(parsedFullUDL);
-      } catch (e) {
-        console.error('Failed to parse saved FULL UDL:', e);
-      }
-    }
-  }, [setLoads]);
 
   // Note: The form input handler has been removed since we're adding loads directly
 
@@ -180,7 +125,6 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
         return load;
       });
       setLoads(updatedLoads);
-      localStorage.setItem('beamLoads', JSON.stringify(updatedLoads));
       return;
     }
     
@@ -200,7 +144,6 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
           return load;
         });
         setLoads(updatedLoads);
-        localStorage.setItem('beamLoads', JSON.stringify(updatedLoads));
         return;
       }
     } else if (field === 'finish') {
@@ -216,7 +159,6 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     });
     
     setLoads(updatedLoads);
-    localStorage.setItem('beamLoads', JSON.stringify(updatedLoads));
   };
   
   // Handler for editing existing point loads
@@ -236,7 +178,6 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
         return load;
       });
       setPointLoads(updatedLoads);
-      localStorage.setItem('beamPointLoads', JSON.stringify(updatedLoads));
       return;
     }
     
@@ -256,7 +197,6 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     });
     
     setPointLoads(updatedLoads);
-    localStorage.setItem('beamPointLoads', JSON.stringify(updatedLoads));
   };
   
   // Handler for editing existing moments
@@ -276,7 +216,6 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
         return moment;
       });
       setMoments(updatedMoments);
-      localStorage.setItem('beamMoments', JSON.stringify(updatedMoments));
       return;
     }
     
@@ -296,7 +235,6 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     });
     
     setMoments(updatedMoments);
-    localStorage.setItem('beamMoments', JSON.stringify(updatedMoments));
   };
   
   // Handler for editing FULL UDL values
@@ -307,7 +245,6 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     if (value === '') {
       const updatedFullUDL = { ...fullUDL, [field]: 0 };
       setFullUDL(updatedFullUDL);
-      localStorage.setItem('beamFullUDL', JSON.stringify(updatedFullUDL));
       return;
     }
     
@@ -315,7 +252,6 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     const updatedFullUDL = { ...fullUDL, [field]: numValue };
     
     setFullUDL(updatedFullUDL);
-    localStorage.setItem('beamFullUDL', JSON.stringify(updatedFullUDL));
   };
 
   return (
@@ -453,7 +389,6 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                         onClick={() => {
                           const updatedLoads = loads.filter(l => l.id !== load.id);
                           setLoads(updatedLoads);
-                          localStorage.setItem('beamLoads', JSON.stringify(updatedLoads));
                         }}
                       >
                         X
@@ -529,7 +464,6 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                         onClick={() => {
                           const updatedLoads = pointLoads.filter(l => l.id !== load.id);
                           setPointLoads(updatedLoads);
-                          localStorage.setItem('beamPointLoads', JSON.stringify(updatedLoads));
                         }}
                       >
                         X
@@ -605,7 +539,6 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                         onClick={() => {
                           const updatedMoments = moments.filter(m => m.id !== moment.id);
                           setMoments(updatedMoments);
-                          localStorage.setItem('beamMoments', JSON.stringify(updatedMoments));
                         }}
                       >
                         X

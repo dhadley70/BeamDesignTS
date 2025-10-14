@@ -1,4 +1,4 @@
-  import { useEffect, useState } from "react"
+import useLocalStorage from "@/hooks/useLocalStorage"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 
@@ -14,7 +14,7 @@ export interface ProjectInfoState {
 }
 
 export function useProjectInfo() {
-  const [projectInfo, setProjectInfoState] = useState<ProjectInfoState>({
+  const [projectInfo, setProjectInfoState] = useLocalStorage<ProjectInfoState>('projectInfo', {
     projectNumber: '',
     projectName: '',
     name: '',
@@ -25,17 +25,9 @@ export function useProjectInfo() {
     description: ''
   })
 
-  useEffect(() => {
-    const savedProjectInfo = localStorage.getItem('projectInfo')
-    if (savedProjectInfo) {
-      try { setProjectInfoState(JSON.parse(savedProjectInfo)) } catch { }
-    }
-  }, [])
-
   const setProjectInfo = (updates: Partial<ProjectInfoState>) => {
     const newProjectInfo = { ...projectInfo, ...updates }
     setProjectInfoState(newProjectInfo)
-    localStorage.setItem('projectInfo', JSON.stringify(newProjectInfo))
   }
 
   return [projectInfo, setProjectInfo] as const

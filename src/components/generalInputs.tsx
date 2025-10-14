@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { InputWithUnit } from '@/components/ui/InputWithUnit'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import usageData from '@/data/usage.json'
+import useLocalStorage from '@/hooks/useLocalStorage'
 
 // Define local types
 export type UsageOption = keyof typeof usageData
@@ -21,47 +22,33 @@ export const GeneralInputsCard: React.FC<{
   generalInputs: GeneralInputs
   setGeneralInputs: React.Dispatch<React.SetStateAction<GeneralInputs>>
 }> = ({ generalInputs, setGeneralInputs }) => {
-  const [spanDraft, setSpanDraft] = useState<string>('')
-
-  // Load from local storage on component mount
-  useEffect(() => {
-    const savedGeneralInputs = localStorage.getItem('generalInputs')
-    if (savedGeneralInputs) {
-      try {
-        const parsedInputs = JSON.parse(savedGeneralInputs)
-        
-        // Ensure ws and wl are set from usage data if not present
-        const usageDetails = usageData[parsedInputs.usage as UsageOption] || usageData.Normal
-        const inputsWithDefaults = {
-          ...parsedInputs,
-          ws: parsedInputs.ws ?? usageDetails.ws,
-          wl: parsedInputs.wl ?? usageDetails.wl
-        }
-        
-        setGeneralInputs(inputsWithDefaults)
-        setSpanDraft(String(inputsWithDefaults.span || ''))
-      } catch (error) {
-        console.error('Error parsing saved general inputs:', error)
-      }
-    } else {
-      // Set default usage if no saved inputs
-      const defaultUsage = 'Normal'
-      const usageDetails = usageData[defaultUsage]
-      setGeneralInputs({
-        span: 1,
-        members: 1,
-        usage: defaultUsage,
-        lateralRestraint: 'Lateral Restraint',
-        ws: usageDetails.ws,
-        wl: usageDetails.wl
-      })
+  // Get default values for a new general inputs object
+  const getDefaultGeneralInputs = (): GeneralInputs => {
+    const defaultUsage: UsageOption = 'Normal'
+    const usageDetails = usageData[defaultUsage]
+    return {
+      span: 1,
+      members: 1,
+      usage: defaultUsage,
+      lateralRestraint: 'Lateral Restraint',
+      ws: usageDetails.ws,
+      wl: usageDetails.wl
     }
-  }, [])
+  }
 
-  // Save to local storage whenever generalInputs change
-  useEffect(() => {
-    localStorage.setItem('generalInputs', JSON.stringify(generalInputs))
-  }, [generalInputs])
+  // Use local storage to persist general inputs
+  const [localGeneralInputs, setLocalGeneralInputs] = useLocalStorage<GeneralInputs>(
+    'generalInputs', 
+    getDefaultGeneralInputs()
+  )
+  
+  // Update parent state when local state changes
+  React.useEffect(() => {
+    setGeneralInputs(localGeneralInputs)
+  }, [localGeneralInputs, setGeneralInputs])
+  
+  // Track span input as a string for better UX
+  const [spanDraft, setSpanDraft] = useState<string>(String(localGeneralInputs.span || ''))
 
   return (
     <Card className="mb-6 lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
@@ -93,7 +80,7 @@ export const GeneralInputsCard: React.FC<{
                 // Always keep the numeric state valid for calcs:
                 const n = Number(s.replace(",", "."))
                 const clamped = Number.isFinite(n) ? Math.max(0.1, n) : 0.1
-                setGeneralInputs(p => ({ ...p, span: clamped }))
+                setLocalGeneralInputs(prev => ({ ...prev, span: clamped }))
               }}
               onWheel={(e) => e.currentTarget.blur()}
               className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)] appearance-none"
@@ -127,15 +114,15 @@ export const GeneralInputsCard: React.FC<{
               <div className="space-y-1.5">
             <label className="block text-sm font-medium text-[var(--text)]">Usage
                     <span className="ml-2 text-[var(--text)] opacity-70 text-xs">
-                      (ws: {generalInputs.ws}, wl: {generalInputs.wl})
+                      (ws: {localGeneralInputs.ws}, wl: {localGeneralInputs.wl})
                     </span>
 
             </label>
             <Select
-              value={generalInputs.usage}
+              value={localGeneralInputs.usage}
               onValueChange={(val: UsageOption) => {
                 const usageDetails = usageData[val]
-                setGeneralInputs(p => ({ 
+                setLocalGeneralInputs(p => ({ 
                   ...p, 
                   usage: val,
                   ws: usageDetails.ws,
@@ -146,7 +133,7 @@ export const GeneralInputsCard: React.FC<{
                 <SelectTrigger className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)]">
                 <SelectValue placeholder="Select usage">
                   <div className="flex items-center">
-                    <span>{generalInputs.usage}</span>
+                    <span>{localGeneralInputs.usage}</span>
 
                   </div>
                 </SelectValue>
@@ -173,9 +160,9 @@ export const GeneralInputsCard: React.FC<{
             </label>
             
             <Select
-              value={generalInputs.lateralRestraint || "Lateral Restraint"}
+              value={localGeneralInputs.lateralRestraint || "Lateral Restraint"}
               onValueChange={(val) =>
-                setGeneralInputs(prev => ({ ...prev, lateralRestraint: val }))
+                setLocalGeneralInputs(prev => ({ ...prev, lateralRestraint: val }))
               }
             >
               <SelectTrigger className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)]">

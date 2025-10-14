@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import useLocalStorage from "@/hooks/useLocalStorage"
 
 // Removed ProjectInfoState interface (now imported from projectInfo.tsx)
 
@@ -16,14 +17,12 @@ const THEMES = ["Light", "Retro", "Wes Anderson", "Slate", "Octonauts", "Shaun T
 type ThemeName = typeof THEMES[number]
 
 function useTheme(): [ThemeName, (t: ThemeName) => void] {
-  const [theme, setTheme] = useState<ThemeName>(() => {
-    const saved = (localStorage.getItem(THEME_KEY) as ThemeName) || "Light"
-    return saved
-  })
+  const [theme, setTheme] = useLocalStorage<ThemeName>(THEME_KEY, "Light")
+  
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme)
-    localStorage.setItem(THEME_KEY, theme)
   }, [theme])
+  
   return [theme, setTheme]
 }
 
@@ -61,28 +60,7 @@ type UsageDataType = {
 
 const typedUsageData = usageData as UsageDataType
 
-function loadGeneralInputs(): GeneralInputs {
-  try {
-    const raw = localStorage.getItem(GENERAL_INPUTS_KEY)
-    if (raw) {
-      const data = JSON.parse(raw)
-      const usage = (["Normal", "No Traffic", "Storage"] as const).includes(data.usage) 
-        ? data.usage 
-        : "Normal"
-      const usageDetails = typedUsageData[usage as keyof UsageDataType]
-      return {
-        span: clampSpan(data.span),
-        members: Number.isFinite(Number(data.members)) ? Number(data.members) : 1,
-        usage: usage,
-        lateralRestraint: typeof data.lateralRestraint === "string" 
-          ? data.lateralRestraint 
-          : "Lateral Restraint",
-        ws: data.ws ?? usageDetails.ws,
-        wl: data.wl ?? usageDetails.wl,
-      }
-    }
-  } catch { }
-  // defaults
+function getDefaultGeneralInputs(): GeneralInputs {
   const defaultUsage = "Normal"
   const usageDetails = typedUsageData[defaultUsage]
   return { 
@@ -172,15 +150,11 @@ export default function App() {
   const [theme, setTheme] = useTheme()
   const [projectInfo, setProjectInfo] = useProjectInfo()
 
-  // Load general inputs once on mount, then persist on change
-  const [generalInputs, setGeneralInputs] = useState<GeneralInputs>(() => loadGeneralInputs())
+  // Use localStorage hook for general inputs
+  const [generalInputs, setGeneralInputs] = useLocalStorage<GeneralInputs>(GENERAL_INPUTS_KEY, getDefaultGeneralInputs())
   
-  // State for the UDL loads
-  const [loads, setLoads] = useState<UDLLoad[]>([])
-  useEffect(() => {
-    // persist any change
-    localStorage.setItem(GENERAL_INPUTS_KEY, JSON.stringify(generalInputs))
-  }, [generalInputs])
+  // State for the UDL loads with localStorage persistence
+  const [loads, setLoads] = useLocalStorage<UDLLoad[]>('beamLoads', [])
 
   // Load deflection limits from local storage
   const calculateMaxDeflection = (span: number, spanRatio: number, maxLimit: number) => {

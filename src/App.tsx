@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { GeneralInputsCard } from "@/components/generalInputs"
 import { DeflectionLimitsCard } from "@/components/deflectionLimits"
+import { LoadsInputCard, type UDLLoad } from "@/components/loadsInput"
 import { AlignLeft, Home, BarChart3, Settings, ChevronRight, Rocket, Star, Paintbrush, Check, ChevronDown, Circle, } from "lucide-react"
 
 /* ---------------- Theming ---------------- */
@@ -173,6 +174,9 @@ export default function App() {
 
   // Load general inputs once on mount, then persist on change
   const [generalInputs, setGeneralInputs] = useState<GeneralInputs>(() => loadGeneralInputs())
+  
+  // State for the UDL loads
+  const [loads, setLoads] = useState<UDLLoad[]>([])
   useEffect(() => {
     // persist any change
     localStorage.setItem(GENERAL_INPUTS_KEY, JSON.stringify(generalInputs))
@@ -314,6 +318,11 @@ export default function App() {
           deflectionLimits={deflectionLimits}
           setDeflectionLimits={setDeflectionLimits}
           span={generalInputs.span}
+        />
+
+        <LoadsInputCard
+          loads={loads}
+          setLoads={setLoads}
         />
 
         {/* Stats */}

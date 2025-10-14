@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { InputWithUnit } from '@/components/ui/InputWithUnit'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './ui/table'
@@ -20,67 +20,32 @@ interface LoadsInputProps {
 }
 
 export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, span }) => {
-  // State to manage visibility of the add load form
-  const [showAddForm, setShowAddForm] = useState<boolean>(false);
-  
-  // State to manage form inputs for new load
-  const [newLoad, setNewLoad] = useState<Omit<UDLLoad, 'id'>>({
-    start: 0,
-    finish: 0,
-    udlG: 0,
-    udlQ: 0
-  });
+  // No state variables needed for form management since we're adding loads directly
 
   // Generate a unique ID for new loads
   const generateId = () => `load_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-  // Toggle the add form visibility
-  const toggleAddForm = () => {
-    setShowAddForm(!showAddForm);
-    if (!showAddForm) {
-      // Reset form when opening
-      setNewLoad({
-        start: 0,
-        finish: 0,
-        udlG: 0,
-        udlQ: 0
-      });
-    }
-  };
-
-  // Handler for adding a new load
-  const handleAddLoad = () => {
-    // Create a copy with final validation/adjustment
-    const finalLoad = { ...newLoad };
-    
-    // Ensure finish is always >= start (if both are not zero)
-    if (finalLoad.start > 0 && finalLoad.finish < finalLoad.start) {
-      finalLoad.finish = finalLoad.start;
-    }
-    
-    // Clamp values to span
-    finalLoad.start = Math.min(finalLoad.start, span);
-    finalLoad.finish = Math.min(finalLoad.finish, span);
-    
-    const loadWithId: UDLLoad = {
-      ...finalLoad,
-      id: generateId()
-    };
-    
-    setLoads(prevLoads => [...prevLoads, loadWithId]);
-    
-    // Reset form and hide it
-    setNewLoad({
+  // Add a default load directly
+  const addDefaultLoad = () => {
+    // Create a default load that spans the entire beam
+    const defaultLoad: UDLLoad = {
+      id: generateId(),
       start: 0,
-      finish: 0,
+      finish: span,
       udlG: 0,
       udlQ: 0
-    });
-    setShowAddForm(false);
+    };
+    
+    // Add to loads array
+    setLoads(prevLoads => [...prevLoads, defaultLoad]);
     
     // Save to local storage
-    localStorage.setItem('beamLoads', JSON.stringify([...loads, loadWithId]));
+    localStorage.setItem('beamLoads', JSON.stringify([...loads, defaultLoad]));
   };
+  
+
+
+  // Note: The handleAddLoad function has been removed since we now use addDefaultLoad
 
   // Load from local storage on component mount
   useEffect(() => {
@@ -95,60 +60,7 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     }
   }, [setLoads]);
 
-  // Handler for input changes for new load
-  const handleInputChange = (field: keyof Omit<UDLLoad, 'id'>, e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    
-    // Allow direct typing in the field
-    if (value === '--' || value === '') {
-      setNewLoad(prev => ({
-        ...prev,
-        [field]: 0
-      }));
-      return;
-    }
-    
-    let numValue = parseFloat(value) || 0;
-    
-    // Apply clamping for start and finish values
-    if (field === 'start') {
-      // Clamp start between 0 and span
-      numValue = Math.max(0, Math.min(span, numValue));
-      
-      // If start is greater than current finish, update finish too
-      if (numValue > newLoad.finish && newLoad.finish !== 0) {
-        setNewLoad(prev => ({
-          ...prev,
-          start: numValue,
-          finish: numValue
-        }));
-        return;
-      }
-    } else if (field === 'finish') {
-      // Clamp finish between start and span
-      numValue = Math.max(newLoad.start, Math.min(span, numValue));
-      
-      // Auto-add if start and finish are set properly
-      if (newLoad.start > 0 && numValue > 0) {
-        // First update state
-        const updatedLoad = {
-          ...newLoad,
-          finish: numValue
-        };
-        
-        setNewLoad(updatedLoad);
-        
-        // Then add the load after a small delay to ensure state is updated
-        setTimeout(() => handleAddLoad(), 100);
-        return;
-      }
-    }
-    
-    setNewLoad(prev => ({
-      ...prev,
-      [field]: numValue
-    }));
-  };
+  // Note: The form input handler has been removed since we're adding loads directly
 
   
   // Handler for editing existing loads
@@ -225,63 +137,15 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                 <TableHead className="text-left">
                   <button
                     className="bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded text-sm"
-                    onClick={toggleAddForm}
+                    onClick={addDefaultLoad}
                   >
-                    {showAddForm ? 'Cancel' : 'Add Load'}
+                    Add Load
                   </button>
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {/* Show add form when showAddForm is true */}
-              {showAddForm && (
-                <TableRow>
-                  <TableCell>
-                    <InputWithUnit
-                      value={newLoad.start === 0 ? "--" : newLoad.start.toString()}
-                      onChange={(e) => handleInputChange('start', e)}
-                      onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
-                      unit="m"
-                      className="w-full bg-[var(--input-bg)]"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <InputWithUnit
-                      value={newLoad.finish === 0 ? "--" : newLoad.finish.toString()}
-                      onChange={(e) => handleInputChange('finish', e)}
-                      onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
-                      unit="m"
-                      className="w-full"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <InputWithUnit
-                      value={newLoad.udlG === 0 ? "--" : newLoad.udlG.toString()}
-                      onChange={(e) => handleInputChange('udlG', e)}
-                      onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
-                      unit="kN/m"
-                      className="w-full"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <InputWithUnit
-                      value={newLoad.udlQ === 0 ? "--" : newLoad.udlQ.toString()}
-                      onChange={(e) => handleInputChange('udlQ', e)}
-                      onFocus={(e) => e.target.value === "--" ? e.target.value = "" : null}
-                      unit="kN/m"
-                      className="w-full"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <button
-                      className="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded text-sm"
-                      onClick={() => setShowAddForm(false)}
-                    >
-                      Remove
-                    </button>
-                  </TableCell>
-                </TableRow>
-              )}
+              {/* No form shown, loads are added directly */}
               
               {loads.length > 0 ? (
                 loads.map((load) => (

@@ -18,23 +18,24 @@ export interface GeneralInputs {
 
 const memberOptions = [1, 2, 3, 4, 5, 6]
 
+// Get default values for a new general inputs object
+export function getDefaultGeneralInputs(): GeneralInputs {
+  const defaultUsage: UsageOption = 'Normal'
+  const usageDetails = usageData[defaultUsage]
+  return {
+    span: 3.0,
+    members: 1,
+    usage: defaultUsage,
+    lateralRestraint: 'Lateral Restraint',
+    ws: usageDetails.ws,
+    wl: usageDetails.wl
+  }
+}
+
 export const GeneralInputsCard: React.FC<{
   generalInputs: GeneralInputs
   setGeneralInputs: React.Dispatch<React.SetStateAction<GeneralInputs>>
 }> = ({ generalInputs, setGeneralInputs }) => {
-  // Get default values for a new general inputs object
-  const getDefaultGeneralInputs = (): GeneralInputs => {
-    const defaultUsage: UsageOption = 'Normal'
-    const usageDetails = usageData[defaultUsage]
-    return {
-      span: 1,
-      members: 1,
-      usage: defaultUsage,
-      lateralRestraint: 'Lateral Restraint',
-      ws: usageDetails.ws,
-      wl: usageDetails.wl
-    }
-  }
 
   // Use local storage to persist general inputs
   const [localGeneralInputs, setLocalGeneralInputs] = useLocalStorage<GeneralInputs>(

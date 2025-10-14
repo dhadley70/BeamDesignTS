@@ -6,7 +6,7 @@ import useLocalStorage from "@/hooks/useLocalStorage"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { GeneralInputsCard } from "@/components/generalInputs"
+import { GeneralInputsCard, getDefaultGeneralInputs } from "@/components/generalInputs"
 import { DeflectionLimitsCard } from "@/components/deflectionLimits"
 import { LoadsInputCard, type UDLLoad } from "@/components/loadsInput"
 import { SaveLoadDesign } from "@/components/saveLoadDesign"
@@ -39,29 +39,7 @@ type GeneralInputs = {
 const GENERAL_INPUTS_KEY = "generalInputs"
 const DEFLECTION_LIMITS_KEY = "deflectionLimits"
 
-import usageData from '@/data/usage.json'
 import type { DeflectionLimits } from "@/components/deflectionLimits"
-
-type UsageDataType = {
-  Normal: { ws: number; wl: number },
-  "No Traffic": { ws: number; wl: number },
-  Storage: { ws: number; wl: number }
-}
-
-const typedUsageData = usageData as UsageDataType
-
-function getDefaultGeneralInputs(): GeneralInputs {
-  const defaultUsage = "Normal"
-  const usageDetails = typedUsageData[defaultUsage]
-  return { 
-    span: 3.0, 
-    members: 1, 
-    usage: defaultUsage, 
-    lateralRestraint: "Lateral Restraint",
-    ws: usageDetails.ws,
-    wl: usageDetails.wl
-  }
-}
 
 /* ---------------- Theme Utils ---------------- */
 

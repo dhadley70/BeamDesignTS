@@ -88,7 +88,7 @@ export const SaveLoadDesign: React.FC<SaveLoadDesignProps> = ({ onImportComplete
             onClick={handleExport}
           >
             <FileDown size={16} />
-            <span>Export Design</span>
+            <span>Save</span>
           </Button>
           
           <Button 
@@ -97,7 +97,7 @@ export const SaveLoadDesign: React.FC<SaveLoadDesignProps> = ({ onImportComplete
             onClick={handleImportClick}
           >
             <Upload size={16} />
-            <span>Import Design</span>
+            <span>Open</span>
           </Button>
           
           <input 

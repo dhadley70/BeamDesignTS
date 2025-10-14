@@ -10,6 +10,7 @@ import { GeneralInputsCard } from "@/components/generalInputs"
 import { DeflectionLimitsCard } from "@/components/deflectionLimits"
 import { LoadsInputCard, type UDLLoad } from "@/components/loadsInput"
 import { SaveLoadDesign } from "@/components/saveLoadDesign"
+import { HeaderSaveButtons } from "@/components/headerSaveButtons"
 import { AlignLeft, Home, BarChart3, Settings, Rocket, Star, Paintbrush, Check, ChevronDown, Circle, } from "lucide-react"
 
 /* ---------------- Theming ---------------- */
@@ -263,6 +264,9 @@ export default function App() {
             <Badge className="shrink-0 bg-[var(--accent)] text-[var(--accent-contrast)]">demo</Badge>
           </div>
           <div className="ml-auto flex items-center gap-2">
+            <HeaderSaveButtons 
+              onImportComplete={() => window.location.reload()}
+            />
             <ThemeDropdown theme={theme} onChange={setTheme} />
             <Button
               variant="outline"
@@ -348,8 +352,8 @@ export default function App() {
                   const importFileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
                   if (importFileInput) importFileInput.click();
                 }}
-              >
-                Import design
+                >
+                Open design
               </Button>
               <Button variant="outline" className="w-full border-[color:var(--border)]">Manage settings</Button>
             </CardContent>

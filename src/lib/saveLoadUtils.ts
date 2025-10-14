@@ -14,10 +14,54 @@ const STORAGE_KEYS = [
 ];
 
 /**
+ * Generates a filename for the exported design based on project information
+ * Format: <Project number> - <Project Name> - <Item Name> - <date and time stamp>
+ */
+export function generateFilename(): string {
+  // Get project info from localStorage
+  const projectInfoStr = localStorage.getItem('projectInfo');
+  let projectInfo: any = {};
+  
+  if (projectInfoStr) {
+    try {
+      projectInfo = JSON.parse(projectInfoStr);
+    } catch (e) {
+      console.warn('Error parsing project info from localStorage', e);
+    }
+  }
+  
+  // Extract project details with fallbacks
+  const projectNumber = projectInfo.projectNumber || '';
+  const projectName = projectInfo.projectName || '';
+  const itemName = projectInfo.name || '';
+  
+  // Generate timestamp in format: YYYY-MM-DD_HH-MM-SS
+  const now = new Date();
+  const dateStr = now.toISOString().replace(/T/, '_').replace(/:/g, '-').split('.')[0];
+  
+  // Build filename components
+  const parts = [];
+  if (projectNumber) parts.push(projectNumber);
+  if (projectName) parts.push(projectName);
+  if (itemName) parts.push(itemName);
+  parts.push(dateStr);
+  
+  // Create filename, fallback to default if no project info
+  const filename = parts.length > 1 
+    ? parts.join(' - ').replace(/[\\/:*?"<>|]/g, '_') + '.json'
+    : `beam-design_${dateStr}.json`;
+    
+  return filename;
+}
+
+/**
  * Exports all beam design data to a downloadable JSON file
  */
-export function exportDesignData(filename = 'beam-design.json'): void {
+export function exportDesignData(filename?: string): void {
   try {
+    // Use provided filename or generate one based on project info
+    const downloadFilename = filename || generateFilename();
+    
     // Create an object to store all the data
     const exportData: Record<string, any> = {};
     
@@ -50,7 +94,7 @@ export function exportDesignData(filename = 'beam-design.json'): void {
     // Create a temporary link element and trigger the download
     const a = document.createElement('a');
     a.setAttribute('href', url);
-    a.setAttribute('download', filename);
+    a.setAttribute('download', downloadFilename);
     a.style.display = 'none';
     document.body.appendChild(a);
     a.click();

@@ -12,12 +12,8 @@ export const HeaderSaveButtons: React.FC<HeaderSaveButtonsProps> = ({ onImportCo
 
   const handleExport = () => {
     try {
-      // Generate a filename with current date
-      const now = new Date();
-      const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD format
-      const filename = `beam-design_${dateStr}.json`;
-      
-      exportDesignData(filename);
+      // Use the built-in function to export with the new filename format
+      exportDesignData();
     } catch (error) {
       console.error('Export failed:', error);
     }
@@ -58,7 +54,7 @@ export const HeaderSaveButtons: React.FC<HeaderSaveButtonsProps> = ({ onImportCo
         <Button 
           variant="outline" 
           size="sm" 
-          className="flex items-center gap-1 border-[color:var(--border)] text-[color:var(--text)] hover:bg-[var(--muted)]"
+          className="flex items-center gap-1 border-[color:var(--border)] text-[color:var(--text)] hover:text-[color:var(--card)]"
           onClick={handleExport}
         >
           <Save className="size-4" />
@@ -68,7 +64,7 @@ export const HeaderSaveButtons: React.FC<HeaderSaveButtonsProps> = ({ onImportCo
         <Button 
           variant="outline" 
           size="sm" 
-          className="flex items-center gap-1 border-[color:var(--border)] text-[color:var(--text)] hover:bg-[var(--muted)]"
+          className="flex items-center gap-1 border-[color:var(--border)] text-[color:var(--text)] hover:text-[color:var(--card)]"
           onClick={handleImportClick}
         >
           <FolderOpen className="size-4" />

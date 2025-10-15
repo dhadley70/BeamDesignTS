@@ -71,8 +71,6 @@ export function SectionsInputCard() {
   // State for available members based on selected section type
   const [availableMembers, setAvailableMembers] = useState<SectionMember[]>([])
 
-  // Get selected member when needed in the UI
-
   // Handle section type change
   const handleSectionTypeChange = (value: string) => {
     setSelectedSectionType(value)
@@ -159,6 +157,14 @@ export function SectionsInputCard() {
       setSelectedMember(availableMembers[0].designation);
     }
   }, [availableMembers, selectedMember]);
+
+  // Get the displayed member for the phiM calculation
+  const displayedMember = selectedMember ? 
+    availableMembers.find(m => m.designation === selectedMember) || null : 
+    null;
+
+  // Calculate phiM for the displayed member
+  const phiMCalculation = usePhiMCalculation(displayedMember, selectedSectionType);
 
   return (
     <Card className="mt-6 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
@@ -290,81 +296,56 @@ export function SectionsInputCard() {
             </div>
           </div>
           
-          {selectedMember && (
+          {displayedMember && (
             <div className="mt-4 p-4 rounded-md border border-[color:var(--border)] bg-[var(--muted)]/10">
               <h4 className="text-md font-medium mb-2">Section Properties</h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {availableMembers
-                  .filter(m => m.designation === selectedMember)
-                  .map(member => (
-                    <div key={member.designation} className="col-span-2 md:col-span-4">
-                      {/* Steel section properties */}
-                      {['UB', 'UC', 'PFC'].includes(selectedSectionType) && (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          <PropertyCell label="Depth" value={`${member.depth_mm} mm`} />
-                          <PropertyCell label="Flange Width" value={`${member.flange_mm} mm`} />
-                          <PropertyCell label="Mass" value={`${member.mass_kg_m} kg/m`} />
-                          <PropertyCell label="E" value="200 GPa" />
-                          <PropertyCell label="I" value={`${member.I_m4?.toExponential(2) || 'N/A'} m⁴`} />
-                          {(() => {
-                            const { phiM_kNm, details } = usePhiMCalculation(member, selectedSectionType);
-                            return (
-                              <>
-                                <PropertyCell label="Design Moment Capacity" value={`${phiM_kNm} kN·m`} className="col-span-2 bg-[var(--accent)]/10" />
-                                <PropertyCell label="Calculation" value={details} className="col-span-2 text-xs" />
-                              </>
-                            );
-                          })()}
-                        </div>
-                      )}
-                      
-                      {/* Timber section properties */}
-                      {!['UB', 'UC', 'PFC'].includes(selectedSectionType) && (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          <PropertyCell label="Depth" value={`${member.depth_mm} mm`} />
-                          <PropertyCell label="Width" value={`${member.width_mm} mm`} />
-                          <PropertyCell label="Mass" value={`${member.mass_kg_m} kg/m`} />
-                          <PropertyCell 
-                            label="E" 
-                            value={
-                              (() => {
-                                // Find the grade data for the current section type
-                                const grade = timberSections.grades.find(g => {
-                                  if (selectedSectionType === 'LVL13' && g.grade === 'LVL 13') return true;
-                                  if (selectedSectionType === 'MGP10' && g.grade === 'MGP10') return true;
-                                  if (selectedSectionType === 'MGP12' && g.grade === 'MGP12') return true;
-                                  if (selectedSectionType === 'MGP15' && g.grade === 'MGP15') return true;
-                                  if (selectedSectionType === 'F7' && g.grade === 'F7') return true;
-                                  if (selectedSectionType === 'F8' && g.grade === 'F8') return true;
-                                  if (selectedSectionType === 'F11' && g.grade === 'F11') return true;
-                                  if (selectedSectionType === 'F14' && g.grade === 'F14') return true;
-                                  if (selectedSectionType === 'F17' && g.grade === 'F17') return true;
-                                  if (selectedSectionType === 'F22' && g.grade === 'F22') return true;
-                                  if (selectedSectionType === 'F27' && g.grade === 'F27') return true;
-                                  if (selectedSectionType === 'GL8' && g.grade === 'GL8') return true;
-                                  if (selectedSectionType === 'GL13' && g.grade === 'GL13') return true;
-                                  if (selectedSectionType === 'GL17' && g.grade === 'GL17') return true;
-                                  return false;
-                                });
-                                
-                                return grade?.E_GPa ? `${grade.E_GPa} GPa` : 'N/A';
-                              })()
-                            } 
-                          />
-                          <PropertyCell label="I" value={`${member.I_m4?.toExponential(2) || 'N/A'} m⁴`} />
-                          {(() => {
-                            const { phiM_kNm, details } = usePhiMCalculation(member, selectedSectionType);
-                            return (
-                              <>
-                                <PropertyCell label="Design Moment Capacity" value={`${phiM_kNm} kN·m`} className="col-span-2 bg-[var(--accent)]/10" />
-                                <PropertyCell label="Calculation" value={details} className="col-span-2 text-xs" />
-                              </>
-                            );
-                          })()}
-                        </div>
-                      )}
+                <div className="col-span-2 md:col-span-4">
+                  {/* Steel section properties */}
+                  {['UB', 'UC', 'PFC'].includes(selectedSectionType) && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <PropertyCell label="Depth" value={`${displayedMember.depth_mm} mm`} />
+                      <PropertyCell label="Flange Width" value={`${displayedMember.flange_mm} mm`} />
+                      <PropertyCell label="Mass" value={`${displayedMember.mass_kg_m} kg/m`} />
+                      <PropertyCell label="E" value="200 GPa" />
+                      <PropertyCell label="I" value={`${displayedMember.I_m4?.toExponential(2) || 'N/A'} m⁴`} />
+                      <PropertyCell 
+                        label="Design Moment Capacity" 
+                        value={`${phiMCalculation.phiM_kNm} kN·m`} 
+                        className="col-span-2 bg-[var(--accent)]/10" 
+                      />
+                      <PropertyCell 
+                        label="Calculation" 
+                        value={phiMCalculation.details} 
+                        className="col-span-2 text-xs" 
+                      />
                     </div>
-                  ))}
+                  )}
+                  
+                  {/* Timber section properties */}
+                  {!['UB', 'UC', 'PFC'].includes(selectedSectionType) && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <PropertyCell label="Depth" value={`${displayedMember.depth_mm} mm`} />
+                      <PropertyCell label="Width" value={`${displayedMember.width_mm} mm`} />
+                      <PropertyCell label="Mass" value={`${displayedMember.mass_kg_m} kg/m`} />
+                      <PropertyCell 
+                        label="E" 
+                        value={`${displayedMember.E_GPa} GPa`}
+                      />
+                      <PropertyCell label="I" value={`${displayedMember.I_m4?.toExponential(2) || 'N/A'} m⁴`} />
+                      <PropertyCell 
+                        label="Design Moment Capacity" 
+                        value={`${phiMCalculation.phiM_kNm} kN·m`} 
+                        className="col-span-2 bg-[var(--accent)]/10" 
+                      />
+                      <PropertyCell 
+                        label="Calculation" 
+                        value={phiMCalculation.details} 
+                        className="col-span-2 text-xs" 
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}

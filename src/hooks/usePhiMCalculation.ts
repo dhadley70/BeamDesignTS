@@ -52,6 +52,14 @@ export function usePhiMCalculation(
       const phi = 0.9; // Capacity reduction factor for steel
       const fy_MPa = 300; // Yield strength in MPa (default to 300 MPa)
       
+      // Check if we have a plastic section modulus value
+      if (!steelMember.Z_m3) {
+        return {
+          phiM_kNm: 0,
+          details: 'Missing section modulus data'
+        };
+      }
+      
       // Calculate design moment capacity
       // phiM = phi * Z * fy
       // Convert Z from m³ to mm³ (multiply by 10^9) and fy from MPa to N/mm² (no conversion needed)
@@ -76,16 +84,39 @@ export function usePhiMCalculation(
         };
       }
       
+      // Calculate section modulus Z if not available in the data
+      // For rectangular sections, Z = bd²/6 where b is width and d is depth
+      // Convert from mm³ to m³ by dividing by 10^9
+      let Z_m3: number;
+      let Z_calculation = '';
+      
+      if (timberMember.Z_m3) {
+        // Use provided Z value if available
+        Z_m3 = timberMember.Z_m3;
+        Z_calculation = `Z = ${Z_m3.toExponential(3)} m³`;
+      } else if (timberMember.width_mm && timberMember.depth_mm) {
+        // Calculate Z from dimensions for rectangular section
+        const width_m = timberMember.width_mm / 1000;
+        const depth_m = timberMember.depth_mm / 1000;
+        Z_m3 = (width_m * Math.pow(depth_m, 2)) / 6;
+        Z_calculation = `Z = bd²/6 = ${timberMember.width_mm}×${timberMember.depth_mm}²/6 = ${Z_m3.toExponential(3)} m³`;
+      } else {
+        return {
+          phiM_kNm: 0,
+          details: 'Insufficient section data to calculate Z'
+        };
+      }
+      
       // For timber, we use the bending strength from the member properties (fb_MPa)
       // phiM = phi * Z * fb
       // Convert Z from m³ to mm³ (multiply by 10^9) and fb is already in MPa
       // Then convert from N·mm to kN·m (divide by 10^6)
-      const Z_mm3 = timberMember.Z_m3 * 1e9;
+      const Z_mm3 = Z_m3 * 1e9;
       const phiM_kNm = phi * Z_mm3 * timberMember.fb_MPa / 1e6;
 
       return {
         phiM_kNm: Number(phiM_kNm.toFixed(1)),
-        details: `φ = ${phi}, fb = ${timberMember.fb_MPa} MPa, Z = ${timberMember.Z_m3.toExponential(3)} m³`
+        details: `φ = ${phi}, fb = ${timberMember.fb_MPa} MPa, ${Z_calculation}`
       };
     }
   }, [member, sectionType]);

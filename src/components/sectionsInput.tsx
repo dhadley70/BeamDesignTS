@@ -23,15 +23,15 @@ const sectionTypes = [
   { value: "UB", label: "UB - Universal Beam", group: "Steel" },
   { value: "UC", label: "UC - Universal Column", group: "Steel" },
   { value: "PFC", label: "PFC - Parallel Flange Channel", group: "Steel" },
-  
+
   // Timber sections - Laminated Veneer Lumber
   { value: "LVL13", label: "LVL 13", group: "Timber-LVL" },
-  
+
   // Timber sections - Machine Graded Pine
   { value: "MGP10", label: "MGP10", group: "Timber-MGP" },
   { value: "MGP12", label: "MGP12", group: "Timber-MGP" },
   { value: "MGP15", label: "MGP15", group: "Timber-MGP" },
-  
+
   // Timber sections - F-Grade
   { value: "F7", label: "F7", group: "Timber-F" },
   { value: "F8", label: "F8", group: "Timber-F" },
@@ -40,7 +40,7 @@ const sectionTypes = [
   { value: "F17", label: "F17", group: "Timber-F" },
   { value: "F22", label: "F22", group: "Timber-F" },
   { value: "F27", label: "F27", group: "Timber-F" },
-  
+
   // Timber sections - Glulam
   { value: "GL8", label: "GL8", group: "Timber-GL" },
   { value: "GL13", label: "GL13", group: "Timber-GL" },
@@ -59,7 +59,7 @@ type SectionMember = PhiMSectionMember & {
 export function SectionsInputCard() {
   // Store the selected section type in local storage
   const [selectedSectionType, setSelectedSectionType] = useLocalStorage<string>(
-    'beamSectionType', 
+    'beamSectionType',
     'UB' // Default selection
   )
 
@@ -71,10 +71,10 @@ export function SectionsInputCard() {
 
   // Read generalInputs from localStorage to get the number of members
   const [generalInputs] = useLocalStorage<GeneralInputs>(
-    'generalInputs', 
+    'generalInputs',
     { span: 3.0, members: 1, usage: 'Normal', lateralRestraint: 'Lateral Restraint', ws: 2, wl: 3 }
   )
-  
+
   // State to force a re-render when needed
   const [updateCounter, setUpdateCounter] = useState(0);
 
@@ -96,7 +96,7 @@ export function SectionsInputCard() {
   useEffect(() => {
     const fetchMembers = () => {
       let members: SectionMember[] = []
-      
+
       // Steel sections (UB, UC, PFC)
       if (['UB', 'UC', 'PFC'].includes(selectedSectionType)) {
         members = steelSections.sections
@@ -111,7 +111,7 @@ export function SectionsInputCard() {
             tf_mm: section.tf_mm,
             tw_mm: section.tw_mm
           }))
-      } 
+      }
       // Timber sections
       else {
         // Find the grade that matches the selected section type
@@ -131,10 +131,10 @@ export function SectionsInputCard() {
           if (selectedSectionType === 'GL8' && g.grade === 'GL8') return true;
           if (selectedSectionType === 'GL13' && g.grade === 'GL13') return true;
           if (selectedSectionType === 'GL17' && g.grade === 'GL17') return true;
-          
+
           return false;
         });
-        
+
         // If grade found, use its sizes as members
         if (grade && grade.sizes) {
           members = grade.sizes.map(size => ({
@@ -153,10 +153,10 @@ export function SectionsInputCard() {
           }));
         }
       }
-      
+
       setAvailableMembers(members)
     }
-    
+
     fetchMembers();
   }, [selectedSectionType]);
 
@@ -167,7 +167,7 @@ export function SectionsInputCard() {
       setSelectedMember(availableMembers[0].designation);
     }
   }, [availableMembers, selectedMember]);
-  
+
   // Listen for changes in generalInputs.members
   useEffect(() => {
     // This will trigger a re-render with the updated member count
@@ -177,43 +177,43 @@ export function SectionsInputCard() {
   }, [generalInputs.members]);
 
   // Get the displayed member for the phiM calculation
-  const displayedMember = selectedMember ? 
-    availableMembers.find(m => m.designation === selectedMember) || null : 
+  const displayedMember = selectedMember ?
+    availableMembers.find(m => m.designation === selectedMember) || null :
     null;
 
   // Calculate built-up section properties when members > 1
   const calculateBuiltUpProperties = (member: SectionMember | null, numMembers: number) => {
     if (!member) return null;
-    
+
     // For a built-up section in parallel (side by side), properties scale as follows:
     // - Mass: scales directly with number of members
     // - Moment of inertia (I): scales directly with number of members
     // - Section modulus (Z): scales directly with number of members
     // - Width/flange width: scales directly with number of members for timber/steel
-    
-    const builtUpMember = {...member};
-    
+
+    const builtUpMember = { ...member };
+
     // Common properties for all section types
     builtUpMember.mass_kg_m = member.mass_kg_m * numMembers;
     builtUpMember.I_m4 = member.I_m4 * numMembers;
     builtUpMember.Z_m3 = (member.Z_m3 || 0) * numMembers;
-    
+
     // Steel specific properties
     if ('flange_mm' in member) {
       builtUpMember.flange_mm = member.flange_mm * numMembers;
     }
-    
+
     // Timber specific properties
     if ('width_mm' in member) {
       builtUpMember.width_mm = member.width_mm * numMembers;
     }
-    
+
     return builtUpMember;
   };
 
   // Get member count from generalInputs and also directly from localStorage as fallback
   let memberCount = generalInputs.members || 1;
-  
+
   // Try to get the most up-to-date value directly from localStorage
   try {
     const rawGeneralInputs = localStorage.getItem('generalInputs');
@@ -226,20 +226,20 @@ export function SectionsInputCard() {
   } catch (error) {
     console.error('Error reading generalInputs from localStorage:', error);
   }
-  
+
   // Add debug logs
   console.log('Member count from generalInputs:', memberCount);
   console.log('General inputs:', generalInputs);
   console.log('Update counter:', updateCounter); // Log to show re-renders
-  
+
   // Get either single member or built-up properties based on member count
-  const effectiveMember = memberCount > 1 && displayedMember 
+  const effectiveMember = memberCount > 1 && displayedMember
     ? calculateBuiltUpProperties(displayedMember, memberCount)
     : displayedMember;
-    
+
   // Log effective member for debugging
   console.log('Effective member:', effectiveMember);
-  
+
   // Calculate phiM for the displayed member
   const designCapacity = usePhiMCalculation(effectiveMember, selectedSectionType);
 
@@ -255,8 +255,8 @@ export function SectionsInputCard() {
               <label htmlFor="section-type" className="text-sm font-medium">
                 Section Type
               </label>
-              <Select 
-                value={selectedSectionType} 
+              <Select
+                value={selectedSectionType}
                 onValueChange={handleSectionTypeChange}
               >
                 <SelectTrigger className="w-full bg-[var(--card)] border-[color:var(--border)]">
@@ -268,8 +268,8 @@ export function SectionsInputCard() {
                     {sectionTypes
                       .filter(type => type.group === "Steel")
                       .map(type => (
-                        <SelectItem 
-                          key={type.value} 
+                        <SelectItem
+                          key={type.value}
                           value={type.value}
                           className="hover:bg-[var(--accent)] hover:text-[var(--accent-contrast)]"
                         >
@@ -278,14 +278,14 @@ export function SectionsInputCard() {
                       ))
                     }
                   </SelectGroup>
-                  
+
                   <SelectGroup>
                     <SelectLabel>Timber - LVL</SelectLabel>
                     {sectionTypes
                       .filter(type => type.group === "Timber-LVL")
                       .map(type => (
-                        <SelectItem 
-                          key={type.value} 
+                        <SelectItem
+                          key={type.value}
                           value={type.value}
                           className="hover:bg-[var(--accent)] hover:text-[var(--accent-contrast)]"
                         >
@@ -294,14 +294,14 @@ export function SectionsInputCard() {
                       ))
                     }
                   </SelectGroup>
-                  
+
                   <SelectGroup>
                     <SelectLabel>Timber - MGP</SelectLabel>
                     {sectionTypes
                       .filter(type => type.group === "Timber-MGP")
                       .map(type => (
-                        <SelectItem 
-                          key={type.value} 
+                        <SelectItem
+                          key={type.value}
                           value={type.value}
                           className="hover:bg-[var(--accent)] hover:text-[var(--accent-contrast)]"
                         >
@@ -310,14 +310,14 @@ export function SectionsInputCard() {
                       ))
                     }
                   </SelectGroup>
-                  
+
                   <SelectGroup>
                     <SelectLabel>Timber - F Grade</SelectLabel>
                     {sectionTypes
                       .filter(type => type.group === "Timber-F")
                       .map(type => (
-                        <SelectItem 
-                          key={type.value} 
+                        <SelectItem
+                          key={type.value}
                           value={type.value}
                           className="hover:bg-[var(--accent)] hover:text-[var(--accent-contrast)]"
                         >
@@ -326,14 +326,14 @@ export function SectionsInputCard() {
                       ))
                     }
                   </SelectGroup>
-                  
+
                   <SelectGroup>
                     <SelectLabel>Timber - Glulam</SelectLabel>
                     {sectionTypes
                       .filter(type => type.group === "Timber-GL")
                       .map(type => (
-                        <SelectItem 
-                          key={type.value} 
+                        <SelectItem
+                          key={type.value}
                           value={type.value}
                           className="hover:bg-[var(--accent)] hover:text-[var(--accent-contrast)]"
                         >
@@ -345,7 +345,7 @@ export function SectionsInputCard() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <label htmlFor="member" className="text-sm font-medium">
                 Member
@@ -360,8 +360,8 @@ export function SectionsInputCard() {
                 </SelectTrigger>
                 <SelectContent className="bg-[var(--card)] border-[color:var(--border)] text-[var(--text)]">
                   {availableMembers.map((member) => (
-                    <SelectItem 
-                      key={member.designation} 
+                    <SelectItem
+                      key={member.designation}
                       value={member.designation}
                       className="hover:bg-[var(--accent)] hover:text-[var(--accent-contrast)]"
                     >
@@ -372,11 +372,11 @@ export function SectionsInputCard() {
               </Select>
             </div>
           </div>
-          
+
           {displayedMember && (
             <div className="mt-4 p-4 rounded-md border border-[color:var(--border)] bg-[var(--muted)]/10">
               <h4 className="text-md font-medium mb-2">
-                Individual Section Properties
+                Individual Member Properties
               </h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div className="col-span-2 md:col-span-4">
@@ -389,30 +389,31 @@ export function SectionsInputCard() {
                       <PropertyCell label="E" value="200 GPa" />
                       <PropertyCell label="I" value={`${displayedMember.I_m4?.toExponential(2) || 'N/A'} m⁴`} />
                       {/* Design capacities */}
-                      <PropertyCell 
-                        label="Design Moment Capacity" 
-                        value={`${designCapacity.phiM_kNm} kN·m`} 
-                        className="col-span-2 bg-[var(--accent)]/10" 
+                      <PropertyCell
+                        label="Design Moment Capacity"
+                        value={`${designCapacity.phiM_kNm} kN·m`}
+                        className="col-span-1"
                       />
-                      <PropertyCell 
-                        label="Design Shear Capacity" 
-                        value={`${designCapacity.phiV_kN} kN`} 
-                        className="col-span-2 bg-[var(--accent)]/10" 
+                      <PropertyCell
+                        label="Design Shear Capacity"
+                        value={`${designCapacity.phiV_kN} kN`}
+
+                        className="col-span-1"
                       />
                       {/* Calculation details */}
-                      <PropertyCell 
-                        label="Moment Calculation" 
-                        value={designCapacity.momentDetails} 
-                        className="col-span-2 text-xs" 
+                      <PropertyCell
+                        label="Moment Calculation"
+                        value={designCapacity.momentDetails}
+                        className="col-span-2 text-xs"
                       />
-                      <PropertyCell 
-                        label="Shear Calculation" 
-                        value={designCapacity.shearDetails} 
-                        className="col-span-2 text-xs" 
+                      <PropertyCell
+                        label="Shear Calculation"
+                        value={designCapacity.shearDetails}
+                        className="col-span-2 text-xs"
                       />
                     </div>
                   )}
-                  
+
                   {/* Timber section properties */}
                   {!['UB', 'UC', 'PFC'].includes(selectedSectionType) && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -422,26 +423,26 @@ export function SectionsInputCard() {
                       <PropertyCell label="E" value={`${displayedMember.E_GPa} GPa`} />
                       <PropertyCell label="I" value={`${displayedMember.I_m4?.toExponential(2) || 'N/A'} m⁴`} />
                       {/* Design capacities */}
-                      <PropertyCell 
-                        label="Design Moment Capacity" 
-                        value={`${designCapacity.phiM_kNm} kN·m`} 
-                        className="col-span-2 bg-[var(--accent)]/10" 
+                      <PropertyCell
+                        label="Design Moment Capacity"
+                        value={`${designCapacity.phiM_kNm} kN·m`}
+                        className="col-span-2 bg-[var(--accent)]/10"
                       />
-                      <PropertyCell 
-                        label="Design Shear Capacity" 
-                        value={`${designCapacity.phiV_kN} kN`} 
-                        className="col-span-2 bg-[var(--accent)]/10" 
+                      <PropertyCell
+                        label="Design Shear Capacity"
+                        value={`${designCapacity.phiV_kN} kN`}
+                        className="col-span-2 bg-[var(--accent)]/10"
                       />
                       {/* Calculation details */}
-                      <PropertyCell 
-                        label="Moment Calculation" 
-                        value={designCapacity.momentDetails} 
-                        className="col-span-2 text-xs" 
+                      <PropertyCell
+                        label="Moment Calculation"
+                        value={designCapacity.momentDetails}
+                        className="col-span-2 text-xs"
                       />
-                      <PropertyCell 
-                        label="Shear Calculation" 
-                        value={designCapacity.shearDetails} 
-                        className="col-span-2 text-xs" 
+                      <PropertyCell
+                        label="Shear Calculation"
+                        value={designCapacity.shearDetails}
+                        className="col-span-2 text-xs"
                       />
                     </div>
                   )}
@@ -449,97 +450,91 @@ export function SectionsInputCard() {
               </div>
             </div>
           )}
-          
+
           {/* Dedicated Built-up Section Card */}
           {displayedMember && memberCount > 1 && (
-            <div className="mt-4 p-4 rounded-md border border-[color:var(--accent)] bg-[var(--accent)]/5">
-              <h4 className="text-md font-medium mb-2 text-[var(--accent)]">
+            <div className="mt-4 p-4 rounded-md border border-[var(--accent)]">
+              <h4 className="text-md font-medium mb-2">
                 Built-up Section Properties ({memberCount} members)
               </h4>
               <div className="text-xs italic mb-3 text-[var(--muted-foreground)] border-l-2 border-[var(--accent)] pl-2">
-                Properties for {memberCount} members arranged side by side. 
+                Properties for {memberCount} members arranged side by side.
               </div>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div className="col-span-2 md:col-span-4 mb-1">
                   <div className="text-sm font-medium mb-2">Built-up Configuration</div>
-                  <PropertyCell 
-                    label="Member Arrangement" 
+                  <PropertyCell
+                    label="Member Arrangement"
                     value={`${memberCount} × ${displayedMember.designation} in parallel`}
-                    className="bg-[var(--accent)]/10" 
+
                   />
                 </div>
-                
+
                 <div className="col-span-2 md:col-span-4 mt-2 mb-1">
                   <div className="text-sm font-medium mb-2">Geometry</div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <PropertyCell label="Depth" value={`${displayedMember.depth_mm} mm`} className="bg-[var(--accent)]/10" />
-                    
+                    <PropertyCell label="Depth" value={`${displayedMember.depth_mm} mm`}
+
+                    />
+
                     {/* Section-specific properties */}
                     {['UB', 'UC', 'PFC'].includes(selectedSectionType) && (
-                      <PropertyCell 
-                        label="Total Flange Width" 
+                      <PropertyCell
+                        label="Total Flange Width"
                         value={`${(displayedMember.flange_mm * memberCount)} mm`}
-                        className="bg-[var(--accent)]/10"
+
                       />
                     )}
-                    
+
                     {!['UB', 'UC', 'PFC'].includes(selectedSectionType) && (
-                      <PropertyCell 
-                        label="Total Width" 
+                      <PropertyCell
+                        label="Total Width"
                         value={`${(displayedMember.width_mm * memberCount)} mm`}
-                        className="bg-[var(--accent)]/10"
+
                       />
                     )}
                   </div>
                 </div>
-                
+
                 <div className="col-span-2 md:col-span-4 mt-2 mb-1">
                   <div className="text-sm font-medium mb-2">Section Properties</div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <PropertyCell 
-                      label="Total Mass" 
+                    <PropertyCell
+                      label="Total Mass"
                       value={`${(displayedMember.mass_kg_m * memberCount).toFixed(1)} kg/m`}
-                      className="bg-[var(--accent)]/10" 
+
                     />
-                    <PropertyCell 
-                      label="Total I" 
-                      value={`${(displayedMember.I_m4 * memberCount).toExponential(2)} m⁴`} 
-                      className="bg-[var(--accent)]/10"
-                    />
+
                     {displayedMember.Z_m3 && (
-                      <PropertyCell 
-                        label="Total Z" 
-                        value={`${(displayedMember.Z_m3 * memberCount).toExponential(2)} m³`} 
-                        className="bg-[var(--accent)]/10"
+                      <PropertyCell
+                        label="Total Z"
+                        value={`${(displayedMember.Z_m3 * memberCount).toExponential(2)} m³`}
+
                       />
                     )}
                   </div>
                 </div>
-                
+
                 <div className="col-span-2 md:col-span-4 mt-2">
                   <div className="text-sm font-medium mb-2">Design Capacities</div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <PropertyCell 
-                      label="Design Moment Capacity" 
-                      value={`${designCapacity.phiM_kNm} kN·m`} 
-                      className="col-span-2 bg-[var(--accent)]/10" 
+                    <PropertyCell
+                      label="Total I"
+                      value={`${(displayedMember.I_m4 * memberCount).toExponential(2)} m⁴`}
+
                     />
-                    <PropertyCell 
-                      label="Design Shear Capacity" 
-                      value={`${designCapacity.phiV_kN} kN`} 
-                      className="col-span-2 bg-[var(--accent)]/10" 
+                    <PropertyCell
+                      label="Total Design Moment Capacity"
+                      value={`${designCapacity.phiM_kNm} kN·m`}
+
                     />
-                    <PropertyCell 
-                      label="Moment Calculation" 
-                      value={designCapacity.momentDetails} 
-                      className="col-span-2 text-xs bg-[var(--accent)]/5" 
+                    <PropertyCell
+                      label="Total Design Shear Capacity"
+                      value={`${designCapacity.phiV_kN} kN`}
+
                     />
-                    <PropertyCell 
-                      label="Shear Calculation" 
-                      value={designCapacity.shearDetails} 
-                      className="col-span-2 text-xs bg-[var(--accent)]/5" 
-                    />
+
                   </div>
                 </div>
               </div>

@@ -72,7 +72,15 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     };
     
     // Add to loads array
-    setLoads(prevLoads => [...prevLoads, defaultLoad]);
+    setLoads(prevLoads => {
+      const newLoads = [...prevLoads, defaultLoad];
+      
+      // Dispatch a custom event to notify other components about the change
+      const event = new Event('app-storage-change');
+      window.dispatchEvent(event);
+      
+      return newLoads;
+    });
   };
   
   // Add a default point load
@@ -86,7 +94,15 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     };
     
     // Add to point loads array
-    setPointLoads(prevLoads => [...prevLoads, defaultPointLoad]);
+    setPointLoads(prevLoads => {
+      const newPointLoads = [...prevLoads, defaultPointLoad];
+      
+      // Dispatch a custom event to notify other components about the change
+      const event = new Event('app-storage-change');
+      window.dispatchEvent(event);
+      
+      return newPointLoads;
+    });
   };
   
   // Add a default moment
@@ -100,7 +116,15 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     };
     
     // Add to moments array
-    setMoments(prevMoments => [...prevMoments, defaultMoment]);
+    setMoments(prevMoments => {
+      const newMoments = [...prevMoments, defaultMoment];
+      
+      // Dispatch a custom event to notify other components about the change
+      const event = new Event('app-storage-change');
+      window.dispatchEvent(event);
+      
+      return newMoments;
+    });
   };
   
 
@@ -241,10 +265,18 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
   
   // Handler for toggling includeSelfWeight for Full UDL
   const handleToggleSelfWeightFullUDL = () => {
-    setFullUDL(prev => ({
-      ...prev,
-      includeSelfWeight: !prev.includeSelfWeight
-    }));
+    setFullUDL(prev => {
+      const newFullUDL = {
+        ...prev,
+        includeSelfWeight: !prev.includeSelfWeight
+      };
+      
+      // Dispatch a custom event to notify other components about the change
+      const event = new Event('app-storage-change');
+      window.dispatchEvent(event);
+      
+      return newFullUDL;
+    });
   };
   
   // Handler for editing FULL UDL values
@@ -255,6 +287,10 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     if (value === '') {
       const updatedFullUDL = { ...fullUDL, [field]: 0 };
       setFullUDL(updatedFullUDL);
+      
+      // Dispatch a custom event to notify other components about the change
+      const event = new Event('app-storage-change');
+      window.dispatchEvent(event);
       return;
     }
     
@@ -262,6 +298,10 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     const updatedFullUDL = { ...fullUDL, [field]: numValue };
     
     setFullUDL(updatedFullUDL);
+    
+    // Dispatch a custom event to notify other components about the change
+    const event = new Event('app-storage-change');
+    window.dispatchEvent(event);
   };
 
   return (
@@ -411,6 +451,10 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                         onClick={() => {
                           const updatedLoads = loads.filter(l => l.id !== load.id);
                           setLoads(updatedLoads);
+                          
+                          // Dispatch a custom event to notify other components about the change
+                          const event = new Event('app-storage-change');
+                          window.dispatchEvent(event);
                         }}
                       >
                         X
@@ -486,6 +530,10 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                         onClick={() => {
                           const updatedLoads = pointLoads.filter(l => l.id !== load.id);
                           setPointLoads(updatedLoads);
+                          
+                          // Dispatch a custom event to notify other components about the change
+                          const event = new Event('app-storage-change');
+                          window.dispatchEvent(event);
                         }}
                       >
                         X
@@ -561,6 +609,10 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                         onClick={() => {
                           const updatedMoments = moments.filter(m => m.id !== moment.id);
                           setMoments(updatedMoments);
+                          
+                          // Dispatch a custom event to notify other components about the change
+                          const event = new Event('app-storage-change');
+                          window.dispatchEvent(event);
                         }}
                       >
                         X

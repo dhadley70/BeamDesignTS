@@ -8,34 +8,107 @@ import type { MemberProperties } from './beamAnalysis'
 import type { UDLLoad, PointLoad, Moment } from '@/components/loadsInput'
 
 export const DesignAnalysisCard: React.FC = () => {
-  // Load data from local storage
-  const [generalInputs] = useLocalStorage<any>('generalInputs', {})
-  const [udlLoads] = useLocalStorage<UDLLoad[]>('beamLoads', [])
-  const [pointLoads] = useLocalStorage<PointLoad[]>('beamPointLoads', [])
-  const [moments] = useLocalStorage<Moment[]>('beamMoments', [])
-  const [selectedSection] = useLocalStorage<any>('selectedSection', null)
-
+  // Load data from local storage with direct access to ensure it's always up to date
+  const [generalInputsState] = useLocalStorage<any>('generalInputs', {})
+  const [udlLoadsState] = useLocalStorage<UDLLoad[]>('beamLoads', [])
+  const [pointLoadsState] = useLocalStorage<PointLoad[]>('beamPointLoads', [])
+  const [momentsState] = useLocalStorage<Moment[]>('beamMoments', [])
+  const [selectedSectionState] = useLocalStorage<any>('selectedSection', null)
+  
+  // State to track changes to inputs
+  const [inputs, setInputs] = useState({
+    generalInputs: generalInputsState,
+    udlLoads: udlLoadsState,
+    pointLoads: pointLoadsState,
+    moments: momentsState,
+    selectedSection: selectedSectionState
+  });
+  
+  // Force refresh state from localStorage on render and when data changes
+  useEffect(() => {
+    // Function to get fresh data from localStorage
+    const getUpdatedData = () => {
+      try {
+        const rawGeneralInputs = localStorage.getItem('generalInputs');
+        const rawUdlLoads = localStorage.getItem('beamLoads');
+        const rawPointLoads = localStorage.getItem('beamPointLoads');
+        const rawMoments = localStorage.getItem('beamMoments');
+        const rawSelectedSection = localStorage.getItem('selectedSection');
+        
+        const parsedGeneralInputs = rawGeneralInputs ? JSON.parse(rawGeneralInputs) : {};
+        const parsedUdlLoads = rawUdlLoads ? JSON.parse(rawUdlLoads) : [];
+        const parsedPointLoads = rawPointLoads ? JSON.parse(rawPointLoads) : [];
+        const parsedMoments = rawMoments ? JSON.parse(rawMoments) : [];
+        const parsedSelectedSection = rawSelectedSection ? JSON.parse(rawSelectedSection) : null;
+        
+        setInputs({
+          generalInputs: parsedGeneralInputs,
+          udlLoads: parsedUdlLoads,
+          pointLoads: parsedPointLoads,
+          moments: parsedMoments,
+          selectedSection: parsedSelectedSection
+        });
+      } catch (error) {
+        console.error('Error reading data from localStorage:', error);
+      }
+    };
+    
+    // Initial load
+    getUpdatedData();
+    
+    // Set up event listener for storage changes
+    const handleStorageChange = () => {
+      console.log('Storage changed, updating analysis inputs');
+      getUpdatedData();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Custom event listener for our app's local changes
+    const handleAppStorageChange = () => {
+      console.log('App storage changed, updating analysis inputs');
+      getUpdatedData();
+    };
+    
+    window.addEventListener('app-storage-change', handleAppStorageChange);
+    
+    // Also check for changes every second for changes not caught by events
+    const interval = setInterval(getUpdatedData, 1000);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('app-storage-change', handleAppStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
+  
   // Extract parameters from general inputs
-  const span = generalInputs?.span || 3.0
-  const members = generalInputs?.members || 1
-  const ws = generalInputs?.ws || 0.4
-  const wl = generalInputs?.wl || 0.3
+  const span = inputs.generalInputs?.span || 3.0
+  const members = inputs.generalInputs?.members || 1
+  const ws = inputs.generalInputs?.ws || 0.4
+  const wl = inputs.generalInputs?.wl || 0.3
+  
+  // Get the updated loads for analysis
+  const udlLoads = inputs.udlLoads || []
+  const pointLoads = inputs.pointLoads || []
+  const moments = inputs.moments || []
   
   // Create member properties from selected section
   const [memberProperties, setMemberProperties] = useState<MemberProperties | null>(null)
 
   // Convert selected section to member properties for analysis
   useEffect(() => {
-    if (selectedSection) {
-      console.log('Selected section data:', selectedSection);
+    const sectionData = inputs.selectedSection;
+    if (sectionData) {
+      console.log('Selected section data:', sectionData);
       const props: MemberProperties = {
-        section: selectedSection.designation,
-        material: selectedSection.material || 'Steel',
-        depth: selectedSection.depth_mm || selectedSection.depth || 0,
-        width: selectedSection.flange_mm || selectedSection.width_mm || selectedSection.width || 0,
-        momentOfInertia: selectedSection.I_m4 ? (selectedSection.I_m4 * 1e12) : (selectedSection.momentOfInertia || 0),
-        elasticModulus: selectedSection.E || 200000, // Default to 200 GPa for steel if not specified
-        J2: selectedSection.J2 || 2.0, // Default creep factor if not specified
+        section: sectionData.designation,
+        material: sectionData.material || 'Steel',
+        depth: sectionData.depth_mm || sectionData.depth || 0,
+        width: sectionData.flange_mm || sectionData.width_mm || sectionData.width || 0,
+        momentOfInertia: sectionData.I_m4 ? (sectionData.I_m4 * 1e12) : (sectionData.momentOfInertia || 0),
+        elasticModulus: sectionData.E || 200000, // Default to 200 GPa for steel if not specified
+        J2: sectionData.J2 || 2.0, // Default creep factor if not specified
       }
       console.log('Created member properties:', props);
       setMemberProperties(props)
@@ -64,7 +137,7 @@ export const DesignAnalysisCard: React.FC = () => {
       }
       setMemberProperties(null)
     }
-  }, [selectedSection])
+  }, [inputs.selectedSection])
 
   // Perform beam analysis
   const analysisResults = useBeamAnalysis({
@@ -150,9 +223,9 @@ export const DesignAnalysisCard: React.FC = () => {
                 <TableRow>
                   <TableCell className="font-medium">Max Bending Moment M*</TableCell>
                   <TableCell>{formatNumber(analysisResults.maxMoment, 'kNm')}</TableCell>
-                  <TableCell className="text-right">{formatNumber(selectedSection?.phiM, 'kNm')}</TableCell>
+                  <TableCell className="text-right">{formatNumber(inputs.selectedSection?.phiM, 'kNm')}</TableCell>
                   <TableCell className="text-right">
-                    {selectedSection?.phiM && analysisResults.maxMoment <= selectedSection?.phiM ? (
+                    {inputs.selectedSection?.phiM && analysisResults.maxMoment <= inputs.selectedSection?.phiM ? (
                       <span className="text-green-500">✓ Pass</span>
                     ) : (
                       <span className="text-red-500">✗ Fail</span>
@@ -162,9 +235,9 @@ export const DesignAnalysisCard: React.FC = () => {
                 <TableRow>
                   <TableCell className="font-medium">Max Shear V*</TableCell>
                   <TableCell>{formatNumber(analysisResults.maxShear, 'kN')}</TableCell>
-                  <TableCell className="text-right">{formatNumber(selectedSection?.phiV, 'kN')}</TableCell>
+                  <TableCell className="text-right">{formatNumber(inputs.selectedSection?.phiV, 'kN')}</TableCell>
                   <TableCell className="text-right">
-                    {selectedSection?.phiV && analysisResults.maxShear <= selectedSection?.phiV ? (
+                    {inputs.selectedSection?.phiV && analysisResults.maxShear <= inputs.selectedSection?.phiV ? (
                       <span className="text-green-500">✓ Pass</span>
                     ) : (
                       <span className="text-red-500">✗ Fail</span>

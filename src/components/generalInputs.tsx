@@ -82,7 +82,15 @@ export const GeneralInputsCard: React.FC<{
                 // Always keep the numeric state valid for calcs:
                 const n = Number(s.replace(",", "."))
                 const clamped = Number.isFinite(n) ? Math.max(0.1, n) : 0.1
-                setLocalGeneralInputs(prev => ({ ...prev, span: clamped }))
+                setLocalGeneralInputs(prev => {
+                  const newGeneralInputs = { ...prev, span: clamped };
+                  
+                  // Dispatch a custom event to notify other components about the change
+                  const event = new Event('app-storage-change');
+                  window.dispatchEvent(event);
+                  
+                  return newGeneralInputs;
+                })
               }}
               onWheel={(e) => e.currentTarget.blur()}
               className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)] appearance-none"
@@ -100,7 +108,15 @@ export const GeneralInputsCard: React.FC<{
                 console.log('Setting members to:', newMembers);
                 setGeneralInputs(p => ({ ...p, members: newMembers }))
                 // Also update localStorage directly to ensure it's saved
-                setLocalGeneralInputs(prev => ({ ...prev, members: newMembers }))
+                setLocalGeneralInputs(prev => {
+                  const newGeneralInputs = { ...prev, members: newMembers };
+                  
+                  // Dispatch a custom event to notify other components about the change
+                  const event = new Event('app-storage-change');
+                  window.dispatchEvent(event);
+                  
+                  return newGeneralInputs;
+                })
               }}
             >
               <SelectTrigger className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)]">
@@ -128,12 +144,20 @@ export const GeneralInputsCard: React.FC<{
               value={localGeneralInputs.usage}
               onValueChange={(val: UsageOption) => {
                 const usageDetails = usageData[val]
-                setLocalGeneralInputs(p => ({ 
-                  ...p, 
-                  usage: val,
-                  ws: usageDetails.ws,
-                  wl: usageDetails.wl 
-                }))
+                setLocalGeneralInputs(p => {
+                  const newGeneralInputs = { 
+                    ...p, 
+                    usage: val,
+                    ws: usageDetails.ws,
+                    wl: usageDetails.wl 
+                  };
+                  
+                  // Dispatch a custom event to notify other components about the change
+                  const event = new Event('app-storage-change');
+                  window.dispatchEvent(event);
+                  
+                  return newGeneralInputs;
+                })
               }}
             >
                 <SelectTrigger className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)]">
@@ -146,7 +170,7 @@ export const GeneralInputsCard: React.FC<{
               </SelectTrigger>
               <SelectContent>
                 {Object.keys(usageData).map((usage) => {
-                  const details = usageData[usage as UsageOption]
+                  // Get usage details (not directly used here but helpful for debugging)
                   return (
                     <SelectItem key={usage} value={usage}>
                       <div className="flex justify-between items-center w-full">
@@ -168,7 +192,15 @@ export const GeneralInputsCard: React.FC<{
             <Select
               value={localGeneralInputs.lateralRestraint || "Lateral Restraint"}
               onValueChange={(val) =>
-                setLocalGeneralInputs(prev => ({ ...prev, lateralRestraint: val }))
+                setLocalGeneralInputs(prev => {
+                  const newGeneralInputs = { ...prev, lateralRestraint: val };
+                  
+                  // Dispatch a custom event to notify other components about the change
+                  const event = new Event('app-storage-change');
+                  window.dispatchEvent(event);
+                  
+                  return newGeneralInputs;
+                })
               }
             >
               <SelectTrigger className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)]">

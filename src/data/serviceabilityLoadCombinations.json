@@ -1,0 +1,28 @@
+{
+  "serviceabilityLimitStates": [
+    {
+      "name": "SLS Initial",
+      "description": "Initial serviceability limit state: 1.0G",
+      "factors": {
+        "deadLoad": 1.0,
+        "liveLoad": 0
+      }
+    },
+    {
+      "name": "SLS Short",
+      "description": "Short-term serviceability limit state: ws×Q",
+      "factors": {
+        "deadLoad": 0,
+        "liveLoad": "ws"
+      }
+    },
+    {
+      "name": "SLS Long",
+      "description": "Long-term serviceability limit state: J2×(1.0G + wl×Q)",
+      "factors": {
+        "deadLoad": "J2",
+        "liveLoad": "J2*wl"
+      }
+    }
+  ]
+}

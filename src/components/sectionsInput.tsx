@@ -261,8 +261,16 @@ export function SectionsInputCard() {
       };
       
       localStorage.setItem('selectedSection', JSON.stringify(selectedSectionData));
+      
+      // Dispatch a custom event to notify other components about the change
+      const event = new Event('app-storage-change');
+      window.dispatchEvent(event);
     } else {
       localStorage.removeItem('selectedSection');
+      
+      // Dispatch a custom event to notify other components about the change
+      const event = new Event('app-storage-change');
+      window.dispatchEvent(event);
     }
   }, [effectiveMember, designCapacity, selectedSectionType]);
 

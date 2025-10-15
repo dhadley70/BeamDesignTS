@@ -394,7 +394,7 @@ export function SectionsInputCard() {
                         value={
                           <div>
                             <div>{`${designCapacity.phiM_kNm} kN·m`}</div>
-                            <div className="text-xs mt-1 text-[var(--muted-foreground)]">{designCapacity.momentDetails}</div>
+                            <div className="text-xs mt-1 ">{designCapacity.momentDetails}</div>
                           </div>
                         }
                         className="col-span-2"
@@ -404,7 +404,7 @@ export function SectionsInputCard() {
                         value={
                           <div>
                             <div>{`${designCapacity.phiV_kN} kN`}</div>
-                            <div className="text-xs mt-1 text-[var(--muted-foreground)]">{designCapacity.shearDetails}</div>
+                            <div className="text-xs mt-1 ">{designCapacity.shearDetails}</div>
                           </div>
                         }
                         className="col-span-2"
@@ -420,27 +420,27 @@ export function SectionsInputCard() {
                       <PropertyCell label="Mass" value={`${displayedMember.mass_kg_m} kg/m`} />
                       <PropertyCell label="E" value={`${displayedMember.E_GPa} GPa`} />
                       <PropertyCell label="I" value={`${displayedMember.I_m4 ? (displayedMember.I_m4 * 1e12 / 1e6).toFixed(1) : 'N/A'} M mm⁴`} />
-                     
+
                       {/* Design capacities */}
                       <PropertyCell
                         label="Design Moment Capacity"
                         value={
                           <div>
                             <div>{`${designCapacity.phiM_kNm} kN·m`}</div>
-                            <div className="text-xs mt-1 text-[var(--muted-foreground)]">{designCapacity.momentDetails}</div>
+                            <div className="text-xs mt-1 ]">{designCapacity.momentDetails}</div>
                           </div>
                         }
-                        className="col-span-2"
+                        className="col-span-1"
                       />
                       <PropertyCell
                         label="Design Shear Capacity"
                         value={
                           <div>
                             <div>{`${designCapacity.phiV_kN} kN`}</div>
-                            <div className="text-xs mt-1 text-[var(--muted-foreground)]">{designCapacity.shearDetails}</div>
+                            <div className="text-xs mt-1 ]">{designCapacity.shearDetails}</div>
                           </div>
                         }
-                        className="col-span-2"
+                        className="col-span-1"
                       />
                     </div>
                   )}
@@ -455,7 +455,7 @@ export function SectionsInputCard() {
               <h4 className="text-md font-medium mb-2">
                 Built-up Section Properties ({memberCount} members)
               </h4>
-              <div className="text-xs italic mb-3 text-[var(--muted-foreground)] border-l-2 border-[var(--accent)] pl-2">
+              <div className="text-xs italic mb-3  border-l-2 border-[var(--accent)] pl-2">
                 Properties for {memberCount} members arranged side by side.
               </div>
 
@@ -465,15 +465,17 @@ export function SectionsInputCard() {
                   <PropertyCell
                     label="Member Arrangement"
                     value={`${memberCount} × ${displayedMember.designation} in parallel`}
-
+                    className="label:text-[var(--text)]"
                   />
                 </div>
 
-                <div className="col-span-2 md:col-span-4 mt-2 mb-1">
+                <div className="col-span-2 md:col-span-4 mt-2 mb-1 ">
                   <div className="text-sm font-medium mb-2">Geometry</div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <PropertyCell label="Depth" value={`${displayedMember.depth_mm} mm`}
-
+                    <PropertyCell
+                      label="Depth"
+                      value={`${displayedMember.depth_mm} mm`}
+                      className="label:text-[var(--text)]"
                     />
 
                     {/* Section-specific properties */}
@@ -481,7 +483,7 @@ export function SectionsInputCard() {
                       <PropertyCell
                         label="Total Flange Width"
                         value={`${(displayedMember.flange_mm * memberCount)} mm`}
-
+                        className="label:text-[var(--text)]"
                       />
                     )}
 
@@ -489,7 +491,7 @@ export function SectionsInputCard() {
                       <PropertyCell
                         label="Total Width"
                         value={`${(displayedMember.width_mm * memberCount)} mm`}
-
+                        className="label:text-[var(--text)]"
                       />
                     )}
                   </div>
@@ -501,14 +503,14 @@ export function SectionsInputCard() {
                     <PropertyCell
                       label="Total Mass"
                       value={`${(displayedMember.mass_kg_m * memberCount).toFixed(1)} kg/m`}
-
+                      className="label:text-[var(--text)]"
                     />
 
                     {displayedMember.Z_m3 && (
                       <PropertyCell
                         label="Total Z"
                         value={`${(displayedMember.Z_m3 * memberCount).toExponential(2)} m³`}
-
+                        className="label:text-[var(--text)]"
                       />
                     )}
                   </div>
@@ -520,17 +522,17 @@ export function SectionsInputCard() {
                     <PropertyCell
                       label="Total I"
                       value={`${(displayedMember.I_m4 * memberCount * 1e12 / 1e6).toFixed(1)} M mm⁴`}
-
+                      className="label:text-[var(--text)]"
                     />
                     <PropertyCell
                       label="Total Design Moment Capacity"
                       value={`${designCapacity.phiM_kNm} kN·m`}
-
+                      className="label:text-[var(--text)]"
                     />
                     <PropertyCell
                       label="Total Design Shear Capacity"
                       value={`${designCapacity.phiV_kN} kN`}
-
+                      className="label:text-[var(--text)]"
                     />
 
                   </div>

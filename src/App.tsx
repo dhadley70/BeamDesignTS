@@ -10,6 +10,7 @@ import { GeneralInputsCard, getDefaultGeneralInputs } from "@/components/general
 import { DeflectionLimitsCard } from "@/components/deflectionLimits"
 import { LoadsInputCard, type UDLLoad } from "@/components/loadsInput"
 import { SectionsInputCard } from "@/components/sectionsInput"
+import { DesignAnalysisCard } from "@/components/designAnalysis"
 import { SaveLoadDesign } from "@/components/saveLoadDesign"
 import { HeaderSaveButtons } from "@/components/headerSaveButtons"
 import { ThemeDropdown, type ThemeName, useTheme } from "@/components/theme-dropdown"
@@ -56,7 +57,7 @@ export default function App() {
 
   // Use localStorage hook for general inputs
   const [generalInputs, setGeneralInputs] = useLocalStorage<GeneralInputs>(GENERAL_INPUTS_KEY, getDefaultGeneralInputs())
-  
+
   // State for the UDL loads with localStorage persistence
   const [loads, setLoads] = useLocalStorage<UDLLoad[]>('beamLoads', [])
 
@@ -64,10 +65,10 @@ export default function App() {
   const calculateMaxDeflection = (span: number, spanRatio: number, maxLimit: number) => {
     // Convert span to mm
     const spanMm = span * 1000
-    
+
     // Calculate deflection by span ratio
     const ratioDeflection = spanMm / spanRatio
-    
+
     // Return the lesser of ratio-based deflection or max limit
     return Math.min(ratioDeflection, maxLimit)
   }
@@ -78,23 +79,23 @@ export default function App() {
       if (raw) {
         const data = JSON.parse(raw)
         console.log('Loaded deflection limits data:', data)
-        
+
         // Using 'initial' key consistently
         const initialData = data.initial || {}
         const shortData = data.short || {}
         const longData = data.long || {}
-        
+
         console.log('Initial Data:', initialData)
         console.log('Short Data:', shortData)
         console.log('Long Data:', longData)
-        
+
         return {
           initial: {
             spanRatio: Number.isInteger(initialData.spanRatio) ? initialData.spanRatio : 240,
             maxLimit: Number.isFinite(initialData.maxLimit) ? initialData.maxLimit : (generalInputs.span * 1000 / 240) / 1000,
             maxDeflection: calculateMaxDeflection(
-              generalInputs.span, 
-              Number.isInteger(initialData.spanRatio) ? initialData.spanRatio : 240, 
+              generalInputs.span,
+              Number.isInteger(initialData.spanRatio) ? initialData.spanRatio : 240,
               Number.isFinite(initialData.maxLimit) ? initialData.maxLimit : (generalInputs.span * 1000 / 240) / 1000
             )
           },
@@ -102,8 +103,8 @@ export default function App() {
             spanRatio: Number.isInteger(shortData.spanRatio) ? shortData.spanRatio : 180,
             maxLimit: Number.isFinite(shortData.maxLimit) ? shortData.maxLimit : (generalInputs.span * 1000 / 180) / 1000,
             maxDeflection: calculateMaxDeflection(
-              generalInputs.span, 
-              Number.isInteger(shortData.spanRatio) ? shortData.spanRatio : 180, 
+              generalInputs.span,
+              Number.isInteger(shortData.spanRatio) ? shortData.spanRatio : 180,
               Number.isFinite(shortData.maxLimit) ? shortData.maxLimit : (generalInputs.span * 1000 / 180) / 1000
             )
           },
@@ -111,20 +112,20 @@ export default function App() {
             spanRatio: Number.isInteger(longData.spanRatio) ? longData.spanRatio : 120,
             maxLimit: Number.isFinite(longData.maxLimit) ? longData.maxLimit : (generalInputs.span * 1000 / 120) / 1000,
             maxDeflection: calculateMaxDeflection(
-              generalInputs.span, 
-              Number.isInteger(longData.spanRatio) ? longData.spanRatio : 120, 
+              generalInputs.span,
+              Number.isInteger(longData.spanRatio) ? longData.spanRatio : 120,
               Number.isFinite(longData.maxLimit) ? longData.maxLimit : (generalInputs.span * 1000 / 120) / 1000
             )
           }
         }
       }
-    } catch (error) { 
+    } catch (error) {
       console.error('Error loading deflection limits:', error)
     }
-    
+
     // Use first preset from deflection_presets.json as default
     const firstPreset = deflectionPresets[0];
-    
+
     return {
       initial: {
         spanRatio: firstPreset.inst.ratio,
@@ -168,7 +169,7 @@ export default function App() {
             <Badge className="shrink-0 bg-[var(--accent)] text-[var(--accent-contrast)]">demo</Badge>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <HeaderSaveButtons 
+            <HeaderSaveButtons
               onImportComplete={() => window.location.reload()}
             />
             <ThemeDropdown theme={theme} onChange={setTheme} />
@@ -211,61 +212,17 @@ export default function App() {
 
         <SectionsInputCard />
 
+        <div className="mb-8">
+          <DesignAnalysisCard />
+        </div>
+
         {/* Save & Load Design */}
-        <SaveLoadDesign 
-          onImportComplete={() => window.location.reload()}
-        />
-
-        {/* Stats */}
-        <div className="grid gap-4 space-y-4 md:grid-cols-4">
-          <StatCard title="Overview" kpi="Active jobs" value="12" icon={<Home className="size-4" />} />
-          <StatCard
-            title="Reputation"
-            kpi="Rating"
-            value={<span className="inline-flex items-center gap-1">4.8 <Star className="size-4" /></span>}
-            icon={<Star className="size-4" />}
+        <div className="mt-8">
+          <SaveLoadDesign
+            onImportComplete={() => window.location.reload()}
           />
-          <StatCard title="Performance" kpi="Efficiency" value="92%" icon={<BarChart3 className="size-4" />} />
-     
         </div>
-        {/* Recent activity + Quick actions */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          <Card className="lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
-            <CardHeader><CardTitle className="text-xl">Recent activity</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              {[
-                "Beam Design Phase 1 Initiated",
-                "Structural Analysis Complete",
-                "Material Procurement Update",
-                "Environmental Impact Assessment",
-                "Client Consultation Scheduled"
-              ].map((txt, i) => (
-                <div key={i} className="flex items-center justify-between rounded-xl border border-[color:var(--border)] bg-[var(--muted)]/40 p-4">
-                  <div className="text-sm opacity-80">{txt}</div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
 
-          <Card className="bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
-            <CardHeader><CardTitle className="text-xl">Quick actions</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <Button className="w-full bg-[var(--accent)] text-[var(--accent-contrast)] hover:opacity-90">New project</Button>
-              <Button 
-                variant="outline" 
-                className="w-full border-[color:var(--border)]"
-                onClick={() => {
-                  const importFileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-                  if (importFileInput) importFileInput.click();
-                }}
-                >
-                Open design
-              </Button>
-              <Button variant="outline" className="w-full border-[color:var(--border)]">Manage settings</Button>
-            </CardContent>
-            <CardFooter><div className="text-xs opacity-60">Tip: projects are tracked dynamically</div></CardFooter>
-          </Card>
-        </div>
 
         <div className="mt-8 space-y-4 text-xs opacity-60">
           © {new Date().getFullYear()} Cantilever · Vite · Tailwind v4 · shadcn/ui

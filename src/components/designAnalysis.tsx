@@ -124,7 +124,7 @@ export const DesignAnalysisCard: React.FC = () => {
             material: sectionData.material || 'Steel',
             depth: sectionData.depth_mm || sectionData.depth || 0,
             width: sectionData.flange_mm || sectionData.width_mm || sectionData.width || 0,
-            momentOfInertia: sectionData.I_m4 ? (sectionData.I_m4 * 1e12) : (sectionData.momentOfInertia || 0),
+            momentOfInertia: sectionData.I_m4 ? (sectionData.I_m4 * 1e12) : (sectionData.momentOfInertia || 0), // Convert from m⁴ to mm⁴
             elasticModulus: sectionData.E || 200000, 
             J2: sectionData.J2 || 2.0,
           }

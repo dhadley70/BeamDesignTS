@@ -211,6 +211,18 @@ export const useBeamAnalysis = (props: BeamAnalysisProps): BeamAnalysisResults |
     const E = memberProperties.elasticModulus;  // MPa
     const I = memberProperties.momentOfInertia; // mm⁴
     
+    console.log('Member properties used for deflection calculation:');
+    console.log(` - Section: ${memberProperties.section}`);
+    console.log(` - E = ${E} MPa`);
+    console.log(` - I = ${I} mm⁴ (converted from ${I/1e12} m⁴)`);
+    console.log(` - Span = ${span} m = ${spanMm} mm`);
+    
+    console.log('Member properties used for deflection calculation:');
+    console.log(` - Section: ${memberProperties.section}`);
+    console.log(` - E = ${E} MPa`);
+    console.log(` - I = ${I} mm⁴ (converted from ${I/1e12} m⁴)`);
+    console.log(` - Span = ${span} m = ${spanMm} mm`);
+    
     // Process each SLS combination
     slsCombinations.forEach((combination) => {
       let maxDeflectionForCase = 0;
@@ -230,6 +242,8 @@ export const useBeamAnalysis = (props: BeamAnalysisProps): BeamAnalysisResults |
         deadLoadFactor = J2;
         liveLoadFactor = J2 * wl;
       }
+      
+      console.log(`Processing SLS case: ${name} with deadLoadFactor=${deadLoadFactor}, liveLoadFactor=${liveLoadFactor}`);
       
       // Simplified deflection calculation for each type of load
       // UDL Loads
@@ -277,7 +291,21 @@ export const useBeamAnalysis = (props: BeamAnalysisProps): BeamAnalysisResults |
           const P = totalLoad * 1000;
           
           // Calculate deflection using formula for point load at any position
-          const deflection = (P * b * (L**2 - b**2)) / (3 * E * I * L);
+          // Formula: δ = P*b*(L²-b²)/(3*E*I*L) where all units are consistent (mm, N, MPa)
+          const numerator = P * b * (L**2 - b**2);
+          const denominator = 3 * E * I * L;
+          const deflection = numerator / denominator;
+          
+          console.log(`Point load deflection calculation for ${name}:`);
+          console.log(` - Load P = ${totalLoad} kN = ${P} N`);
+          console.log(` - Position a = ${a} mm, b = ${b} mm (from right support)`);
+          console.log(` - Span L = ${L} mm`);
+          console.log(` - E = ${E} MPa`);
+          console.log(` - I = ${I} mm⁴`);
+          console.log(` - Numerator = ${numerator}`);
+          console.log(` - Denominator = ${denominator}`);
+          console.log(` - Calculated deflection = ${deflection} mm`);
+          
           maxDeflectionForCase = Math.max(maxDeflectionForCase, deflection);
         }
       });
@@ -311,6 +339,14 @@ export const useBeamAnalysis = (props: BeamAnalysisProps): BeamAnalysisResults |
         maxLongDeflection = maxDeflectionForCase;
       }
     });
+    
+    // Log final results before returning
+    console.log('Final beam analysis results:');
+    console.log(` - Max initial deflection (1.0G): ${maxInitialDeflection} mm`);
+    console.log(` - Max short-term deflection (${ws}Q): ${maxShortDeflection} mm`);
+    console.log(` - Max long-term deflection (J2(1.0G + ${wl}Q)): ${maxLongDeflection} mm`);
+    console.log(` - Max moment: ${maxMoment} kN·m (${controllingMomentCase})`);
+    console.log(` - Max shear: ${maxShear} kN (${controllingShearCase})`);
     
     // Return the analysis results
     return {

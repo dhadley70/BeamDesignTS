@@ -34,6 +34,7 @@ export interface FullUDL {
   tributaryWidth: number;
   deadGkPa: number;
   liveQkPa: number;
+  includeSelfWeight?: boolean;
 }
 
 // Define props type for the component
@@ -52,7 +53,8 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
   const [fullUDL, setFullUDL] = useLocalStorage<FullUDL>('beamFullUDL', {
     tributaryWidth: 0,
     deadGkPa: 0,
-    liveQkPa: 0
+    liveQkPa: 0,
+    includeSelfWeight: false
   });
 
   // Generate a unique ID for new loads
@@ -237,6 +239,14 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     setMoments(updatedMoments);
   };
   
+  // Handler for toggling includeSelfWeight for Full UDL
+  const handleToggleSelfWeightFullUDL = () => {
+    setFullUDL(prev => ({
+      ...prev,
+      includeSelfWeight: !prev.includeSelfWeight
+    }));
+  };
+  
   // Handler for editing FULL UDL values
   const handleEditFullUDL = (field: keyof FullUDL, e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -269,6 +279,7 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                 <TableHead className="text-[var(--text)]">Tributary Width</TableHead>
                 <TableHead className="text-[var(--text)]">Dead Load (G)</TableHead>
                 <TableHead className="text-[var(--text)]">Live Load (Q)</TableHead>
+                <TableHead className="text-[var(--text)]">Include Self Weight</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -300,6 +311,14 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                     className="w-full"
                   />
                 </TableCell>
+                <TableCell className="text-center">
+                  <input
+                    type="checkbox"
+                    checked={fullUDL.includeSelfWeight || false}
+                    onChange={handleToggleSelfWeightFullUDL}
+                    className="h-6 w-6 cursor-pointer accent-[var(--accent)]"
+                  />
+                </TableCell>
               </TableRow>
               <TableRow className="border-0">
                 <TableCell>
@@ -314,6 +333,9 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
                   <div className="font-bold text-[var(--text)]">
                     {(fullUDL.tributaryWidth * fullUDL.liveQkPa).toFixed(2)} kN/m
                   </div>
+                </TableCell>
+                <TableCell>
+                  {/* Empty cell to maintain table alignment */}
                 </TableCell>
               </TableRow>
             </TableBody>

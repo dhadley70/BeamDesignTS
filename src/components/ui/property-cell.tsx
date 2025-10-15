@@ -18,7 +18,7 @@ const PropertyCell = React.forwardRef<
     )}
     {...props}
   >
-    <div className="text-xs text-[var(--muted-foreground)]">{label}</div>
+    <div className="text-xs text-[var(--text  )]">{label}</div>
     <div className="font-medium mt-1">{value}</div>
   </div>
 ))

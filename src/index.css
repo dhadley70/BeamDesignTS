@@ -292,7 +292,7 @@ html[data-theme="Octonauts"] {
   --input: #17497a;  --input-text: #ffe066;
   --muted: #1b3a5b;
   --border: #ff7f32;
-  --accent: #ff7f32;
+  --accent: #1da9c4;
   --accent-contrast: #0a2740;
   /* Extra Octonauts colors */
   --octo-blue: #17497a;
@@ -302,6 +302,7 @@ html[data-theme="Octonauts"] {
   --octo-red: #e94f37;
   --octo-cyan: #1da9c4;
   --octo-muted: #1b3a5b;
+   --border: #ff7f32;
   --button: #0a2740;
 }
 

@@ -387,7 +387,7 @@ export function SectionsInputCard() {
                       <PropertyCell label="Flange Width" value={`${displayedMember.flange_mm} mm`} />
                       <PropertyCell label="Mass" value={`${displayedMember.mass_kg_m} kg/m`} />
                       <PropertyCell label="E" value="200 GPa" />
-                      <PropertyCell label="I" value={`${displayedMember.I_m4?.toExponential(2) || 'N/A'} m⁴`} />
+                      <PropertyCell label="I" value={`${displayedMember.I_m4 ? (displayedMember.I_m4 * 1e12 / 1e6).toFixed(1) : 'N/A'} M mm⁴`} />
                       {/* Design capacities */}
                       <PropertyCell
                         label="Design Moment Capacity"
@@ -421,7 +421,7 @@ export function SectionsInputCard() {
                       <PropertyCell label="Width" value={`${displayedMember.width_mm} mm`} />
                       <PropertyCell label="Mass" value={`${displayedMember.mass_kg_m} kg/m`} />
                       <PropertyCell label="E" value={`${displayedMember.E_GPa} GPa`} />
-                      <PropertyCell label="I" value={`${displayedMember.I_m4?.toExponential(2) || 'N/A'} m⁴`} />
+                      <PropertyCell label="I" value={`${displayedMember.I_m4 ? (displayedMember.I_m4 * 1e12 / 1e6).toFixed(1) : 'N/A'} M mm⁴`} />
                       {/* Design capacities */}
                       <PropertyCell
                         label="Design Moment Capacity"
@@ -517,11 +517,11 @@ export function SectionsInputCard() {
                 </div>
 
                 <div className="col-span-2 md:col-span-4 mt-2">
-                  <div className="text-sm font-medium mb-2">Design Capacities</div>
+                  <div className="text-sm font-medium mb-2">Capacities</div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <PropertyCell
                       label="Total I"
-                      value={`${(displayedMember.I_m4 * memberCount).toExponential(2)} m⁴`}
+                      value={`${(displayedMember.I_m4 * memberCount * 1e12 / 1e6).toFixed(1)} M mm⁴`}
 
                     />
                     <PropertyCell

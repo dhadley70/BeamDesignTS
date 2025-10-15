@@ -374,7 +374,7 @@ export function SectionsInputCard() {
           </div>
 
           {displayedMember && (
-            <div className="mt-4 p-4 rounded-md border border-[color:var(--border)] bg-[var(--muted)]/10">
+            <div className="mt-4 p-4 rounded-md border border-[color:var(--border)] ">
               <h4 className="text-md font-medium mb-2">
                 Individual Member Properties
               </h4>
@@ -391,25 +391,23 @@ export function SectionsInputCard() {
                       {/* Design capacities */}
                       <PropertyCell
                         label="Design Moment Capacity"
-                        value={`${designCapacity.phiM_kNm} kN·m`}
-                        className="col-span-1"
+                        value={
+                          <div>
+                            <div>{`${designCapacity.phiM_kNm} kN·m`}</div>
+                            <div className="text-xs mt-1 text-[var(--muted-foreground)]">{designCapacity.momentDetails}</div>
+                          </div>
+                        }
+                        className="col-span-2"
                       />
                       <PropertyCell
                         label="Design Shear Capacity"
-                        value={`${designCapacity.phiV_kN} kN`}
-
-                        className="col-span-1"
-                      />
-                      {/* Calculation details */}
-                      <PropertyCell
-                        label="Moment Calculation"
-                        value={designCapacity.momentDetails}
-                        className="col-span-2 text-xs"
-                      />
-                      <PropertyCell
-                        label="Shear Calculation"
-                        value={designCapacity.shearDetails}
-                        className="col-span-2 text-xs"
+                        value={
+                          <div>
+                            <div>{`${designCapacity.phiV_kN} kN`}</div>
+                            <div className="text-xs mt-1 text-[var(--muted-foreground)]">{designCapacity.shearDetails}</div>
+                          </div>
+                        }
+                        className="col-span-2"
                       />
                     </div>
                   )}
@@ -422,27 +420,27 @@ export function SectionsInputCard() {
                       <PropertyCell label="Mass" value={`${displayedMember.mass_kg_m} kg/m`} />
                       <PropertyCell label="E" value={`${displayedMember.E_GPa} GPa`} />
                       <PropertyCell label="I" value={`${displayedMember.I_m4 ? (displayedMember.I_m4 * 1e12 / 1e6).toFixed(1) : 'N/A'} M mm⁴`} />
+                     
                       {/* Design capacities */}
                       <PropertyCell
                         label="Design Moment Capacity"
-                        value={`${designCapacity.phiM_kNm} kN·m`}
-                        className="col-span-2 bg-[var(--accent)]/10"
+                        value={
+                          <div>
+                            <div>{`${designCapacity.phiM_kNm} kN·m`}</div>
+                            <div className="text-xs mt-1 text-[var(--muted-foreground)]">{designCapacity.momentDetails}</div>
+                          </div>
+                        }
+                        className="col-span-2"
                       />
                       <PropertyCell
                         label="Design Shear Capacity"
-                        value={`${designCapacity.phiV_kN} kN`}
-                        className="col-span-2 bg-[var(--accent)]/10"
-                      />
-                      {/* Calculation details */}
-                      <PropertyCell
-                        label="Moment Calculation"
-                        value={designCapacity.momentDetails}
-                        className="col-span-2 text-xs"
-                      />
-                      <PropertyCell
-                        label="Shear Calculation"
-                        value={designCapacity.shearDetails}
-                        className="col-span-2 text-xs"
+                        value={
+                          <div>
+                            <div>{`${designCapacity.phiV_kN} kN`}</div>
+                            <div className="text-xs mt-1 text-[var(--muted-foreground)]">{designCapacity.shearDetails}</div>
+                          </div>
+                        }
+                        className="col-span-2"
                       />
                     </div>
                   )}
@@ -453,7 +451,7 @@ export function SectionsInputCard() {
 
           {/* Dedicated Built-up Section Card */}
           {displayedMember && memberCount > 1 && (
-            <div className="mt-4 p-4 rounded-md border border-[var(--accent)]">
+            <div className="mt-4 p-4 rounded-md border border-[var(--accent)] bg-[var(--bg)]/50">
               <h4 className="text-md font-medium mb-2">
                 Built-up Section Properties ({memberCount} members)
               </h4>

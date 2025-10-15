@@ -164,7 +164,7 @@ export function SectionsInputCard() {
     null;
 
   // Calculate phiM for the displayed member
-  const phiMCalculation = usePhiMCalculation(displayedMember, selectedSectionType);
+  const designCapacity = usePhiMCalculation(displayedMember, selectedSectionType);
 
   return (
     <Card className="mt-6 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
@@ -309,14 +309,26 @@ export function SectionsInputCard() {
                       <PropertyCell label="Mass" value={`${displayedMember.mass_kg_m} kg/m`} />
                       <PropertyCell label="E" value="200 GPa" />
                       <PropertyCell label="I" value={`${displayedMember.I_m4?.toExponential(2) || 'N/A'} m⁴`} />
+                      {/* Design capacities */}
                       <PropertyCell 
                         label="Design Moment Capacity" 
-                        value={`${phiMCalculation.phiM_kNm} kN·m`} 
+                        value={`${designCapacity.phiM_kNm} kN·m`} 
                         className="col-span-2 bg-[var(--accent)]/10" 
                       />
                       <PropertyCell 
-                        label="Calculation" 
-                        value={phiMCalculation.details} 
+                        label="Design Shear Capacity" 
+                        value={`${designCapacity.phiV_kN} kN`} 
+                        className="col-span-2 bg-[var(--accent)]/10" 
+                      />
+                      {/* Calculation details */}
+                      <PropertyCell 
+                        label="Moment Calculation" 
+                        value={designCapacity.momentDetails} 
+                        className="col-span-2 text-xs" 
+                      />
+                      <PropertyCell 
+                        label="Shear Calculation" 
+                        value={designCapacity.shearDetails} 
                         className="col-span-2 text-xs" 
                       />
                     </div>
@@ -333,14 +345,26 @@ export function SectionsInputCard() {
                         value={`${displayedMember.E_GPa} GPa`}
                       />
                       <PropertyCell label="I" value={`${displayedMember.I_m4?.toExponential(2) || 'N/A'} m⁴`} />
+                      {/* Design capacities */}
                       <PropertyCell 
                         label="Design Moment Capacity" 
-                        value={`${phiMCalculation.phiM_kNm} kN·m`} 
+                        value={`${designCapacity.phiM_kNm} kN·m`} 
                         className="col-span-2 bg-[var(--accent)]/10" 
                       />
                       <PropertyCell 
-                        label="Calculation" 
-                        value={phiMCalculation.details} 
+                        label="Design Shear Capacity" 
+                        value={`${designCapacity.phiV_kN} kN`} 
+                        className="col-span-2 bg-[var(--accent)]/10" 
+                      />
+                      {/* Calculation details */}
+                      <PropertyCell 
+                        label="Moment Calculation" 
+                        value={designCapacity.momentDetails} 
+                        className="col-span-2 text-xs" 
+                      />
+                      <PropertyCell 
+                        label="Shear Calculation" 
+                        value={designCapacity.shearDetails} 
                         className="col-span-2 text-xs" 
                       />
                     </div>

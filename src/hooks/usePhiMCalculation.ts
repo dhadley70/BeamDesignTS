@@ -10,6 +10,7 @@ export interface SteelSectionMember {
   Z_m3: number;
   tf_mm?: number; // Flange thickness
   tw_mm?: number; // Web thickness
+  area_mm2?: number; // Cross-sectional area
 }
 
 export interface TimberSectionMember {
@@ -28,11 +29,19 @@ export interface TimberSectionMember {
 
 export type SectionMember = SteelSectionMember | TimberSectionMember;
 
+// Design capacity results interface
+export interface DesignCapacityResult {
+  phiM_kNm: number;
+  phiV_kN: number;
+  momentDetails: string;
+  shearDetails: string;
+}
+
 /**
- * Custom hook to calculate the design moment capacity (phiM) for steel and timber sections
+ * Custom hook to calculate the design capacities (phiM, phiV) for steel and timber sections
  * @param member The section member object
  * @param sectionType The type of section ('UB', 'UC', 'PFC', or timber grade)
- * @returns Object containing phiM value in kNm and calculation details
+ * @returns Object containing design capacities and calculation details
  */
 export function usePhiMCalculation(
   member: SectionMember | null, 
@@ -42,7 +51,9 @@ export function usePhiMCalculation(
     if (!member || !sectionType) {
       return {
         phiM_kNm: 0,
-        details: 'No section selected'
+        phiV_kN: 0,
+        momentDetails: 'No section selected',
+        shearDetails: 'No section selected'
       };
     }
 
@@ -51,12 +62,15 @@ export function usePhiMCalculation(
       const steelMember = member as SteelSectionMember;
       const phi = 0.9; // Capacity reduction factor for steel
       const fy_MPa = 300; // Yield strength in MPa (default to 300 MPa)
+      const fv_MPa = 170; // Shear strength (0.6*fy) in MPa
       
       // Check if we have a plastic section modulus value
       if (!steelMember.Z_m3) {
         return {
           phiM_kNm: 0,
-          details: 'Missing section modulus data'
+          phiV_kN: 0,
+          momentDetails: 'Missing section modulus data',
+          shearDetails: 'Missing section data'
         };
       }
       
@@ -66,10 +80,28 @@ export function usePhiMCalculation(
       // Then convert from N·mm to kN·m (divide by 10^6)
       const Z_mm3 = steelMember.Z_m3 * 1e9;
       const phiM_kNm = phi * Z_mm3 * fy_MPa / 1e6;
+      
+      // Calculate design shear capacity for steel sections
+      // For I-sections and channels, use the web area: depth * web thickness
+      // phiV = phi * 0.6 * fy * Aw
+      let phiV_kN = 0;
+      let shearDetails = '';
+      
+      if (steelMember.tw_mm && steelMember.depth_mm) {
+        // Calculate web area (effective shear area)
+        const webArea_mm2 = steelMember.depth_mm * steelMember.tw_mm;
+        // Calculate shear capacity
+        phiV_kN = phi * fv_MPa * webArea_mm2 / 1000; // Convert N to kN
+        shearDetails = `φ = ${phi}, fv = ${fv_MPa} MPa, Aw = ${webArea_mm2.toFixed(0)} mm²`;
+      } else {
+        shearDetails = 'Missing web thickness data for shear calculation';
+      }
 
       return {
         phiM_kNm: Number(phiM_kNm.toFixed(1)),
-        details: `φ = ${phi}, fy = ${fy_MPa} MPa, Z = ${steelMember.Z_m3.toExponential(3)} m³`
+        phiV_kN: Number(phiV_kN.toFixed(1)),
+        momentDetails: `φ = ${phi}, fy = ${fy_MPa} MPa, Z = ${steelMember.Z_m3.toExponential(3)} m³`,
+        shearDetails: shearDetails
       };
     } 
     // Timber calculation
@@ -80,7 +112,9 @@ export function usePhiMCalculation(
       if (!timberMember.fb_MPa) {
         return {
           phiM_kNm: 0,
-          details: 'Missing bending strength data'
+          phiV_kN: 0,
+          momentDetails: 'Missing bending strength data',
+          shearDetails: 'Missing shear strength data'
         };
       }
       
@@ -103,7 +137,9 @@ export function usePhiMCalculation(
       } else {
         return {
           phiM_kNm: 0,
-          details: 'Insufficient section data to calculate Z'
+          phiV_kN: 0,
+          momentDetails: 'Insufficient section data to calculate Z',
+          shearDetails: 'Insufficient section data'
         };
       }
       
@@ -113,10 +149,31 @@ export function usePhiMCalculation(
       // Then convert from N·mm to kN·m (divide by 10^6)
       const Z_mm3 = Z_m3 * 1e9;
       const phiM_kNm = phi * Z_mm3 * timberMember.fb_MPa / 1e6;
+      
+      // Calculate design shear capacity for timber sections
+      // For timber, φV = φ × fs × (2/3) × A
+      // Where A is the cross-sectional area and fs is the shear strength
+      let phiV_kN = 0;
+      let shearDetails = '';
+      
+      if (timberMember.width_mm && timberMember.depth_mm && timberMember.fs_MPa) {
+        // Calculate cross-sectional area in mm²
+        const area_mm2 = timberMember.width_mm * timberMember.depth_mm;
+        
+        // Calculate shear capacity
+        // The factor 2/3 is applied to account for the effective shear area
+        phiV_kN = phi * timberMember.fs_MPa * (2/3) * area_mm2 / 1000; // Convert N to kN
+        
+        shearDetails = `φ = ${phi}, fs = ${timberMember.fs_MPa} MPa, A = ${area_mm2} mm²`;
+      } else {
+        shearDetails = 'Missing data for shear calculation';
+      }
 
       return {
         phiM_kNm: Number(phiM_kNm.toFixed(1)),
-        details: `φ = ${phi}, fb = ${timberMember.fb_MPa} MPa, ${Z_calculation}`
+        phiV_kN: Number(phiV_kN.toFixed(1)),
+        momentDetails: `φ = ${phi}, fb = ${timberMember.fb_MPa} MPa, ${Z_calculation}`,
+        shearDetails: shearDetails
       };
     }
   }, [member, sectionType]);

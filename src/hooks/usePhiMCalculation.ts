@@ -100,7 +100,7 @@ export function usePhiMCalculation(
       return {
         phiM_kNm: Number(phiM_kNm.toFixed(1)),
         phiV_kN: Number(phiV_kN.toFixed(1)),
-        momentDetails: `φ = ${phi}, fy = ${fy_MPa} MPa, Z = ${steelMember.Z_m3.toExponential(3)} m³`,
+        momentDetails: `φ = ${phi}, fy = ${fy_MPa} MPa, Z = ${(steelMember.Z_m3 * 1e9 / 1e3).toFixed(1)} k mm³`,
         shearDetails: shearDetails
       };
     } 
@@ -127,13 +127,13 @@ export function usePhiMCalculation(
       if (timberMember.Z_m3) {
         // Use provided Z value if available
         Z_m3 = timberMember.Z_m3;
-        Z_calculation = `Z = ${Z_m3.toExponential(3)} m³`;
+        Z_calculation = `Z = ${(Z_m3 * 1e9 / 1e3).toFixed(1)} k mm³`;
       } else if (timberMember.width_mm && timberMember.depth_mm) {
         // Calculate Z from dimensions for rectangular section
         const width_m = timberMember.width_mm / 1000;
         const depth_m = timberMember.depth_mm / 1000;
         Z_m3 = (width_m * Math.pow(depth_m, 2)) / 6;
-        Z_calculation = `Z = bd²/6 = ${timberMember.width_mm}×${timberMember.depth_mm}²/6 = ${Z_m3.toExponential(3)} m³`;
+        Z_calculation = `Z = bd²/6 = ${timberMember.width_mm}×${timberMember.depth_mm}²/6 = ${(Z_m3 * 1e9 / 1e3).toFixed(1)} k mm³`;
       } else {
         return {
           phiM_kNm: 0,

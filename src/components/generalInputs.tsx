@@ -45,6 +45,7 @@ export const GeneralInputsCard: React.FC<{
   
   // Update parent state when local state changes
   React.useEffect(() => {
+    console.log('localGeneralInputs changed:', localGeneralInputs);
     setGeneralInputs(localGeneralInputs)
   }, [localGeneralInputs, setGeneralInputs])
   
@@ -95,7 +96,11 @@ export const GeneralInputsCard: React.FC<{
               value={String(generalInputs.members)}
               onValueChange={(val) => {
                 const n = Number(val)
-                setGeneralInputs(p => ({ ...p, members: Number.isFinite(n) ? n : p.members }))
+                const newMembers = Number.isFinite(n) ? n : generalInputs.members;
+                console.log('Setting members to:', newMembers);
+                setGeneralInputs(p => ({ ...p, members: newMembers }))
+                // Also update localStorage directly to ensure it's saved
+                setLocalGeneralInputs(prev => ({ ...prev, members: newMembers }))
               }}
             >
               <SelectTrigger className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)]">

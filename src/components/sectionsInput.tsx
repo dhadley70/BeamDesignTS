@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/select"
 import { PropertyCell } from "@/components/ui/property-cell"
 import useLocalStorage from "@/hooks/useLocalStorage"
+import { usePhiMCalculation } from "@/hooks/usePhiMCalculation"
+import type { SectionMember as PhiMSectionMember } from "@/hooks/usePhiMCalculation"
 import steelSections from "@/data/steel_sections_catalog.json"
 import timberSections from "@/data/timber_catalog.json"
 
@@ -48,10 +50,8 @@ export interface SectionsInputProps {
   // Props will be added later as needed
 }
 
-// Member interface
-interface SectionMember {
-  designation: string;
-  depth_mm: number;
+// Member interface - reusing most of the interface from the hook but keeping compatibility
+type SectionMember = PhiMSectionMember & {
   [key: string]: any; // For other properties that may vary
 }
 
@@ -70,6 +70,8 @@ export function SectionsInputCard() {
 
   // State for available members based on selected section type
   const [availableMembers, setAvailableMembers] = useState<SectionMember[]>([])
+
+  // Get selected member when needed in the UI
 
   // Handle section type change
   const handleSectionTypeChange = (value: string) => {
@@ -304,6 +306,15 @@ export function SectionsInputCard() {
                           <PropertyCell label="Mass" value={`${member.mass_kg_m} kg/m`} />
                           <PropertyCell label="E" value="200 GPa" />
                           <PropertyCell label="I" value={`${member.I_m4?.toExponential(2) || 'N/A'} m⁴`} />
+                          {(() => {
+                            const { phiM_kNm, details } = usePhiMCalculation(member, selectedSectionType);
+                            return (
+                              <>
+                                <PropertyCell label="Design Moment Capacity" value={`${phiM_kNm} kN·m`} className="col-span-2 bg-[var(--accent)]/10" />
+                                <PropertyCell label="Calculation" value={details} className="col-span-2 text-xs" />
+                              </>
+                            );
+                          })()}
                         </div>
                       )}
                       
@@ -341,6 +352,15 @@ export function SectionsInputCard() {
                             } 
                           />
                           <PropertyCell label="I" value={`${member.I_m4?.toExponential(2) || 'N/A'} m⁴`} />
+                          {(() => {
+                            const { phiM_kNm, details } = usePhiMCalculation(member, selectedSectionType);
+                            return (
+                              <>
+                                <PropertyCell label="Design Moment Capacity" value={`${phiM_kNm} kN·m`} className="col-span-2 bg-[var(--accent)]/10" />
+                                <PropertyCell label="Calculation" value={details} className="col-span-2 text-xs" />
+                              </>
+                            );
+                          })()}
                         </div>
                       )}
                     </div>

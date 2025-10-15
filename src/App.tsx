@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { GeneralInputsCard, getDefaultGeneralInputs } from "@/components/generalInputs"
 import { DeflectionLimitsCard } from "@/components/deflectionLimits"
 import { LoadsInputCard, type UDLLoad } from "@/components/loadsInput"
+import { SectionsInputCard } from "@/components/sectionsInput"
 import { SaveLoadDesign } from "@/components/saveLoadDesign"
 import { HeaderSaveButtons } from "@/components/headerSaveButtons"
 import { ThemeDropdown, type ThemeName, useTheme } from "@/components/theme-dropdown"
@@ -207,6 +208,8 @@ export default function App() {
           setLoads={setLoads}
           span={generalInputs.span}
         />
+
+        <SectionsInputCard />
 
         {/* Save & Load Design */}
         <SaveLoadDesign 

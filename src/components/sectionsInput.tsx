@@ -475,7 +475,6 @@ export function SectionsInputCard() {
                     <PropertyCell
                       label="Depth"
                       value={`${displayedMember.depth_mm} mm`}
-                      className="label:text-[var(--text)] value:text-[var(--text)]"
                     />
 
                     {/* Section-specific properties */}
@@ -483,7 +482,6 @@ export function SectionsInputCard() {
                       <PropertyCell
                         label="Total Flange Width"
                         value={`${(displayedMember.flange_mm * memberCount)} mm`}
-                        className="label:text-[var(--text)] value:text-[var(--text)]"
                       />
                     )}
 
@@ -491,7 +489,6 @@ export function SectionsInputCard() {
                       <PropertyCell
                         label="Total Width"
                         value={`${(displayedMember.width_mm * memberCount)} mm`}
-                        className="label:text-[var(--text)] value:text-[var(--text)]"
                       />
                     )}
                   </div>
@@ -503,13 +500,12 @@ export function SectionsInputCard() {
                     <PropertyCell
                       label="Total Mass"
                       value={`${(displayedMember.mass_kg_m * memberCount).toFixed(1)} kg/m`}
-                      className="label:text-[var(--text)] value:text-[var(--text)]"
                     />
 
                     {displayedMember.Z_m3 && (
                       <PropertyCell
                         label="Total Z"
-                        value={`${(displayedMember.Z_m3 * memberCount).toExponential(2)} m³`}
+                        value={`${(displayedMember.Z_m3 * memberCount * 1e9 / 1e3).toFixed(1)} k mm³`}
                         className="label:text-[var(--text)] value:text-[var(--text)]"
                       />
                     )}
@@ -522,17 +518,14 @@ export function SectionsInputCard() {
                     <PropertyCell
                       label="Total I"
                       value={`${(displayedMember.I_m4 * memberCount * 1e12 / 1e6).toFixed(1)} M mm⁴`}
-                      className="label:text-[var(--text)] value:text-[var(--text)]"
                     />
                     <PropertyCell
                       label="Total Design Moment Capacity"
                       value={`${designCapacity.phiM_kNm} kN·m`}
-                      className="label:text-[var(--text)] value:text-[var(--text)]"
                     />
                     <PropertyCell
                       label="Total Design Shear Capacity"
                       value={`${designCapacity.phiV_kN} kN`}
-                      className="label:text-[var(--text)] value:text-[var(--text)]"
                     />
 
                   </div>

@@ -242,6 +242,29 @@ export function SectionsInputCard() {
 
   // Calculate phiM for the displayed member
   const designCapacity = usePhiMCalculation(effectiveMember, selectedSectionType);
+  
+  // Store the effective member with design capacities in localStorage for other components
+  useEffect(() => {
+    if (effectiveMember && designCapacity) {
+      // Create combined object with all properties needed for beam analysis
+      const selectedSectionData = {
+        ...effectiveMember,
+        phiM: designCapacity.phiM_kNm,
+        phiV: designCapacity.phiV_kN,
+        // Add E in MPa for beam analysis calculations
+        E: effectiveMember.E_GPa ? effectiveMember.E_GPa * 1000 : 200000, // Default to 200 GPa for steel if not specified
+        material: selectedSectionType.startsWith('Timber') ? 'Timber' : 'Steel',
+        depth: effectiveMember.depth_mm,
+        width: effectiveMember.flange_mm || effectiveMember.width_mm,
+        momentOfInertia: effectiveMember.I_m4 * 1e12, // Convert from m⁴ to mm⁴
+        J2: effectiveMember.J2 || 2.0 // Default creep factor if not specified
+      };
+      
+      localStorage.setItem('selectedSection', JSON.stringify(selectedSectionData));
+    } else {
+      localStorage.removeItem('selectedSection');
+    }
+  }, [effectiveMember, designCapacity, selectedSectionType]);
 
   return (
     <Card className="mt-6 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
@@ -397,7 +420,7 @@ export function SectionsInputCard() {
                             <div className="text-xs mt-1 text-[var(--text)]">{designCapacity.momentDetails}</div>
                           </div>
                         }
-                        className="col-span-2 label:text-[var(--text)]"
+                        className="col-span-1 label:text-[var(--text)]"
                       />
                       <PropertyCell
                         label="Design Shear Capacity"
@@ -407,7 +430,7 @@ export function SectionsInputCard() {
                             <div className="text-xs mt-1 text-[var(--text)]">{designCapacity.shearDetails}</div>
                           </div>
                         }
-                        className="col-span-2 label:text-[var(--text)]"
+                        className="col-span-1 label:text-[var(--text)]"
                       />
                     </div>
                   )}

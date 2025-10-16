@@ -47,6 +47,27 @@ export const DesignAnalysisCard = () => {
         const rawFullUDL = localStorage.getItem('beamFullUDL');
         const rawSelectedSection = localStorage.getItem('selectedSection');
         
+        // Validate UDL loads specifically to catch any inconsistencies
+        if (rawUdlLoads) {
+          try {
+            const parsedUdlLoads = JSON.parse(rawUdlLoads);
+            // If there are no UDL loads but the analysis is still showing loads,
+            // let's force a reset to ensure state is consistent
+            if (parsedUdlLoads.length === 0) {
+              console.log('UDL loads array is empty but analysis may be using cached values - clearing localStorage');
+              // Force clear just to be safe
+              localStorage.setItem('beamLoads', JSON.stringify([]));
+            }
+          } catch (parseError) {
+            console.error('Error parsing UDL loads, resetting to empty array:', parseError);
+            localStorage.setItem('beamLoads', JSON.stringify([]));
+          }
+        } else {
+          // If no UDL loads exist in localStorage, initialize with empty array
+          console.log('No UDL loads found in localStorage, initializing empty array');
+          localStorage.setItem('beamLoads', JSON.stringify([]));
+        }
+        
         const parsedGeneralInputs = rawGeneralInputs ? JSON.parse(rawGeneralInputs) : {};
         const parsedUdlLoads = rawUdlLoads ? JSON.parse(rawUdlLoads) : [];
         const parsedPointLoads = rawPointLoads ? JSON.parse(rawPointLoads) : [];
@@ -143,11 +164,24 @@ export const DesignAnalysisCard = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
-  // Extract parameters from general inputs
-  const span = inputs.generalInputs?.span || 3.0
-  const members = inputs.generalInputs?.members || 1
-  const ws = inputs.generalInputs?.ws || 0.4
-  const wl = inputs.generalInputs?.wl || 0.3
+  // Extract parameters from general inputs - always get the freshest value from localStorage
+  const getLatestGeneralInputs = () => {
+    try {
+      const rawGeneralInputs = localStorage.getItem('generalInputs');
+      if (rawGeneralInputs) {
+        return JSON.parse(rawGeneralInputs);
+      }
+    } catch (error) {
+      console.error('Error reading general inputs from localStorage', error);
+    }
+    return inputs.generalInputs || {};
+  };
+  
+  const generalInputs = getLatestGeneralInputs();
+  const span = generalInputs?.span || 3.0
+  const members = generalInputs?.members || 1
+  const ws = generalInputs?.ws || 0.4
+  const wl = generalInputs?.wl || 0.3
   
   // Get the updated loads for analysis
   const udlLoads = inputs.udlLoads || []
@@ -178,7 +212,8 @@ export const DesignAnalysisCard = () => {
         width: sectionData.flange_mm || sectionData.width_mm || sectionData.width || 0,
         momentOfInertia: sectionData.I_m4 ? (sectionData.I_m4 * 1e12) : (sectionData.momentOfInertia || 0),
         elasticModulus: sectionData.E || 200000, // Default to 200 GPa for steel if not specified
-        J2: sectionData.J2 || 2.0, // Default creep factor if not specified
+        J2: sectionData.J2 || 2.0, // Default creep factor if not specified,
+        mass_kg_m: sectionData.mass_kg_m || 0 // Include mass per unit length for accurate self-weight
       }
       
       // Set the member properties without checking current state
@@ -194,6 +229,7 @@ export const DesignAnalysisCard = () => {
             material: sectionData.material || 'Steel',
             depth: sectionData.depth_mm || sectionData.depth || 0,
             width: sectionData.flange_mm || sectionData.width_mm || sectionData.width || 0,
+            mass_kg_m: sectionData.mass_kg_m || 0, // Include mass per unit length for accurate self-weight
             momentOfInertia: sectionData.I_m4 ? (sectionData.I_m4 * 1e12) : (sectionData.momentOfInertia || 0),
             elasticModulus: sectionData.E || 200000, 
             J2: sectionData.J2 || 2.0,

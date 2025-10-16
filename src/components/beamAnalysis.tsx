@@ -27,6 +27,7 @@ export interface MemberProperties {
   momentOfInertia: number;         // Second moment of area in mm⁴
   elasticModulus: number;          // Young's modulus in MPa
   J2: number;                      // Creep factor (for long-term deflection)
+  mass_kg_m?: number;              // Mass per unit length in kg/m
 }
 
 export interface BeamAnalysisProps {
@@ -54,25 +55,36 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
     
     console.log('==== STARTING BEAM ANALYSIS ====');
     
-    // Calculate beam cross-sectional area and self-weight
-    const crossSectionArea = props.memberProperties.width * props.memberProperties.depth; // mm²
+    // Calculate self-weight from section mass
+    let selfWeight = 0;
     
-    // Determine material density (kg/m³)
-    let materialDensity = 0;
-    if (props.memberProperties.material.toLowerCase().includes('steel')) {
-      materialDensity = 7850; // kg/m³ for steel
-    } else if (props.memberProperties.material.toLowerCase().includes('timber') || 
-              props.memberProperties.material.toLowerCase().includes('lvl')) {
-      materialDensity = 500; // kg/m³ for timber/LVL (approximate)
-    } else if (props.memberProperties.material.toLowerCase().includes('concrete')) {
-      materialDensity = 2400; // kg/m³ for concrete
+    // If mass_kg_m is provided, use it directly (preferred method)
+    if (props.memberProperties.mass_kg_m) {
+      // Convert kg/m to kN/m
+      selfWeight = props.memberProperties.mass_kg_m * 9.81 / 1000;
+      console.log(`Using mass_kg_m (${props.memberProperties.mass_kg_m} kg/m) for self-weight: ${selfWeight} kN/m`);
     } else {
-      materialDensity = 1000; // Default density
+      // Fallback to approximate calculation using dimensions
+      const crossSectionArea = props.memberProperties.width * props.memberProperties.depth; // mm²
+      
+      // Determine material density (kg/m³)
+      let materialDensity = 0;
+      if (props.memberProperties.material.toLowerCase().includes('steel')) {
+        materialDensity = 7850; // kg/m³ for steel
+      } else if (props.memberProperties.material.toLowerCase().includes('timber') || 
+                props.memberProperties.material.toLowerCase().includes('lvl')) {
+        materialDensity = 500; // kg/m³ for timber/LVL (approximate)
+      } else if (props.memberProperties.material.toLowerCase().includes('concrete')) {
+        materialDensity = 2400; // kg/m³ for concrete
+      } else {
+        materialDensity = 1000; // Default density
+      }
+      
+      // Calculate self-weight in kN/m - approximate method
+      // Convert mm² to m², multiply by density, convert kg to kN
+      selfWeight = crossSectionArea * (1/1000000) * materialDensity * 9.81/1000;
+      console.log(`Using approximate dimensions for self-weight: ${selfWeight} kN/m (section mass not provided)`);
     }
-    
-    // Calculate self-weight in kN/m
-    // Convert mm² to m², multiply by density, convert kg to kN
-    const selfWeight = crossSectionArea * (1/1000000) * materialDensity * 9.81/1000;
     
     console.log('Beam properties:', {
       span: props.span,
@@ -84,8 +96,6 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
       material: props.memberProperties.material,
       width: props.memberProperties.width,
       depth: props.memberProperties.depth,
-      crossSectionArea: crossSectionArea,
-      materialDensity: materialDensity,
       selfWeight: selfWeight,
       includeSelfWeight: props.fullUDL.includeSelfWeight,
       momentOfInertia: props.memberProperties.momentOfInertia,
@@ -93,6 +103,17 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
     });
     
     // Log load data
+    console.log('=== UDL LOADS DEBUG ===');
+    // Check what's actually in localStorage
+    console.log('Raw localStorage beamLoads value:', localStorage.getItem('beamLoads'));
+    console.log(`Raw UDL loads array:`, JSON.stringify(props.udlLoads));
+    
+    // Log each UDL load separately for clarity
+    props.udlLoads.forEach((udl, index) => {
+      console.log(`UDL Load ${index}: id=${udl.id}, start=${udl.start}m, finish=${udl.finish}m, udlG=${udl.udlG}kN/m, udlQ=${udl.udlQ}kN/m`);
+    });
+    console.log('=== END UDL LOADS DEBUG ===');
+    
     console.log('UDL loads:', props.udlLoads);
     console.log('Point loads:', props.pointLoads);
     console.log('Moments:', props.moments);
@@ -387,22 +408,46 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
       let comboShear = 0;
       
       // Process UDL loads for this combination
-      props.udlLoads.forEach(udl => {
+      // Safety check - if udlLoads is undefined or null, skip this part
+      if (!props.udlLoads || !Array.isArray(props.udlLoads) || props.udlLoads.length === 0) {
+        console.log(`No UDL loads to process for combination ${combo.name}`);
+      }
+      
+      // Validate each UDL load before processing
+      (props.udlLoads || []).forEach(udl => {
+        // Verify this is a valid UDL load object
+        if (!udl || typeof udl !== 'object') {
+          console.warn('Invalid UDL load object encountered, skipping:', udl);
+          return;
+        }
+        
+        // Log the load details
+        console.log(`Processing UDL load: id=${udl.id || 'unknown'}, start=${udl.start}m, finish=${udl.finish}m, udlG=${udl.udlG}kN/m, udlQ=${udl.udlQ}kN/m`);
+        
         // Apply appropriate load factors based on the combination
         const deadLoadContribution = udl.udlG * combo.factors.deadLoad;
         const liveLoadContribution = udl.udlQ * combo.factors.liveLoad;
         
-        // Calculate moment contributions
-        const deadMoment = calculateUDLMoment(deadLoadContribution, props.span, udl.start, udl.finish);
-        const liveMoment = calculateUDLMoment(liveLoadContribution, props.span, udl.start, udl.finish);
+        // Only calculate for non-zero loads to avoid showing calculations for zero values
+        if (deadLoadContribution > 0) {
+          // Calculate moment contributions
+          const deadMoment = calculateUDLMoment(deadLoadContribution, props.span, udl.start, udl.finish);
+          comboMoment += deadMoment;
+          
+          // Calculate shear contributions
+          const deadShear = calculateUDLShear(deadLoadContribution, props.span, udl.start, udl.finish);
+          comboShear += deadShear;
+        }
         
-        comboMoment += deadMoment + liveMoment;
-        
-        // Calculate shear contributions
-        const deadShear = calculateUDLShear(deadLoadContribution, props.span, udl.start, udl.finish);
-        const liveShear = calculateUDLShear(liveLoadContribution, props.span, udl.start, udl.finish);
-        
-        comboShear += deadShear + liveShear;
+        if (liveLoadContribution > 0) {
+          // Calculate moment contributions
+          const liveMoment = calculateUDLMoment(liveLoadContribution, props.span, udl.start, udl.finish);
+          comboMoment += liveMoment;
+          
+          // Calculate shear contributions
+          const liveShear = calculateUDLShear(liveLoadContribution, props.span, udl.start, udl.finish);
+          comboShear += liveShear;
+        }
       });
       
       // Process point loads for this combination
@@ -411,28 +456,48 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
         const deadLoadContribution = point.pointG * combo.factors.deadLoad;
         const liveLoadContribution = point.pointQ * combo.factors.liveLoad;
         
-        // Calculate moment contributions
-        const deadMoment = calculatePointLoadMoment(deadLoadContribution, props.span, point.location);
-        const liveMoment = calculatePointLoadMoment(liveLoadContribution, props.span, point.location);
+        // Only calculate for non-zero loads
+        if (deadLoadContribution > 0) {
+          // Calculate moment contributions
+          const deadMoment = calculatePointLoadMoment(deadLoadContribution, props.span, point.location);
+          comboMoment += deadMoment;
+          
+          // Calculate shear contributions
+          const deadShear = calculatePointLoadShear(deadLoadContribution, props.span, point.location);
+          comboShear += deadShear;
+        }
         
-        comboMoment += deadMoment + liveMoment;
-        
-        // Calculate shear contributions
-        const deadShear = calculatePointLoadShear(deadLoadContribution, props.span, point.location);
-        const liveShear = calculatePointLoadShear(liveLoadContribution, props.span, point.location);
-        
-        comboShear += deadShear + liveShear;
+        if (liveLoadContribution > 0) {
+          // Calculate moment contributions
+          const liveMoment = calculatePointLoadMoment(liveLoadContribution, props.span, point.location);
+          comboMoment += liveMoment;
+          
+          // Calculate shear contributions
+          const liveShear = calculatePointLoadShear(liveLoadContribution, props.span, point.location);
+          comboShear += liveShear;
+        }
       });
       
+      // Apply self-weight as a separate UDL if requested
+      if (props.fullUDL.includeSelfWeight && selfWeight > 0) {
+        const selfWeightContribution = selfWeight * combo.factors.deadLoad;
+        const selfWeightMoment = calculateUDLMoment(selfWeightContribution, props.span, 0, props.span);
+        const selfWeightShear = calculateUDLShear(selfWeightContribution, props.span, 0, props.span);
+        
+        comboMoment += selfWeightMoment;
+        comboShear += selfWeightShear;
+        
+        console.log(`Added self-weight contribution of ${selfWeightContribution} kN/m (span 0-${props.span}m) for combination ${combo.name}`);
+      }
+      
       // Add full UDL contributions if applicable
-      if (props.fullUDL.tributaryWidth > 0 || 
-          (props.fullUDL.includeSelfWeight && selfWeight > 0)) {
+      if (props.fullUDL.tributaryWidth > 0) {
         
         // Calculate tributary loads
         const fullDeadUDL = props.fullUDL.deadGkPa * props.fullUDL.tributaryWidth * combo.factors.deadLoad;
         const fullLiveUDL = props.fullUDL.liveQkPa * props.fullUDL.tributaryWidth * combo.factors.liveLoad;
         
-        // Add self-weight if requested
+        // Only add self-weight if explicitly requested via checkbox
         let selfWeightContribution = 0;
         if (props.fullUDL.includeSelfWeight && selfWeight > 0) {
           selfWeightContribution = selfWeight * combo.factors.deadLoad;
@@ -595,27 +660,23 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
     });
     
     // Add full UDL dead load if applicable
-    if ((props.fullUDL.tributaryWidth > 0 && props.fullUDL.deadGkPa > 0) || 
-        (props.fullUDL.includeSelfWeight && selfWeight > 0)) {
-      
-      // Combine tributary dead load and self-weight if requested
+    if (props.fullUDL.tributaryWidth > 0 && props.fullUDL.deadGkPa > 0) {
+      // Process tributary dead load
       const tributaryDeadLoad = props.fullUDL.deadGkPa * props.fullUDL.tributaryWidth;
-      let totalDeadLoad = tributaryDeadLoad;
       
-      // Add self-weight if requested
-      if (props.fullUDL.includeSelfWeight && selfWeight > 0) {
-        totalDeadLoad += selfWeight;
-        console.log(`Including beam self-weight of ${selfWeight} kN/m in initial deflection calculation`);
-      }
-      
-      const deflection = calculateUDLDeflection(totalDeadLoad, props.span, 0, props.span, EI);
-      initialDeflection += deflection;
-      
-      if (props.fullUDL.includeSelfWeight && selfWeight > 0) {
-        console.log(`Added full UDL dead load (including self-weight) deflection: ${deflection} mm, running total: ${initialDeflection} mm`);
-      } else {
+      if (tributaryDeadLoad > 0) {
+        const deflection = calculateUDLDeflection(tributaryDeadLoad, props.span, 0, props.span, EI);
+        initialDeflection += deflection;
         console.log(`Added full UDL dead load deflection: ${deflection} mm, running total: ${initialDeflection} mm`);
       }
+    }
+    
+    // Add self-weight separately if requested
+    if (props.fullUDL.includeSelfWeight && selfWeight > 0) {
+      console.log(`Including beam self-weight of ${selfWeight} kN/m in initial deflection calculation`);
+      const deflection = calculateUDLDeflection(selfWeight, props.span, 0, props.span, EI);
+      initialDeflection += deflection;
+      console.log(`Added beam self-weight deflection: ${deflection} mm, running total: ${initialDeflection} mm`);
     }
     
     // Calculate short-term deflection (short-term live only: wsQ)
@@ -664,12 +725,15 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
     let effectiveJ2 = props.J2;
     
     // Steel has no creep, so J2 should be 1.0 for steel
-    if (props.memberProperties.material.toLowerCase().includes('steel') && effectiveJ2 !== 1.0) {
-      console.log(`Material is steel, overriding J2 from ${effectiveJ2} to 1.0 (steel has no creep)`);
+    if (props.memberProperties && props.memberProperties.material && 
+        props.memberProperties.material.toLowerCase().includes('steel')) {
+      if (effectiveJ2 !== 1.0) {
+        console.log(`Material is steel, overriding J2 from ${effectiveJ2} to 1.0 (steel has no creep)`);
+      }
       effectiveJ2 = 1.0;
     } else {
       // For timber, use the specified J2 from the catalog or the default
-      console.log(`Using J2 = ${effectiveJ2} for ${props.memberProperties.material}`);
+      console.log(`Using J2 = ${effectiveJ2} for ${props.memberProperties?.material || 'unknown material'}`);
     }
     
     let longTermDeflection = initialDeflection * effectiveJ2;

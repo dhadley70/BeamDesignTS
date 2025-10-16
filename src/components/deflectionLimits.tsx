@@ -123,7 +123,7 @@ export const DeflectionLimitsCard: React.FC<{
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
           <CardTitle className="text-xl">Deflection Limits</CardTitle>
-          <span className="text-sm opacity-75 font-medium">({presetName})</span>
+          <span className="text-base opacity-80">| {presetName} |</span>
         </div>
         <Button 
           variant="ghost" 

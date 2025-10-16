@@ -1,13 +1,33 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { PropertyCell } from '@/components/ui/property-cell'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './ui/table'
 import useLocalStorage from '@/hooks/useLocalStorage'
 import useBeamAnalysis from './beamAnalysis'
 import type { MemberProperties } from './beamAnalysis'
 import type { UDLLoad, PointLoad, Moment, FullUDL } from '@/components/loadsInput'
+import { COLLAPSE_ALL_CARDS, EXPAND_ALL_CARDS, getShortcutKey } from '@/lib/cardStateManager'
 
 export const DesignAnalysisCard = () => {
+  // State for collapsing the card with localStorage persistence
+  const [collapsed, setCollapsed] = useLocalStorage('designAnalysisCard_collapsed', false);
+  
+  // Handle global collapse/expand events
+  useEffect(() => {
+    const handleCollapseAll = () => setCollapsed(true);
+    const handleExpandAll = () => setCollapsed(false);
+    
+    window.addEventListener(COLLAPSE_ALL_CARDS, handleCollapseAll);
+    window.addEventListener(EXPAND_ALL_CARDS, handleExpandAll);
+    
+    return () => {
+      window.removeEventListener(COLLAPSE_ALL_CARDS, handleCollapseAll);
+      window.removeEventListener(EXPAND_ALL_CARDS, handleExpandAll);
+    };
+  }, [setCollapsed]);
+  
   // Load data from local storage with direct access to ensure it's always up to date
   const [generalInputsState] = useLocalStorage<any>('generalInputs', {})
   const [udlLoadsState] = useLocalStorage<UDLLoad[]>('beamLoads', [])
@@ -267,12 +287,51 @@ export const DesignAnalysisCard = () => {
     return `${value.toFixed(decimals)} ${unit}`
   }
 
+  // Generate a summary of the most important results for display when collapsed
+  const getResultsSummary = () => {
+    try {
+      if (!analysisResults || !inputs.selectedSection) {
+        return "(No results available)";
+      }
+      
+      // Calculate moment utilization ratio
+      const momentUtilization = inputs.selectedSection?.phiM && analysisResults.maxMoment 
+        ? `M: ${((analysisResults.maxMoment / inputs.selectedSection.phiM) * 100).toFixed(0)}%`
+        : "M: N/A";
+      
+      // Check if deflection passes
+      const initialDeflectionOk = analysisResults.maxInitialDeflection <= span * 1000 / 240;
+      const deflectionStatus = initialDeflectionOk ? "Defl: OK" : "Defl: FAIL";
+      
+      return `(${momentUtilization}, ${deflectionStatus})`;
+    } catch (error) {
+      console.error("Error generating results summary:", error);
+      return "(Error in results)";
+    }
+  };
+
   return (
     <Card className="mt-6 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
-      <CardHeader>
-        <CardTitle className="text-xl">Design</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-xl">Design</CardTitle>
+          <span className="text-sm opacity-75 font-medium">{getResultsSummary()}</span>
+        </div>
+        <Button 
+          variant="ghost" 
+          className="p-1 h-auto flex items-center gap-1" 
+          onClick={() => setCollapsed(!collapsed)}
+          aria-label={collapsed ? "Expand" : "Collapse"}
+          title={`Toggle card visibility (${getShortcutKey()} to toggle all)`}
+        >
+          {collapsed ? 
+            <ChevronDown className="h-5 w-5 text-[var(--text)]" /> : 
+            <ChevronUp className="h-5 w-5 text-[var(--text)]" />}
+          <span className="text-xs opacity-50">{getShortcutKey()}</span>
+        </Button>
       </CardHeader>
-      <CardContent>
+      {!collapsed && (
+        <CardContent>
         {!memberProperties ? (
           <div className="text-center text-muted italic">
             Please select a section to perform analysis
@@ -367,7 +426,8 @@ export const DesignAnalysisCard = () => {
             </div>
           </div>
         )}
-      </CardContent>
+        </CardContent>
+      )}
     </Card>
   )
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import useLocalStorage from "@/hooks/useLocalStorage"
+import { COLLAPSE_ALL_CARDS, EXPAND_ALL_CARDS, getGlobalCardState, saveGlobalCardState } from "@/lib/cardStateManager"
 
 // Removed ProjectInfoState interface (now imported from projectInfo.tsx)
 
@@ -14,6 +15,7 @@ import { DesignAnalysisCard } from "@/components/designAnalysis"
 import { SaveLoadDesign } from "@/components/saveLoadDesign"
 import { HeaderSaveButtons } from "@/components/headerSaveButtons"
 import { ThemeDropdown, type ThemeName, useTheme } from "@/components/theme-dropdown"
+import { SectionNavigator, type SectionName } from "@/components/SectionNavigator"
 import { AlignLeft, Home, BarChart3, Settings, Rocket, Star, Circle, ChevronDown } from "lucide-react"
 
 /* ---------------- Theming ---------------- */
@@ -158,6 +160,48 @@ export default function App() {
 
 
 
+  // Track which section is currently active
+  const [currentSection, setCurrentSection] = useState<SectionName>('project');
+  
+  // Global keyboard shortcut for expanding/collapsing all cards
+  useEffect(() => {
+    // Initialize with the saved state from localStorage
+    let allCardsCollapsed = getGlobalCardState();
+    
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check for Cmd+K (Mac) or Ctrl+K (Windows/Linux)
+      if ((event.key === 'k' || event.key === 'K') && 
+          (navigator.platform.indexOf('Mac') !== -1 ? event.metaKey : event.ctrlKey)) {
+        
+        // Prevent default browser behavior
+        event.preventDefault();
+        
+        // Toggle between collapsed and expanded
+        allCardsCollapsed = !allCardsCollapsed;
+        
+        // Save state to localStorage
+        saveGlobalCardState(allCardsCollapsed);
+        
+        // Dispatch appropriate event based on current state
+        if (allCardsCollapsed) {
+          window.dispatchEvent(new CustomEvent(COLLAPSE_ALL_CARDS));
+        } else {
+          window.dispatchEvent(new CustomEvent(EXPAND_ALL_CARDS));
+        }
+        
+        console.log(`All cards ${allCardsCollapsed ? 'collapsed' : 'expanded'} via keyboard shortcut`);
+      }
+    };
+    
+    // Add event listener
+    window.addEventListener('keydown', handleKeyDown);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+  
   return (
     <div className="relative min-h-screen overflow-x-hidden text-[var(--text)] bg-[var(--bg)]">
       {/* HEADER */}
@@ -187,42 +231,60 @@ export default function App() {
 
       {/* MAIN CONTENT */}
       <main className="relative mx-auto max-w-7xl p-4 md:p-6 overflow-x-hidden">
-
-        <ProjectInfoCard
-          projectInfo={projectInfo}
-          setProjectInfo={setProjectInfo}
-        />
-
-        <GeneralInputsCard
-          generalInputs={generalInputs}
-          setGeneralInputs={setGeneralInputs}
-        />
-
-        <DeflectionLimitsCard
-          deflectionLimits={deflectionLimits}
-          setDeflectionLimits={setDeflectionLimits}
-          span={generalInputs.span}
-        />
-
-        <LoadsInputCard
-          loads={loads}
-          setLoads={setLoads}
-          span={generalInputs.span}
-        />
-
-        <SectionsInputCard />
-
-        <div className="mb-8">
-          <DesignAnalysisCard />
-        </div>
-
-        {/* Save & Load Design */}
-        <div className="mt-8">
-          <SaveLoadDesign
-            onImportComplete={() => window.location.reload()}
-          />
-        </div>
-
+        <SectionNavigator currentSection={currentSection}>
+          {/* Project Info Card */}
+          <div onClick={() => setCurrentSection('project')}>
+            <ProjectInfoCard
+              projectInfo={projectInfo}
+              setProjectInfo={setProjectInfo}
+            />
+          </div>
+          
+          {/* General Inputs Card */}
+          <div onClick={() => setCurrentSection('general')}>
+            <GeneralInputsCard
+              generalInputs={generalInputs}
+              setGeneralInputs={setGeneralInputs}
+            />
+          </div>
+          
+          {/* Deflection Limits Card */}
+          <div onClick={() => setCurrentSection('deflection')}>
+            <DeflectionLimitsCard
+              deflectionLimits={deflectionLimits}
+              setDeflectionLimits={setDeflectionLimits}
+              span={generalInputs.span}
+            />
+          </div>
+          
+          {/* Loads Input Card */}
+          <div onClick={() => setCurrentSection('loads')}>
+            <LoadsInputCard
+              loads={loads}
+              setLoads={setLoads}
+              span={generalInputs.span}
+            />
+          </div>
+          
+          {/* Sections Input Card */}
+          <div onClick={() => setCurrentSection('sections')}>
+            <SectionsInputCard />
+          </div>
+          
+          {/* Design Analysis Card */}
+          <div onClick={() => setCurrentSection('design')}>
+            <div className="mb-8">
+              <DesignAnalysisCard />
+            </div>
+          </div>
+          
+          {/* Save & Load Design */}
+          <div onClick={() => setCurrentSection('saveLoad')} className="mt-8">
+            <SaveLoadDesign
+              onImportComplete={() => window.location.reload()}
+            />
+          </div>
+        </SectionNavigator>
 
         <div className="mt-8 space-y-4 text-xs opacity-60">
           © {new Date().getFullYear()} Radial · Vite · Tailwind v4 · shadcn/ui

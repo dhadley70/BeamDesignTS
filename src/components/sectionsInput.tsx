@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { ChevronDown, ChevronUp } from "lucide-react"
+import { COLLAPSE_ALL_CARDS, EXPAND_ALL_CARDS, getShortcutKey } from "@/lib/cardStateManager"
 import {
   Select,
   SelectContent,
@@ -57,6 +60,23 @@ type SectionMember = PhiMSectionMember & {
 }
 
 export function SectionsInputCard() {
+  // State for collapsing the card with localStorage persistence
+  const [collapsed, setCollapsed] = useLocalStorage('sectionsCard_collapsed', false);
+  
+  // Handle global collapse/expand events
+  useEffect(() => {
+    const handleCollapseAll = () => setCollapsed(true);
+    const handleExpandAll = () => setCollapsed(false);
+    
+    window.addEventListener(COLLAPSE_ALL_CARDS, handleCollapseAll);
+    window.addEventListener(EXPAND_ALL_CARDS, handleExpandAll);
+    
+    return () => {
+      window.removeEventListener(COLLAPSE_ALL_CARDS, handleCollapseAll);
+      window.removeEventListener(EXPAND_ALL_CARDS, handleExpandAll);
+    };
+  }, [setCollapsed]);
+  
   // Store the selected section type in local storage
   const [selectedSectionType, setSelectedSectionType] = useLocalStorage<string>(
     'beamSectionType',
@@ -274,12 +294,39 @@ export function SectionsInputCard() {
     }
   }, [effectiveMember, designCapacity, selectedSectionType]);
 
+  // Get section type label
+  const sectionTypeLabel = sectionTypes.find(type => type.value === selectedSectionType)?.label || selectedSectionType;
+  
+  // Get member name if selected
+  const memberDesignation = selectedMember && displayedMember ? displayedMember.designation : 'None';
+  
+  // Section summary text
+  const sectionSummary = memberDesignation !== 'None' 
+    ? `(${memberCount}x ${sectionTypeLabel}, ${memberDesignation})`
+    : `(No section selected)`;
+
   return (
-    <Card className="mt-6 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
-      <CardHeader>
-        <CardTitle className="text-xl">Sections</CardTitle>
+    <Card className="mb-6 lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-xl">Sections</CardTitle>
+          <span className="text-sm opacity-75 font-medium">{sectionSummary}</span>
+        </div>
+        <Button 
+          variant="ghost" 
+          className="p-1 h-auto flex items-center gap-1" 
+          onClick={() => setCollapsed(!collapsed)}
+          aria-label={collapsed ? "Expand" : "Collapse"}
+          title={`Toggle card visibility (${getShortcutKey()} to toggle all)`}
+        >
+          {collapsed ? 
+            <ChevronDown className="h-5 w-5 text-[var(--text)]" /> : 
+            <ChevronUp className="h-5 w-5 text-[var(--text)]" />}
+          <span className="text-xs opacity-50">{getShortcutKey()}</span>
+        </Button>
       </CardHeader>
-      <CardContent>
+      {!collapsed && (
+        <CardContent>
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -566,6 +613,7 @@ export function SectionsInputCard() {
           )}
         </div>
       </CardContent>
+      )}
     </Card>
   )
 }

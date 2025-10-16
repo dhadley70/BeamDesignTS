@@ -2,6 +2,9 @@ import React from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { InputWithUnit } from '@/components/ui/InputWithUnit'
 import { Button } from '@/components/ui/button'
+import { ChevronDown, ChevronUp } from 'lucide-react'
+import useLocalStorage from '@/hooks/useLocalStorage'
+import { COLLAPSE_ALL_CARDS, EXPAND_ALL_CARDS, getShortcutKey } from '@/lib/cardStateManager'
 import presets from '@/data/deflection_presets.json'
 
 // Define deflection limits types and constants
@@ -28,6 +31,8 @@ export const DeflectionLimitsCard: React.FC<{
   setDeflectionLimits: React.Dispatch<React.SetStateAction<DeflectionLimits>>
   span: number  // Pass span from parent to help with default calculations
 }> = ({ deflectionLimits, setDeflectionLimits, span }) => {
+  const [collapsed, setCollapsed] = useLocalStorage('deflectionLimitsCard_collapsed', false);
+
   // Check if current limits exactly match a preset
   const matchPreset = (preset: typeof presets[number]) => {
     const checkSection = (
@@ -48,45 +53,47 @@ export const DeflectionLimitsCard: React.FC<{
 
   // Update a specific part of the deflection limits
   const updateDeflectionLimit = (
-    type: 'initial' | 'short' | 'long', 
-    field: 'spanRatio' | 'maxLimit', 
+    section: keyof DeflectionLimits, 
+    property: keyof DeflectionLimits['initial'], 
     value: number
   ) => {
     setDeflectionLimits(prev => {
-      // Determine the new values, allowing zero
-      const newValues = {
-        ...prev[type],
-        [field]: value
+      const newLimits = { ...prev }
+      
+      if (property === 'maxDeflection') {
+        // We store the calculated max deflection but don't edit it directly
+        return newLimits
       }
       
-      // Recalculate max deflection with updated values
-      // Use 0 as a special case to prevent division by zero
-      const maxDeflection = value === 0 ? 0 : calculateMaxDeflection(
-        span, 
-        field === 'spanRatio' ? value : (newValues.spanRatio || prev[type].spanRatio), 
-        field === 'maxLimit' ? value : (newValues.maxLimit || prev[type].maxLimit)
+      // Update the specified property
+      newLimits[section] = {
+        ...newLimits[section],
+        [property]: value
+      }
+      
+      // Recalculate the max deflection when span ratio or max limit changes
+      newLimits[section].maxDeflection = calculateMaxDeflection(
+        span,
+        newLimits[section].spanRatio,
+        newLimits[section].maxLimit
       )
       
-      return {
-        ...prev,
-        [type]: {
-          ...newValues,
-          maxDeflection
-        }
-      }
+      return newLimits
     })
   }
 
   // Calculate maximum deflection based on span and limits
-  const calculateMaxDeflection = (beamSpan: number, spanRatio: number, maxLimit: number) => {
-    // Convert span to mm
-    const spanMm = beamSpan * 1000
-    
-    // Handle zero spanRatio as a special case
-    if (spanRatio === 0) {
-      // If spanRatio is zero, return the max limit (converted to mm if needed)
-      return Math.round(maxLimit < 1 ? maxLimit * 1000 : maxLimit)
+  const calculateMaxDeflection = (
+    span: number,  // Span in meters
+    spanRatio: number,  // Span divisor (e.g., 240 means span/240)
+    maxLimit: number  // Maximum limit in meters
+  ): number => {
+    if (spanRatio <= 0) {
+      return 0
     }
+    
+    // Convert span to mm
+    const spanMm = span * 1000
     
     // Calculate deflection by span ratio
     const ratioDeflection = spanMm / spanRatio
@@ -107,217 +114,237 @@ export const DeflectionLimitsCard: React.FC<{
     }
   }
 
+  // Find which preset matches the current settings (if any)
+  const currentPreset = presets.find(preset => matchPreset(preset));
+  const presetName = currentPreset ? currentPreset.name : "Custom";
+
   return (
     <Card className="mb-6 lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
-      <CardHeader>
-        <CardTitle className="text-xl">Deflection Limits</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-3 gap-4">
-          {/* Initial Deflection */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-[var(--text)] flex items-center gap-2">
-              Initial 
-              <span className="block text-xs font-medium text-[var(--text)] opacity-70">
-                (Max: {calculateMaxDeflection(span, deflectionLimits.initial.spanRatio, deflectionLimits.initial.maxLimit)} mm)
-              </span>
-            </h3>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-[var(--text)] opacity-70">Span Ratio</label>
-              <InputWithUnit
-                id="initialSpanRatio"
-                unit="L/x"
-                type="number"
-                inputMode="decimal"
-                step={10}
-                placeholder="Initial Span Ratio"
-                value={(deflectionLimits.initial.spanRatio || getDefaultSpanRatio('initial')).toString()}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = e.currentTarget.value.trim()
-                  if (value === '') {
-                    updateDeflectionLimit('initial', 'spanRatio', 0)
-                  } else {
-                    const parsedValue = parseInt(value, 10)
-                    if (!isNaN(parsedValue)) {
-                      updateDeflectionLimit('initial', 'spanRatio', parsedValue)
-                    }
-                  }
-                }}
-                min="0"
-                className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-[var(--text)] opacity-70">Maximum Limit</label>
-                <InputWithUnit
-                id="initialMaxLimit"
-                unit="mm"
-                type="number"
-                inputMode="decimal"
-                step={1}
-                placeholder="Initial Max Limit"
-                value={(deflectionLimits.initial.maxLimit * 1000).toFixed(0)}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = e.currentTarget.value.trim()
-                  if (value === '') {
-                    updateDeflectionLimit('initial', 'maxLimit', 0)
-                  } else {
-                    const numericValue = Number(value)
-                    updateDeflectionLimit('initial', 'maxLimit', numericValue / 1000)
-                  }
-                }}
-                className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
-              />
-            </div>
-          </div>
-
-          {/* Short-Term Deflection */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-[var(--text)] flex items-center gap-2">
-              Short 
-              <span className="block text-xs font-medium text-[var(--text)] opacity-70">
-                (Max: {calculateMaxDeflection(span, deflectionLimits.short.spanRatio, deflectionLimits.short.maxLimit)} mm)
-              </span>
-            </h3>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-[var(--text)] opacity-70">Span Ratio</label>
-              <InputWithUnit
-                id="shortSpanRatio"
-                unit="L/x"
-                type="number"
-                inputMode="decimal"
-                step={10}
-                placeholder="Short Span Ratio"
-                value={(deflectionLimits.short.spanRatio || getDefaultSpanRatio('short')).toString()}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = e.currentTarget.value.trim()
-                  if (value === '') {
-                    updateDeflectionLimit('short', 'spanRatio', 0)
-                  } else {
-                    const parsedValue = parseInt(value, 10)
-                    if (!isNaN(parsedValue)) {
-                      updateDeflectionLimit('short', 'spanRatio', parsedValue)
-                    }
-                  }
-                }}
-                min="0"
-                className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-[var(--text)] opacity-70">Maximum Limit</label>
-                <InputWithUnit
-                id="shortMaxLimit"
-                unit="mm"
-                type="number"
-                inputMode="decimal"
-                step={1}
-                placeholder="Short Max Limit"
-                value={(deflectionLimits.short.maxLimit * 1000).toFixed(0)}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = e.currentTarget.value.trim()
-                  if (value === '') {
-                    updateDeflectionLimit('short', 'maxLimit', 0)
-                  } else {
-                    const numericValue = Number(value)
-                    updateDeflectionLimit('short', 'maxLimit', numericValue / 1000)
-                  }
-                }}
-                className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
-              />
-            </div>
-          </div>
-
-          {/* Long-Term Deflection */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-[var(--text)] flex items-center gap-2">
-              Long 
-              <span className="block text-xs font-medium text-[var(--text)] opacity-70">
-                (Max: {calculateMaxDeflection(span, deflectionLimits.long.spanRatio, deflectionLimits.long.maxLimit)} mm)
-              </span>
-            </h3>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-[var(--text)] opacity-70">Span Ratio</label>
-              <InputWithUnit
-                id="longSpanRatio"
-                unit="L/x"
-                type="number"
-                inputMode="decimal"
-                step={10}
-                placeholder="Long Span Ratio"
-                value={(deflectionLimits.long.spanRatio || getDefaultSpanRatio('long')).toString()}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = e.currentTarget.value.trim()
-                  if (value === '') {
-                    updateDeflectionLimit('long', 'spanRatio', 0)
-                  } else {
-                    const parsedValue = parseInt(value, 10)
-                    if (!isNaN(parsedValue)) {
-                      updateDeflectionLimit('long', 'spanRatio', parsedValue)
-                    }
-                  }
-                }}
-                min="0"
-                className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-[var(--text)] opacity-70">Maximum Limit</label>
-                <InputWithUnit
-                id="longMaxLimit"
-                unit="mm"
-                type="number"
-                inputMode="decimal"
-                step={1}
-                placeholder="Long Max Limit"
-                value={(deflectionLimits.long.maxLimit * 1000).toFixed(0)}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = e.currentTarget.value.trim()
-                  if (value === '') {
-                    updateDeflectionLimit('long', 'maxLimit', 0)
-                  } else {
-                    const numericValue = Number(value)
-                    updateDeflectionLimit('long', 'maxLimit', numericValue / 1000)
-                  }
-                }}
-                className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
-              />
-            </div>
-          </div>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-xl">Deflection Limits</CardTitle>
+          <span className="text-sm opacity-75 font-medium">({presetName})</span>
         </div>
-            {/* Preset Buttons */}
-            <div className="mt-4 grid grid-cols-3 gap-4 appearance-none">
-              {presets.map((preset) => (
-                <Button 
-                  key={preset.id}
-                  variant={matchPreset(preset) ? "outline" : "outline"}
-                  size="sm"
-                  className={`${matchPreset(preset) ? "border-accent" : ""}  bg-[var(--card)]`}
-                  onClick={() => {
-                    setDeflectionLimits({
-                      initial: {
-                        spanRatio: preset.inst.ratio,
-                        maxLimit: preset.inst.max / 1000,
-                        maxDeflection: calculateMaxDeflection(span, preset.inst.ratio, preset.inst.max / 1000)
-                      },
-                      short: {
-                        spanRatio: preset.short.ratio,
-                        maxLimit: preset.short.max / 1000,
-                        maxDeflection: calculateMaxDeflection(span, preset.short.ratio, preset.short.max / 1000)
-                      },
-                      long: {
-                        spanRatio: preset.long.ratio,
-                        maxLimit: preset.long.max / 1000,
-                        maxDeflection: calculateMaxDeflection(span, preset.long.ratio, preset.long.max / 1000)
+        <Button 
+          variant="ghost" 
+          className="p-1 h-auto flex items-center gap-1" 
+          onClick={() => setCollapsed(!collapsed)}
+          aria-label={collapsed ? "Expand" : "Collapse"}
+          title={`Toggle card visibility (${getShortcutKey()} to toggle all)`}
+        >
+          {collapsed ? 
+            <ChevronDown className="h-5 w-5 text-[var(--text)]" /> : 
+            <ChevronUp className="h-5 w-5 text-[var(--text)]" />}
+          <span className="text-xs opacity-50">{getShortcutKey()}</span>
+        </Button>
+      </CardHeader>
+      
+      {!collapsed && (
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-3 gap-4">
+            {/* Initial Deflection */}
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-[var(--text)] flex items-center gap-2">
+                Initial 
+                <span className="block text-xs font-medium text-[var(--text)] opacity-70">
+                  (Max: {calculateMaxDeflection(span, deflectionLimits.initial.spanRatio, deflectionLimits.initial.maxLimit)} mm)
+                </span>
+              </h3>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium text-[var(--text)] opacity-70">Span Ratio</label>
+                <InputWithUnit
+                  id="initialSpanRatio"
+                  unit="L/x"
+                  type="number"
+                  inputMode="decimal"
+                  step={10}
+                  placeholder="Initial Span Ratio"
+                  value={(deflectionLimits.initial.spanRatio || getDefaultSpanRatio('initial')).toString()}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const value = e.currentTarget.value.trim()
+                    if (value === '') {
+                      updateDeflectionLimit('initial', 'spanRatio', 0)
+                    } else {
+                      const parsedValue = parseInt(value, 10)
+                      if (!isNaN(parsedValue)) {
+                        updateDeflectionLimit('initial', 'spanRatio', parsedValue)
                       }
-                    })
+                    }
                   }}
-                >
-                  {preset.name}
-                </Button>
-              ))}
+                  className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium text-[var(--text)] opacity-70">Maximum Limit</label>
+                  <InputWithUnit
+                  id="initialMaxLimit"
+                  unit="mm"
+                  type="number"
+                  inputMode="decimal"
+                  step={1}
+                  placeholder="Initial Max Limit"
+                  value={(deflectionLimits.initial.maxLimit * 1000).toFixed(0)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const value = e.currentTarget.value.trim()
+                    if (value === '') {
+                      updateDeflectionLimit('initial', 'maxLimit', 0)
+                    } else {
+                      const numericValue = Number(value)
+                      updateDeflectionLimit('initial', 'maxLimit', numericValue / 1000)
+                    }
+                  }}
+                  className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
+                />
+              </div>
             </div>
-          </CardContent>
+
+            {/* Short-Term Deflection */}
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-[var(--text)] flex items-center gap-2">
+                Short 
+                <span className="block text-xs font-medium text-[var(--text)] opacity-70">
+                  (Max: {calculateMaxDeflection(span, deflectionLimits.short.spanRatio, deflectionLimits.short.maxLimit)} mm)
+                </span>
+              </h3>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium text-[var(--text)] opacity-70">Span Ratio</label>
+                <InputWithUnit
+                  id="shortSpanRatio"
+                  unit="L/x"
+                  type="number"
+                  inputMode="decimal"
+                  step={10}
+                  placeholder="Short Span Ratio"
+                  value={(deflectionLimits.short.spanRatio || getDefaultSpanRatio('short')).toString()}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const value = e.currentTarget.value.trim()
+                    if (value === '') {
+                      updateDeflectionLimit('short', 'spanRatio', 0)
+                    } else {
+                      const parsedValue = parseInt(value, 10)
+                      if (!isNaN(parsedValue)) {
+                        updateDeflectionLimit('short', 'spanRatio', parsedValue)
+                      }
+                    }
+                  }}
+                  className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium text-[var(--text)] opacity-70">Maximum Limit</label>
+                <InputWithUnit
+                  id="shortMaxLimit"
+                  unit="mm"
+                  type="number"
+                  inputMode="decimal"
+                  step={1}
+                  placeholder="Short Max Limit"
+                  value={(deflectionLimits.short.maxLimit * 1000).toFixed(0)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const value = e.currentTarget.value.trim()
+                    if (value === '') {
+                      updateDeflectionLimit('short', 'maxLimit', 0)
+                    } else {
+                      const numericValue = Number(value)
+                      updateDeflectionLimit('short', 'maxLimit', numericValue / 1000)
+                    }
+                  }}
+                  className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
+                />
+              </div>
+            </div>
+
+            {/* Long-Term Deflection */}
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-[var(--text)] flex items-center gap-2">
+                Long 
+                <span className="block text-xs font-medium text-[var(--text)] opacity-70">
+                  (Max: {calculateMaxDeflection(span, deflectionLimits.long.spanRatio, deflectionLimits.long.maxLimit)} mm)
+                </span>
+              </h3>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium text-[var(--text)] opacity-70">Span Ratio</label>
+                <InputWithUnit
+                  id="longSpanRatio"
+                  unit="L/x"
+                  type="number"
+                  inputMode="decimal"
+                  step={10}
+                  placeholder="Long Span Ratio"
+                  value={(deflectionLimits.long.spanRatio || getDefaultSpanRatio('long')).toString()}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const value = e.currentTarget.value.trim()
+                    if (value === '') {
+                      updateDeflectionLimit('long', 'spanRatio', 0)
+                    } else {
+                      const parsedValue = parseInt(value, 10)
+                      if (!isNaN(parsedValue)) {
+                        updateDeflectionLimit('long', 'spanRatio', parsedValue)
+                      }
+                    }
+                  }}
+                  className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium text-[var(--text)] opacity-70">Maximum Limit</label>
+                <InputWithUnit
+                  id="longMaxLimit"
+                  unit="mm"
+                  type="number"
+                  inputMode="decimal"
+                  step={1}
+                  placeholder="Long Max Limit"
+                  value={(deflectionLimits.long.maxLimit * 1000).toFixed(0)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const value = e.currentTarget.value.trim()
+                    if (value === '') {
+                      updateDeflectionLimit('long', 'maxLimit', 0)
+                    } else {
+                      const numericValue = Number(value)
+                      updateDeflectionLimit('long', 'maxLimit', numericValue / 1000)
+                    }
+                  }}
+                  className="w-full bg-[var(--input)] border-[color:var(--border)] appearance-none"
+                />
+              </div>
+            </div>
+          </div>
+              
+          {/* Preset Buttons */}
+          <div className="mt-4 grid grid-cols-3 gap-4 appearance-none">
+            {presets.map((preset) => (
+              <Button 
+                key={preset.id}
+                variant={matchPreset(preset) ? "outline" : "outline"}
+                size="sm"
+                className={`${matchPreset(preset) ? "border-accent" : ""}  bg-[var(--card)]`}
+                onClick={() => {
+                  setDeflectionLimits({
+                    initial: {
+                      spanRatio: preset.inst.ratio,
+                      maxLimit: preset.inst.max / 1000,
+                      maxDeflection: calculateMaxDeflection(span, preset.inst.ratio, preset.inst.max / 1000)
+                    },
+                    short: {
+                      spanRatio: preset.short.ratio,
+                      maxLimit: preset.short.max / 1000,
+                      maxDeflection: calculateMaxDeflection(span, preset.short.ratio, preset.short.max / 1000)
+                    },
+                    long: {
+                      spanRatio: preset.long.ratio,
+                      maxLimit: preset.long.max / 1000,
+                      maxDeflection: calculateMaxDeflection(span, preset.long.ratio, preset.long.max / 1000)
+                    }
+                  })
+                }}
+              >
+                {preset.name}
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      )}
     </Card>
   )
 }

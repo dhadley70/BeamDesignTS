@@ -1,9 +1,12 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { InputWithUnit } from '@/components/ui/InputWithUnit'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import usageData from '@/data/usage.json'
 import useLocalStorage from '@/hooks/useLocalStorage'
+import { Button } from '@/components/ui/button'
+import { ChevronDown, ChevronUp } from 'lucide-react'
+import { COLLAPSE_ALL_CARDS, EXPAND_ALL_CARDS, getShortcutKey } from '@/lib/cardStateManager'
 
 // Define local types
 export type UsageOption = keyof typeof usageData
@@ -61,21 +64,55 @@ export const GeneralInputsCard: React.FC<{
     }
   }, []);  // Empty dependency array means this only runs once on mount
   
+  // Local state for collapsed status with localStorage persistence
+  const [collapsed, setCollapsed] = useLocalStorage('generalCard_collapsed', false);
+
   // Update parent state when local state changes
   React.useEffect(() => {
     console.log('localGeneralInputs changed:', localGeneralInputs);
     setGeneralInputs(localGeneralInputs)
   }, [localGeneralInputs, setGeneralInputs])
+
+  // Handle global collapse/expand events
+  React.useEffect(() => {
+    const handleCollapseAll = () => setCollapsed(true);
+    const handleExpandAll = () => setCollapsed(false);
+    
+    window.addEventListener(COLLAPSE_ALL_CARDS, handleCollapseAll);
+    window.addEventListener(EXPAND_ALL_CARDS, handleExpandAll);
+    
+    return () => {
+      window.removeEventListener(COLLAPSE_ALL_CARDS, handleCollapseAll);
+      window.removeEventListener(EXPAND_ALL_CARDS, handleExpandAll);
+    };
+  }, [setCollapsed]);
   
   // Track span input as a string for better UX
   const [spanDraft, setSpanDraft] = useState<string>(String(localGeneralInputs.span || ''))
 
+  // Generate a summary for the card when collapsed
+  const getSummary = () => {
+    return `(Span: ${localGeneralInputs.span}m, Usage: ${localGeneralInputs.usage})`;
+  };
+
   return (
     <Card className="mb-6 lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
-      <CardHeader>
-        <CardTitle className="text-xl">General Inputs</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-xl">
+          General Inputs
+          {collapsed && <span className="text-sm font-normal ml-2 text-muted-foreground">{getSummary()}</span>}
+        </CardTitle>
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={() => setCollapsed(!collapsed)}
+          title={`Toggle card visibility (${getShortcutKey()} to toggle all)`}
+          className="ml-auto h-8 w-8 p-0"
+        >
+          {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+        </Button>
       </CardHeader>
-      <CardContent className="space-y-4">
+      {!collapsed && <CardContent className="space-y-4">
         <div className="grid grid-cols-4 gap-4">
           {/* Span (strict clamp) */}
           <div className="space-y-1.5">
@@ -230,7 +267,7 @@ export const GeneralInputsCard: React.FC<{
             </Select>
           </div>
         </div>
-      </CardContent>
+      </CardContent>}
     </Card>
   )
 }

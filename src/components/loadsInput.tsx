@@ -1,8 +1,12 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { InputWithUnit } from '@/components/ui/InputWithUnit'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './ui/table'
+import { Button } from '@/components/ui/button'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import useLocalStorage from '@/hooks/useLocalStorage'
+import { useLoadsTabState } from '@/hooks/useLoadsTabState'
+import { COLLAPSE_ALL_CARDS, EXPAND_ALL_CARDS, getShortcutKey } from '@/lib/cardStateManager'
 
 // Define types for UDL load entry
 export interface UDLLoad {
@@ -45,8 +49,45 @@ interface LoadsInputProps {
 }
 
 export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, span }) => {
+  // State for collapsing the card with localStorage persistence
+  const [collapsed, setCollapsed] = useLocalStorage('loadsCard_collapsed', false);
   // State for point loads
   const [pointLoads, setPointLoads] = useLocalStorage<PointLoad[]>('beamPointLoads', []);
+  // Get the hook for tracking when users leave/return to loads tab
+  const { leavingLoadsTab, resetLeavingFlag } = useLoadsTabState();
+  
+  // This effect runs when the component mounts and when leavingLoadsTab changes
+  useEffect(() => {
+    // If we're returning to the loads tab (leavingLoadsTab is true),
+    // reset the flag and perform any actions needed when returning
+    if (leavingLoadsTab) {
+      console.log('Returning to Loads tab');
+      // Perform any actions needed when returning to the loads tab
+      // Such as refreshing data or showing a notification
+      
+      // Reset the flag
+      resetLeavingFlag();
+    }
+  }, [leavingLoadsTab, resetLeavingFlag]);
+  
+  // Add event listeners for global card state toggling
+  useEffect(() => {
+    // Handle collapse all cards event
+    const handleCollapseAll = () => setCollapsed(true);
+    // Handle expand all cards event
+    const handleExpandAll = () => setCollapsed(false);
+    
+    // Add event listeners
+    window.addEventListener(COLLAPSE_ALL_CARDS, handleCollapseAll);
+    window.addEventListener(EXPAND_ALL_CARDS, handleExpandAll);
+    
+    // Clean up event listeners on unmount
+    return () => {
+      window.removeEventListener(COLLAPSE_ALL_CARDS, handleCollapseAll);
+      window.removeEventListener(EXPAND_ALL_CARDS, handleExpandAll);
+    };
+  }, []);
+  
   // State for moments
   const [moments, setMoments] = useLocalStorage<Moment[]>('beamMoments', []);
   
@@ -405,13 +446,32 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     window.dispatchEvent(event);
   };
 
+  // Create a summary string for the loads
+  const selfWeightStatus = fullUDL.includeSelfWeight ? "Included" : "Not included";
+  const loadSummary = `(Self-weight: ${selfWeightStatus}, Partial UDLs: ${loads.length}, Point Loads: ${pointLoads.length}, Moments: ${moments.length})`;
+
   return (
     <Card className="mb-6 lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
-      <CardHeader>
-        <CardTitle className="text-xl">Loads</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-xl">Loads Input</CardTitle>
+          <span className="text-sm opacity-75 font-medium">{loadSummary}</span>
+        </div>
+        <Button 
+          variant="ghost" 
+          className="p-1 h-auto flex items-center gap-1" 
+          onClick={() => setCollapsed(!collapsed)}
+          aria-label={collapsed ? "Expand" : "Collapse"}
+        >
+          {collapsed ? 
+            <ChevronDown className="h-5 w-5 text-[var(--text)]" /> : 
+            <ChevronUp className="h-5 w-5 text-[var(--text)]" />}
+          <span className="text-xs opacity-50">{getShortcutKey()}</span>
+        </Button>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+      {!collapsed && (
+        <CardContent>
+          <div className="space-y-4">
           {/* FULL UDL Section */}
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-lg font-medium">Full UDL</h3>
@@ -736,6 +796,7 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
           </Table>
         </div>
       </CardContent>
+      )}
     </Card>
   );
 };

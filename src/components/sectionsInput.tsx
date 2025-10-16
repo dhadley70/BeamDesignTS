@@ -322,7 +322,6 @@ export function SectionsInputCard() {
           {collapsed ? 
             <ChevronDown className="h-5 w-5 text-[var(--text)]" /> : 
             <ChevronUp className="h-5 w-5 text-[var(--text)]" />}
-          <span className="text-xs opacity-50">{getShortcutKey()}</span>
         </Button>
       </CardHeader>
       {!collapsed && (

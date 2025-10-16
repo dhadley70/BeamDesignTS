@@ -1,10 +1,8 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { InputWithUnit } from '@/components/ui/InputWithUnit'
 import { Button } from '@/components/ui/button'
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import useLocalStorage from '@/hooks/useLocalStorage'
-import { COLLAPSE_ALL_CARDS, EXPAND_ALL_CARDS, getShortcutKey } from '@/lib/cardStateManager'
 import presets from '@/data/deflection_presets.json'
 
 // Define deflection limits types and constants
@@ -31,7 +29,7 @@ export const DeflectionLimitsCard: React.FC<{
   setDeflectionLimits: React.Dispatch<React.SetStateAction<DeflectionLimits>>
   span: number  // Pass span from parent to help with default calculations
 }> = ({ deflectionLimits, setDeflectionLimits, span }) => {
-  const [collapsed, setCollapsed] = useLocalStorage('deflectionLimitsCard_collapsed', false);
+  const [collapsed, setCollapsed] = useState(false);
 
   // Check if current limits exactly match a preset
   const matchPreset = (preset: typeof presets[number]) => {
@@ -114,23 +112,15 @@ export const DeflectionLimitsCard: React.FC<{
     }
   }
 
-  // Find which preset matches the current settings (if any)
-  const currentPreset = presets.find(preset => matchPreset(preset));
-  const presetName = currentPreset ? currentPreset.name : "Custom";
-
   return (
     <Card className="mb-6 lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
       <CardHeader className="flex flex-row items-center justify-between">
-        <div className="flex items-center gap-2">
-          <CardTitle className="text-xl">Deflection Limits</CardTitle>
-          <span className="text-sm opacity-75 font-medium">({presetName})</span>
-        </div>
+        <CardTitle className="text-xl">Deflection Limits</CardTitle>
         <Button 
           variant="ghost" 
-          className="p-1 h-auto flex items-center gap-1" 
+          className="p-1 h-auto" 
           onClick={() => setCollapsed(!collapsed)}
           aria-label={collapsed ? "Expand" : "Collapse"}
-          title={`Toggle card visibility (${getShortcutKey()} to toggle all)`}
         >
           {collapsed ? 
             <ChevronDown className="h-5 w-5 text-[var(--text)]" /> : 

@@ -466,7 +466,6 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
           {collapsed ? 
             <ChevronDown className="h-5 w-5 text-[var(--text)]" /> : 
             <ChevronUp className="h-5 w-5 text-[var(--text)]" />}
-          <span className="text-xs opacity-50">{getShortcutKey()}</span>
         </Button>
       </CardHeader>
       {!collapsed && (

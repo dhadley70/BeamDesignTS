@@ -405,8 +405,8 @@ export function SectionsInputCard() {
           </div>
 
           {displayedMember && (
-            <div className="mt-4 p-4 rounded-md border border-[color:var(--border)] ">
-              <h4 className="text-md font-medium mb-2 text-[var(--text)]">
+            <>
+              <h4 className="text-md font-medium mb-2 mt-4 text-[var(--text)]">
                 Individual Member Properties
               </h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -477,7 +477,7 @@ export function SectionsInputCard() {
                   )}
                 </div>
               </div>
-            </div>
+            </>
           )}
 
           {/* Dedicated Built-up Section Card */}

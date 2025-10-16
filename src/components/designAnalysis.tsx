@@ -294,16 +294,38 @@ export const DesignAnalysisCard = () => {
         return "| No results available |";
       }
       
-      // Calculate moment utilization ratio
-      const momentUtilization = inputs.selectedSection?.phiM && analysisResults.maxMoment 
-        ? `M: ${((analysisResults.maxMoment / inputs.selectedSection.phiM) * 100).toFixed(0)}%`
+      // Initial Deflection percentage
+      const initialDeflectionLimit = span * 1000 / 240;
+      const initialDeflectionPercentage = (analysisResults.maxInitialDeflection / initialDeflectionLimit) * 100;
+      const initialDeflectionText = `Init: ${initialDeflectionPercentage.toFixed(0)}%`;
+      
+      // Short-term Deflection percentage
+      const shortDeflectionLimit = span * 1000 / 180;
+      const shortDeflectionPercentage = (analysisResults.maxShortDeflection / shortDeflectionLimit) * 100;
+      const shortDeflectionText = `Short: ${shortDeflectionPercentage.toFixed(0)}%`;
+      
+      // Long-term Deflection percentage
+      const longDeflectionLimit = span * 1000 / 120;
+      const longDeflectionPercentage = (analysisResults.maxLongDeflection / longDeflectionLimit) * 100;
+      const longDeflectionText = `Long: ${longDeflectionPercentage.toFixed(0)}%`;
+      
+      // Moment utilization percentage
+      const momentPercentage = inputs.selectedSection?.phiM && analysisResults.maxMoment 
+        ? (analysisResults.maxMoment / inputs.selectedSection.phiM) * 100 
+        : null;
+      const momentText = momentPercentage !== null 
+        ? `M: ${momentPercentage.toFixed(0)}%` 
         : "M: N/A";
       
-      // Check if deflection passes
-      const initialDeflectionOk = analysisResults.maxInitialDeflection <= span * 1000 / 240;
-      const deflectionStatus = initialDeflectionOk ? "Defl: OK" : "Defl: FAIL";
+      // Shear utilization percentage
+      const shearPercentage = inputs.selectedSection?.phiV && analysisResults.maxShear 
+        ? (analysisResults.maxShear / inputs.selectedSection.phiV) * 100 
+        : null;
+      const shearText = shearPercentage !== null 
+        ? `V: ${shearPercentage.toFixed(0)}%` 
+        : "V: N/A";
       
-      return `| ${momentUtilization} | ${deflectionStatus} |`;
+      return `| ${initialDeflectionText} | ${shortDeflectionText} | ${longDeflectionText} | ${momentText} | ${shearText} |`;
     } catch (error) {
       console.error("Error generating results summary:", error);
       return "| Error in results |";

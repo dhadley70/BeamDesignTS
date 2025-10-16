@@ -134,9 +134,11 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
       udlQ: 0
     };
     
-    // Add to loads array
+    // Add to loads array with safety check to ensure prevLoads is an array
     setLoads(prevLoads => {
-      const newLoads = [...prevLoads, defaultLoad];
+      // Ensure prevLoads is an array
+      const safeLoads = Array.isArray(prevLoads) ? prevLoads : [];
+      const newLoads = [...safeLoads, defaultLoad];
       
       // Dispatch a custom event to notify other components about the change
       const event = new Event('app-storage-change');
@@ -156,9 +158,11 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
       pointQ: 0
     };
     
-    // Add to point loads array
+    // Add to point loads array with safety check
     setPointLoads(prevLoads => {
-      const newPointLoads = [...prevLoads, defaultPointLoad];
+      // Ensure prevLoads is an array
+      const safeLoads = Array.isArray(prevLoads) ? prevLoads : [];
+      const newPointLoads = [...safeLoads, defaultPointLoad];
       
       // Dispatch a custom event to notify other components about the change
       const event = new Event('app-storage-change');
@@ -178,9 +182,11 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
       momentQ: 0
     };
     
-    // Add to moments array
+    // Add to moments array with safety check
     setMoments(prevMoments => {
-      const newMoments = [...prevMoments, defaultMoment];
+      // Ensure prevMoments is an array
+      const safeMoments = Array.isArray(prevMoments) ? prevMoments : [];
+      const newMoments = [...safeMoments, defaultMoment];
       
       // Dispatch a custom event to notify other components about the change
       const event = new Event('app-storage-change');

@@ -16,7 +16,37 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val
 
     try {
       const item = window.localStorage.getItem(key);
-      return item ? (JSON.parse(item) as T) : initialValue;
+      
+      // If no item found, return initialValue
+      if (!item) {
+        return initialValue;
+      }
+      
+      // Parse the stored JSON
+      const parsedValue = JSON.parse(item) as T;
+      
+      // Special handling for arrays
+      if (Array.isArray(initialValue)) {
+        if (Array.isArray(parsedValue)) {
+          return parsedValue;
+        } else {
+          console.warn(`Expected array for localStorage key "${key}" but got ${typeof parsedValue}. Using default.`);
+          return initialValue;
+        }
+      }
+      
+      // Handle complex objects - merge with initialValue to ensure all properties exist
+      if (typeof initialValue === 'object' && initialValue !== null && 
+          typeof parsedValue === 'object' && parsedValue !== null) {
+        // Deep merge the initialValue and parsedValue
+        // This ensures any new properties in initialValue are included
+        // while keeping existing values from parsedValue
+        console.log(`Merging localStorage data for ${key} with defaults`);
+        const mergedValue = { ...initialValue, ...parsedValue };
+        return mergedValue as T;
+      }
+      
+      return parsedValue;
     } catch (error) {
       console.warn(`Error reading localStorage key "${key}":`, error);
       return initialValue;
@@ -30,7 +60,20 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val
   const setValue = (value: T | ((val: T) => T)) => {
     try {
       // Allow value to be a function so we have the same API as useState
-      const valueToStore = value instanceof Function ? value(storedValue) : value;
+      let valueToStore;
+      
+      if (value instanceof Function) {
+        // Apply the function to get the new value
+        valueToStore = value(storedValue);
+        
+        // Special handling for arrays - ensure we return an array if the initial value was an array
+        if (Array.isArray(initialValue) && !Array.isArray(valueToStore)) {
+          console.warn(`Expected array result from setter function for "${key}" but got ${typeof valueToStore}. Using empty array.`);
+          valueToStore = [] as unknown as T;
+        }
+      } else {
+        valueToStore = value;
+      }
       
       // Save state
       setStoredValue(valueToStore);

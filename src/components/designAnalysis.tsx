@@ -4,7 +4,7 @@ import { PropertyCell } from '@/components/ui/property-cell'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './ui/table'
 import useLocalStorage from '@/hooks/useLocalStorage'
 import useBeamAnalysis from './beamAnalysis.tsx'
-import type { MemberProperties } from './beamAnalysis'
+import type { MemberProperties } from './beamAnalysis.tsx'
 import type { UDLLoad, PointLoad, Moment } from '@/components/loadsInput'
 
 export const DesignAnalysisCard: React.FC = () => {
@@ -72,13 +72,10 @@ export const DesignAnalysisCard: React.FC = () => {
     
     window.addEventListener('app-storage-change', handleAppStorageChange);
     
-    // Also check for changes every second for changes not caught by events
-    const interval = setInterval(getUpdatedData, 1000);
-    
+    // Cleanup function
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('app-storage-change', handleAppStorageChange);
-      clearInterval(interval);
     };
   }, []);
   

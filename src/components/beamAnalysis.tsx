@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { UDLLoad, PointLoad, Moment } from '@/components/loadsInput';
 import ultimateLoadCombinations from '@/data/ultimateLoadCombinations.json';
 import serviceabilityLoadCombinations from '@/data/serviceabilityLoadCombinations.json';
@@ -44,6 +44,8 @@ interface BeamAnalysisProps {
 
 export const useBeamAnalysis = (props: BeamAnalysisProps): BeamAnalysisResults | null => {
   const [results, setResults] = useState<BeamAnalysisResults | null>(null);
+  // Create a ref to store previous results for comparison
+  const prevResults = useRef<{maxInitialDeflection: number, maxMoment: number} | null>(null);
   
   // Function to perform beam analysis
   const performAnalysis = () => {
@@ -296,6 +298,9 @@ export const useBeamAnalysis = (props: BeamAnalysisProps): BeamAnalysisResults |
           const denominator = 3 * E * I * L;
           const deflection = numerator / denominator;
           
+          // Detailed load calculation logs are commented out to reduce console noise
+          // Uncomment for debugging
+          /*
           console.log(`Point load deflection calculation for ${name}:`);
           console.log(` - Load P = ${totalLoad} kN = ${P} N`);
           console.log(` - Position a = ${a} mm, b = ${b} mm (from right support)`);
@@ -305,6 +310,7 @@ export const useBeamAnalysis = (props: BeamAnalysisProps): BeamAnalysisResults |
           console.log(` - Numerator = ${numerator}`);
           console.log(` - Denominator = ${denominator}`);
           console.log(` - Calculated deflection = ${deflection} mm`);
+          */
           
           maxDeflectionForCase = Math.max(maxDeflectionForCase, deflection);
         }
@@ -340,13 +346,20 @@ export const useBeamAnalysis = (props: BeamAnalysisProps): BeamAnalysisResults |
       }
     });
     
-    // Log final results before returning
-    console.log('Final beam analysis results:');
-    console.log(` - Max initial deflection (1.0G): ${maxInitialDeflection} mm`);
-    console.log(` - Max short-term deflection (${ws}Q): ${maxShortDeflection} mm`);
-    console.log(` - Max long-term deflection (J2(1.0G + ${wl}Q)): ${maxLongDeflection} mm`);
-    console.log(` - Max moment: ${maxMoment} kN·m (${controllingMomentCase})`);
-    console.log(` - Max shear: ${maxShear} kN (${controllingShearCase})`);
+    // Only log final results if they have changed from previous values
+    if (prevResults.current === null || 
+        prevResults.current.maxInitialDeflection !== maxInitialDeflection ||
+        prevResults.current.maxMoment !== maxMoment) {
+      console.log('Final beam analysis results:');
+      console.log(` - Max initial deflection (1.0G): ${maxInitialDeflection} mm`);
+      console.log(` - Max short-term deflection (${ws}Q): ${maxShortDeflection} mm`);
+      console.log(` - Max long-term deflection (J2(1.0G + ${wl}Q)): ${maxLongDeflection} mm`);
+      console.log(` - Max moment: ${maxMoment} kN·m (${controllingMomentCase})`);
+      console.log(` - Max shear: ${maxShear} kN (${controllingShearCase})`);
+      
+      // Update previous results
+      prevResults.current = { maxInitialDeflection, maxMoment };
+    }
     
     // Return the analysis results
     return {

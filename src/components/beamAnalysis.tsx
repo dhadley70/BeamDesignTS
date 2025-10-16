@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import type { UDLLoad, PointLoad, Moment, FullUDL } from '@/components/loadsInput';
 import ultimateLoadCombinations from '@/data/ultimateLoadCombinations.json';
-import serviceabilityLoadCombinations from '@/data/serviceabilityLoadCombinations.json';
 
 // Define the output type for the beam analysis
 export interface BeamAnalysisResults {
@@ -54,6 +53,27 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
     }
     
     console.log('==== STARTING BEAM ANALYSIS ====');
+    
+    // Calculate beam cross-sectional area and self-weight
+    const crossSectionArea = props.memberProperties.width * props.memberProperties.depth; // mm²
+    
+    // Determine material density (kg/m³)
+    let materialDensity = 0;
+    if (props.memberProperties.material.toLowerCase().includes('steel')) {
+      materialDensity = 7850; // kg/m³ for steel
+    } else if (props.memberProperties.material.toLowerCase().includes('timber') || 
+              props.memberProperties.material.toLowerCase().includes('lvl')) {
+      materialDensity = 500; // kg/m³ for timber/LVL (approximate)
+    } else if (props.memberProperties.material.toLowerCase().includes('concrete')) {
+      materialDensity = 2400; // kg/m³ for concrete
+    } else {
+      materialDensity = 1000; // Default density
+    }
+    
+    // Calculate self-weight in kN/m
+    // Convert mm² to m², multiply by density, convert kg to kN
+    const selfWeight = crossSectionArea * (1/1000000) * materialDensity * 9.81/1000;
+    
     console.log('Beam properties:', {
       span: props.span,
       members: props.members,
@@ -62,6 +82,12 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
       J2: props.J2,
       section: props.memberProperties.section,
       material: props.memberProperties.material,
+      width: props.memberProperties.width,
+      depth: props.memberProperties.depth,
+      crossSectionArea: crossSectionArea,
+      materialDensity: materialDensity,
+      selfWeight: selfWeight,
+      includeSelfWeight: props.fullUDL.includeSelfWeight,
       momentOfInertia: props.memberProperties.momentOfInertia,
       elasticModulus: props.memberProperties.elasticModulus
     });
@@ -75,47 +101,467 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
     // Simple functions to calculate basic beam deflections (actual calculations would be more complex)
     
     // Calculate deflection for a uniformly distributed load
-    const calculateUDLDeflection = (load: number, span: number, EI: number) => {
-      // Formula: delta = 5wL^4 / (384EI)
-      const deflection = (5 * load * Math.pow(span, 4)) / (384 * EI);
-      console.log(`UDL Deflection calculation for load ${load} kN/m:`, {
-        load,
-        span,
-        EI,
-        formula: '5wL^4 / (384EI)',
-        result: deflection
-      });
+    const calculateUDLDeflection = (load: number, span: number, start: number, finish: number, EI: number) => {
+      // Unit conversion factors
+      // - load is in kN/m, need to convert to N/mm (×1000/1000)
+      // - span is in m, need to convert to mm (×1000)
+      // - EI is in N·mm²
+      // - result will be in mm
+      
+      const w = load * 1; // kN/m to N/mm (1000/1000)
+      const L = span * 1000; // m to mm
+      
+      // Check if it's a full-span UDL or partial UDL
+      const isFullSpan = (start <= 0.001) && (finish >= span - 0.001);
+      let deflection = 0;
+      let maxDeflectionPosition = 0;
+      
+      if (isFullSpan) {
+        // For full-span UDL: delta = 5wL^4 / (384EI)
+        deflection = (5 * w * Math.pow(L, 4)) / (384 * EI);
+        maxDeflectionPosition = span / 2; // midspan
+        
+        console.log(`UDL Deflection calculation (full-span) for load ${load} kN/m:`, {
+          load: load,
+          w_converted: w,
+          span: span,
+          L_converted: L,
+          EI: EI,
+          formula: '5wL^4 / (384EI)',
+          maxDeflectionAt: maxDeflectionPosition,
+          result: deflection,
+          units: 'deflection in mm'
+        });
+      } else {
+        // For a partial UDL on a simply supported beam
+        // Using the macaulay method formula for a partial UDL from a to b:
+        // Δmax = (w/24EI) × [ x₁(L³ - 2Lx₁² + x₁³) - x₂(L³ - 2Lx₂² + x₂³) ]
+        // where x₁ is the distance from left support to start of UDL
+        // and x₂ is the distance from left support to end of UDL
+        
+        const a = start * 1000; // convert m to mm
+        const b = finish * 1000; // convert m to mm
+        
+        const term1 = a * (Math.pow(L, 3) - 2 * L * Math.pow(a, 2) + Math.pow(a, 3));
+        const term2 = b * (Math.pow(L, 3) - 2 * L * Math.pow(b, 2) + Math.pow(b, 3));
+        deflection = (w / (24 * EI)) * (term1 - term2);
+        
+        // Find position of maximum deflection (approximate using numerical approach)
+        const numPoints = 100;
+        let maxDeflection = 0;
+        
+        for (let i = 0; i <= numPoints; i++) {
+          const x = (i / numPoints) * span;
+          // Skip points outside the span
+          if (x < 0 || x > span) continue;
+          
+          // Calculate deflection at this point (simplified)
+          let pointDeflection = 0;
+          // Different formula based on position relative to the load
+          if (x < start) {
+            // Point is to the left of the UDL
+            pointDeflection = (w * (finish - start) * x) / (6 * EI * L) * (L - x - (finish + start)/2);
+          } else if (x > finish) {
+            // Point is to the right of the UDL
+            pointDeflection = (w * (finish - start) * (L - x)) / (6 * EI * L) * (x - (finish + start)/2);
+          } else {
+            // Point is under the UDL (approximation)
+            pointDeflection = (w / (24 * EI)) * (
+              x * 1000 * (Math.pow(L, 3) - 2 * L * Math.pow(x * 1000, 2) + Math.pow(x * 1000, 3)) - 
+              start * 1000 * (Math.pow(L, 3) - 2 * L * Math.pow(start * 1000, 2) + Math.pow(start * 1000, 3))
+            );
+          }
+          
+          const absDeflection = Math.abs(pointDeflection);
+          if (absDeflection > maxDeflection) {
+            maxDeflection = absDeflection;
+            maxDeflectionPosition = x;
+          }
+        }
+        
+        // Use absolute value for the result
+        deflection = Math.abs(deflection);
+        
+        console.log(`UDL Deflection calculation (partial UDL) for load ${load} kN/m from ${start}m to ${finish}m:`, {
+          load: load,
+          w_converted: w,
+          span: span,
+          start: start,
+          finish: finish,
+          a_mm: a,
+          b_mm: b,
+          L_mm: L,
+          EI: EI,
+          formula: 'macaulay method for partial UDL',
+          maxDeflectionAt: maxDeflectionPosition,
+          result: deflection,
+          units: 'deflection in mm'
+        });
+      }
+      
       return deflection;
     };
     
-    // Calculate deflection for a point load at midspan
+    // Calculate deflection for a point load at any position
     const calculatePointLoadDeflection = (load: number, span: number, EI: number, position: number) => {
-      // Simplified midspan load formula: delta = PL^3 / (48EI)
-      // For other positions, more complex formulas would be used
-      const deflection = (load * Math.pow(span, 3)) / (48 * EI);
+      // Unit conversion factors
+      // - load is in kN, need to convert to N (×1000)
+      // - span and position are in m, need to convert to mm (×1000)
+      // - EI is in N·mm²
+      // - result will be in mm
+      
+      const P = load * 1000; // kN to N
+      const L = span * 1000; // m to mm
+      const pos = position * 1000; // m to mm
+      
+      // For a point load at any position (a) on a simply supported beam:
+      // Δmax = (P·a·b·(L+b-a))/(6·E·I·L) at a specific point x
+      // where:
+      // - a is the distance from left support to the load
+      // - b is L-a (distance from load to right support)
+      // - maximum deflection occurs at a specific point (calculated below)
+      
+      const a = pos; // distance from left support to load in mm
+      const b = L - a; // distance from load to right support in mm
+      
+      // Calculate deflection at position of maximum deflection
+      // For a point load, the maximum deflection may not be directly under the load
+      
+      // Calculate position of maximum deflection
+      let xMax = 0;
+      if (position <= span/2) {
+        // Load is in the first half of the beam
+        xMax = Math.sqrt(a*a*(3*b+L))/(Math.sqrt(3)*L);
+      } else {
+        // Load is in the second half of the beam
+        xMax = L - Math.sqrt(b*b*(3*a+L))/(Math.sqrt(3)*L);
+      }
+      
+      // Convert xMax back to m for reporting
+      const xMaxM = xMax / 1000;
+      
+      // Calculate maximum deflection
+      const deflection = (P * a * b * (L + b - a)) / (6 * EI * L);
+      
       console.log(`Point Load Deflection calculation for load ${load} kN at position ${position}m:`, {
-        load,
-        span,
-        EI,
-        position,
-        formula: 'PL^3 / (48EI) (simplified)',
-        result: deflection
+        load: load,
+        P_converted: P,
+        span: span,
+        L_converted: L,
+        position: position,
+        pos_converted: pos,
+        a: a,
+        b: b,
+        EI: EI,
+        formula: '(P·a·b·(L+b-a))/(6·E·I·L)',
+        maxDeflectionAt: xMaxM,
+        result: deflection,
+        units: 'deflection in mm'
       });
+      
       return deflection;
     };
     
     // Process ULS load combinations
     console.log('--- ULS ANALYSIS ---');
     
+    // Calculate maximum moment and shear for ULS combinations
+    let calculatedMaxMoment = 0;
+    let calculatedMaxShear = 0;
+    let controllingMomentCase = '';
+    let controllingShearCase = '';
+    
+    // Calculate maximum moment for a UDL (simplified for midspan moment in simply supported beam)
+    const calculateUDLMoment = (load: number, span: number, start: number, finish: number) => {
+      // For full-span UDL: M = wL²/8
+      // For partial UDL: more complex calculation needed based on position
+      
+      // Simplified approach for demo - using wL²/8 for full span
+      const isFullSpan = (start <= 0.001) && (finish >= span - 0.001);
+      let moment = 0;
+      
+      if (isFullSpan) {
+        moment = (load * Math.pow(span, 2)) / 8;
+      } else {
+        // For partial UDL, use a simplified approximation
+        const effectiveLength = finish - start;
+        const midpoint = (start + finish) / 2;
+        const eccentricity = Math.abs(span/2 - midpoint);
+        
+        // Reduced effect based on distance from midspan
+        const reductionFactor = 1 - (2 * eccentricity / span);
+        moment = (load * effectiveLength * Math.pow(span, 2) * reductionFactor) / 8;
+      }
+      
+      console.log(`UDL Moment calculation for load ${load} kN/m from ${start}m to ${finish}m:`, {
+        load,
+        span,
+        start,
+        finish,
+        isFullSpan,
+        formula: isFullSpan ? 'wL²/8' : 'approximation for partial UDL',
+        result: moment
+      });
+      
+      return moment;
+    };
+    
+    // Calculate maximum moment for a point load
+    const calculatePointLoadMoment = (load: number, span: number, position: number) => {
+      // For point load: M = P·a·b/L where a = position, b = L-a
+      const a = position;
+      const b = span - position;
+      const moment = (load * a * b) / span;
+      
+      console.log(`Point Load Moment calculation for load ${load} kN at position ${position}m:`, {
+        load,
+        span,
+        position,
+        formula: 'P·a·b/L',
+        a,
+        b,
+        result: moment
+      });
+      
+      return moment;
+    };
+    
+    // Calculate maximum shear for a UDL
+    const calculateUDLShear = (load: number, span: number, start: number, finish: number) => {
+      // For full-span UDL: V = wL/2
+      // For partial UDL: more complex calculation needed based on position
+      
+      // Simplified approach for demo
+      const isFullSpan = (start <= 0.001) && (finish >= span - 0.001);
+      let shear = 0;
+      
+      if (isFullSpan) {
+        shear = (load * span) / 2;
+      } else {
+        // For partial UDL, use a simplified approximation
+        const effectiveLength = finish - start;
+        const totalLoad = load * effectiveLength;
+        
+        // Take worst case - all load contribution to one support
+        shear = totalLoad;
+      }
+      
+      console.log(`UDL Shear calculation for load ${load} kN/m from ${start}m to ${finish}m:`, {
+        load,
+        span,
+        start,
+        finish,
+        isFullSpan,
+        formula: isFullSpan ? 'wL/2' : 'approximation for partial UDL',
+        result: shear
+      });
+      
+      return shear;
+    };
+    
+    // Calculate maximum shear for a point load
+    const calculatePointLoadShear = (load: number, span: number, position: number) => {
+      // For point load: V = P·b/L where b = L-a (maximum at support)
+      const a = position;
+      const b = span - position;
+      const shear = load * Math.max(a, b) / span;
+      
+      console.log(`Point Load Shear calculation for load ${load} kN at position ${position}m:`, {
+        load,
+        span,
+        position,
+        formula: 'P·max(a,b)/L',
+        a,
+        b,
+        result: shear
+      });
+      
+      return shear;
+    };
+    
+    // Process each ULS combination from the load combinations file
+    ultimateLoadCombinations.ultimateLimitStates.forEach((combo: { name: string; factors: { deadLoad: number; liveLoad: number } }) => {
+      console.log(`Calculating ULS combination: ${combo.name}`);
+      
+      let comboMoment = 0;
+      let comboShear = 0;
+      
+      // Process UDL loads for this combination
+      props.udlLoads.forEach(udl => {
+        // Apply appropriate load factors based on the combination
+        const deadLoadContribution = udl.udlG * combo.factors.deadLoad;
+        const liveLoadContribution = udl.udlQ * combo.factors.liveLoad;
+        
+        // Calculate moment contributions
+        const deadMoment = calculateUDLMoment(deadLoadContribution, props.span, udl.start, udl.finish);
+        const liveMoment = calculateUDLMoment(liveLoadContribution, props.span, udl.start, udl.finish);
+        
+        comboMoment += deadMoment + liveMoment;
+        
+        // Calculate shear contributions
+        const deadShear = calculateUDLShear(deadLoadContribution, props.span, udl.start, udl.finish);
+        const liveShear = calculateUDLShear(liveLoadContribution, props.span, udl.start, udl.finish);
+        
+        comboShear += deadShear + liveShear;
+      });
+      
+      // Process point loads for this combination
+      props.pointLoads.forEach(point => {
+        // Apply appropriate load factors based on the combination
+        const deadLoadContribution = point.pointG * combo.factors.deadLoad;
+        const liveLoadContribution = point.pointQ * combo.factors.liveLoad;
+        
+        // Calculate moment contributions
+        const deadMoment = calculatePointLoadMoment(deadLoadContribution, props.span, point.location);
+        const liveMoment = calculatePointLoadMoment(liveLoadContribution, props.span, point.location);
+        
+        comboMoment += deadMoment + liveMoment;
+        
+        // Calculate shear contributions
+        const deadShear = calculatePointLoadShear(deadLoadContribution, props.span, point.location);
+        const liveShear = calculatePointLoadShear(liveLoadContribution, props.span, point.location);
+        
+        comboShear += deadShear + liveShear;
+      });
+      
+      // Add full UDL contributions if applicable
+      if (props.fullUDL.tributaryWidth > 0 || 
+          (props.fullUDL.includeSelfWeight && selfWeight > 0)) {
+        
+        // Calculate tributary loads
+        const fullDeadUDL = props.fullUDL.deadGkPa * props.fullUDL.tributaryWidth * combo.factors.deadLoad;
+        const fullLiveUDL = props.fullUDL.liveQkPa * props.fullUDL.tributaryWidth * combo.factors.liveLoad;
+        
+        // Add self-weight if requested
+        let selfWeightContribution = 0;
+        if (props.fullUDL.includeSelfWeight && selfWeight > 0) {
+          selfWeightContribution = selfWeight * combo.factors.deadLoad;
+          console.log(`Including beam self-weight of ${selfWeight} kN/m with factor ${combo.factors.deadLoad} = ${selfWeightContribution} kN/m for combination ${combo.name}`);
+        }
+        
+        // Combine dead loads (tributary + self-weight)
+        const totalDeadUDL = fullDeadUDL + selfWeightContribution;
+        
+        if (totalDeadUDL > 0) {
+          const deadMoment = calculateUDLMoment(totalDeadUDL, props.span, 0, props.span);
+          const deadShear = calculateUDLShear(totalDeadUDL, props.span, 0, props.span);
+          
+          comboMoment += deadMoment;
+          comboShear += deadShear;
+        }
+        
+        if (fullLiveUDL > 0) {
+          const liveMoment = calculateUDLMoment(fullLiveUDL, props.span, 0, props.span);
+          const liveShear = calculateUDLShear(fullLiveUDL, props.span, 0, props.span);
+          
+          comboMoment += liveMoment;
+          comboShear += liveShear;
+        }
+      }
+      
+      console.log(`ULS combination ${combo.name} results: Moment = ${comboMoment} kNm, Shear = ${comboShear} kN`);
+      
+      // Check if this combination controls
+      if (comboMoment > calculatedMaxMoment) {
+        calculatedMaxMoment = comboMoment;
+        controllingMomentCase = combo.name;
+      }
+      
+      if (comboShear > calculatedMaxShear) {
+        calculatedMaxShear = comboShear;
+        controllingShearCase = combo.name;
+      }
+    });
+    
+    console.log('ULS analysis complete - controlling cases:', {
+      moment: {
+        value: calculatedMaxMoment,
+        controllingCase: controllingMomentCase
+      },
+      shear: {
+        value: calculatedMaxShear,
+        controllingCase: controllingShearCase
+      }
+    });
+    
+    // Calculate deflection due to an applied moment at any position
+    const calculateMomentDeflection = (moment: number, span: number, EI: number, position: number) => {
+      // Unit conversion factors
+      // - moment is in kN·m, need to convert to N·mm (×1000×1000)
+      // - span and position are in m, need to convert to mm (×1000)
+      // - EI is in N·mm²
+      // - result will be in mm
+      
+      const M = moment * 1000 * 1000; // kN·m to N·mm
+      const L = span * 1000; // m to mm
+      const pos = position * 1000; // m to mm
+      
+      // For a moment applied at position 'a' on a simply supported beam:
+      // Δmax = (M·a·b²)/(6·E·I·L) for a moment in first half of beam
+      // where:
+      // - a is the distance from left support to the applied moment
+      // - b is L-a (distance from moment to right support)
+      
+      const a = pos; // distance from left support to moment in mm
+      const b = L - a; // distance from moment to right support in mm
+      
+      // Calculate deflection
+      let deflection = 0;
+      
+      if (position <= span/2) {
+        // Moment is in the first half of the beam
+        deflection = (M * a * b * b) / (6 * EI * L);
+      } else {
+        // Moment is in the second half of the beam
+        deflection = (M * b * a * a) / (6 * EI * L);
+      }
+      
+      // Calculate position of maximum deflection (approximately)
+      let xMax = 0;
+      if (position <= span/2) {
+        // Moment is in first half of beam
+        xMax = (2 * a + b) / 3;
+      } else {
+        // Moment is in second half of beam
+        xMax = (2 * b + a) / 3;
+      }
+      
+      // Convert xMax back to m for reporting
+      const xMaxM = xMax / 1000;
+      
+      console.log(`Moment Deflection calculation for moment ${moment} kN·m at position ${position}m:`, {
+        moment: moment,
+        M_converted: M,
+        span: span,
+        L_converted: L,
+        position: position,
+        pos_converted: pos,
+        a: a,
+        b: b,
+        EI: EI,
+        formula: position <= span/2 ? '(M·a·b²)/(6·E·I·L)' : '(M·b·a²)/(6·E·I·L)',
+        maxDeflectionAt: xMaxM,
+        result: deflection,
+        units: 'deflection in mm'
+      });
+      
+      return deflection;
+    };
+
     // Process SLS load combinations for deflection
     console.log('--- SLS ANALYSIS (DEFLECTION) ---');
     
     // Calculate EI (flexural stiffness)
-    const EI = props.memberProperties.elasticModulus * props.memberProperties.momentOfInertia;
+    // E is in MPa (N/mm²), I is in mm⁴, so EI is in N·mm²
+    const E = props.memberProperties.elasticModulus; // MPa (N/mm²)
+    const I = props.memberProperties.momentOfInertia; // mm⁴
+    const EI = E * I; // N·mm²
+    
     console.log('Calculated flexural stiffness (EI):', {
-      E: props.memberProperties.elasticModulus,
-      I: props.memberProperties.momentOfInertia,
-      EI
+      E: E,
+      I: I,
+      EI: EI,
+      units: 'EI is in N·mm²'
     });
     
     // Calculate initial deflection (dead load only)
@@ -124,7 +570,7 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
     // Add UDL dead loads
     props.udlLoads.forEach(udl => {
       if (udl.udlG > 0) {
-        const deflection = calculateUDLDeflection(udl.udlG, props.span, EI);
+        const deflection = calculateUDLDeflection(udl.udlG, props.span, udl.start, udl.finish, EI);
         initialDeflection += deflection;
         console.log(`Added UDL dead load deflection from ${udl.start}-${udl.finish}m: ${deflection} mm, running total: ${initialDeflection} mm`);
       }
@@ -139,12 +585,37 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
       }
     });
     
+    // Add moment dead loads
+    props.moments.forEach(moment => {
+      if (moment.momentG > 0) {
+        const deflection = calculateMomentDeflection(moment.momentG, props.span, EI, moment.location);
+        initialDeflection += deflection;
+        console.log(`Added moment dead load deflection at ${moment.location}m: ${deflection} mm, running total: ${initialDeflection} mm`);
+      }
+    });
+    
     // Add full UDL dead load if applicable
-    if (props.fullUDL.tributaryWidth > 0 && props.fullUDL.deadGkPa > 0) {
-      const fullUDLDeadLoad = props.fullUDL.deadGkPa * props.fullUDL.tributaryWidth;
-      const deflection = calculateUDLDeflection(fullUDLDeadLoad, props.span, EI);
+    if ((props.fullUDL.tributaryWidth > 0 && props.fullUDL.deadGkPa > 0) || 
+        (props.fullUDL.includeSelfWeight && selfWeight > 0)) {
+      
+      // Combine tributary dead load and self-weight if requested
+      const tributaryDeadLoad = props.fullUDL.deadGkPa * props.fullUDL.tributaryWidth;
+      let totalDeadLoad = tributaryDeadLoad;
+      
+      // Add self-weight if requested
+      if (props.fullUDL.includeSelfWeight && selfWeight > 0) {
+        totalDeadLoad += selfWeight;
+        console.log(`Including beam self-weight of ${selfWeight} kN/m in initial deflection calculation`);
+      }
+      
+      const deflection = calculateUDLDeflection(totalDeadLoad, props.span, 0, props.span, EI);
       initialDeflection += deflection;
-      console.log(`Added full UDL dead load deflection: ${deflection} mm, running total: ${initialDeflection} mm`);
+      
+      if (props.fullUDL.includeSelfWeight && selfWeight > 0) {
+        console.log(`Added full UDL dead load (including self-weight) deflection: ${deflection} mm, running total: ${initialDeflection} mm`);
+      } else {
+        console.log(`Added full UDL dead load deflection: ${deflection} mm, running total: ${initialDeflection} mm`);
+      }
     }
     
     // Calculate short-term deflection (dead + short-term live)
@@ -153,7 +624,7 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
     // Add UDL live loads (with short-term factor)
     props.udlLoads.forEach(udl => {
       if (udl.udlQ > 0) {
-        const deflection = calculateUDLDeflection(udl.udlQ * props.ws, props.span, EI);
+        const deflection = calculateUDLDeflection(udl.udlQ * props.ws, props.span, udl.start, udl.finish, EI);
         shortTermDeflection += deflection;
         console.log(`Added UDL live load deflection from ${udl.start}-${udl.finish}m (short-term): ${deflection} mm, running total: ${shortTermDeflection} mm`);
       }
@@ -168,10 +639,19 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
       }
     });
     
+    // Add moment live loads (with short-term factor)
+    props.moments.forEach(moment => {
+      if (moment.momentQ > 0) {
+        const deflection = calculateMomentDeflection(moment.momentQ * props.ws, props.span, EI, moment.location);
+        shortTermDeflection += deflection;
+        console.log(`Added moment live load deflection at ${moment.location}m (short-term): ${deflection} mm, running total: ${shortTermDeflection} mm`);
+      }
+    });
+    
     // Add full UDL live load if applicable (with short-term factor)
     if (props.fullUDL.tributaryWidth > 0 && props.fullUDL.liveQkPa > 0) {
       const fullUDLLiveLoad = props.fullUDL.liveQkPa * props.fullUDL.tributaryWidth * props.ws;
-      const deflection = calculateUDLDeflection(fullUDLLiveLoad, props.span, EI);
+      const deflection = calculateUDLDeflection(fullUDLLiveLoad, props.span, 0, props.span, EI);
       shortTermDeflection += deflection;
       console.log(`Added full UDL live load deflection (short-term): ${deflection} mm, running total: ${shortTermDeflection} mm`);
     }
@@ -184,7 +664,7 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
     // Add UDL live loads (with long-term factor)
     props.udlLoads.forEach(udl => {
       if (udl.udlQ > 0) {
-        const deflection = calculateUDLDeflection(udl.udlQ * props.wl, props.span, EI);
+        const deflection = calculateUDLDeflection(udl.udlQ * props.wl, props.span, udl.start, udl.finish, EI);
         longTermDeflection += deflection;
         console.log(`Added UDL live load deflection from ${udl.start}-${udl.finish}m (long-term): ${deflection} mm, running total: ${longTermDeflection} mm`);
       }
@@ -199,10 +679,19 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
       }
     });
     
+    // Add moment live loads (with long-term factor)
+    props.moments.forEach(moment => {
+      if (moment.momentQ > 0) {
+        const deflection = calculateMomentDeflection(moment.momentQ * props.wl, props.span, EI, moment.location);
+        longTermDeflection += deflection;
+        console.log(`Added moment live load deflection at ${moment.location}m (long-term): ${deflection} mm, running total: ${longTermDeflection} mm`);
+      }
+    });
+    
     // Add full UDL live load if applicable (with long-term factor)
     if (props.fullUDL.tributaryWidth > 0 && props.fullUDL.liveQkPa > 0) {
       const fullUDLLiveLoad = props.fullUDL.liveQkPa * props.fullUDL.tributaryWidth * props.wl;
-      const deflection = calculateUDLDeflection(fullUDLLiveLoad, props.span, EI);
+      const deflection = calculateUDLDeflection(fullUDLLiveLoad, props.span, 0, props.span, EI);
       longTermDeflection += deflection;
       console.log(`Added full UDL live load deflection (long-term): ${deflection} mm, running total: ${longTermDeflection} mm`);
     }
@@ -218,10 +707,6 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
       longTermDeflection
     });
     
-    // Simplified ULS calculations (for demonstration)
-    const maxMoment = 50;  // kNm (simplified)
-    const maxShear = 30;   // kN (simplified)
-    
     console.log('==== ANALYSIS COMPLETE ====');
     
     // Set the results
@@ -229,10 +714,10 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
       maxInitialDeflection: initialDeflection,
       maxShortDeflection: shortTermDeflection,
       maxLongDeflection: longTermDeflection,
-      maxMoment,
-      maxShear,
-      controllingMomentCase: 'ULS-1',
-      controllingShearCase: 'ULS-1'
+      maxMoment: calculatedMaxMoment,
+      maxShear: calculatedMaxShear,
+      controllingMomentCase,
+      controllingShearCase
     });
     
   }, [props.span, props.members, props.ws, props.wl, props.J2, props.udlLoads, 

@@ -3,9 +3,9 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { PropertyCell } from '@/components/ui/property-cell'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './ui/table'
 import useLocalStorage from '@/hooks/useLocalStorage'
-import useBeamAnalysis from './beamAnalysis.tsx'
-import type { MemberProperties } from './beamAnalysis.tsx'
-import type { UDLLoad, PointLoad, Moment } from '@/components/loadsInput'
+import useBeamAnalysis from './beamAnalysis'
+import type { MemberProperties } from './beamAnalysis'
+import type { UDLLoad, PointLoad, Moment, FullUDL } from '@/components/loadsInput'
 
 export const DesignAnalysisCard = () => {
   // Load data from local storage with direct access to ensure it's always up to date
@@ -13,6 +13,12 @@ export const DesignAnalysisCard = () => {
   const [udlLoadsState] = useLocalStorage<UDLLoad[]>('beamLoads', [])
   const [pointLoadsState] = useLocalStorage<PointLoad[]>('beamPointLoads', [])
   const [momentsState] = useLocalStorage<Moment[]>('beamMoments', [])
+  const [fullUDLState] = useLocalStorage<FullUDL>('beamFullUDL', {
+    tributaryWidth: 0,
+    deadGkPa: 0,
+    liveQkPa: 0,
+    includeSelfWeight: false
+  })
   const [selectedSectionState] = useLocalStorage<any>('selectedSection', null)
   
   // State to track changes to inputs
@@ -21,6 +27,7 @@ export const DesignAnalysisCard = () => {
     udlLoads: udlLoadsState,
     pointLoads: pointLoadsState,
     moments: momentsState,
+    fullUDL: fullUDLState,
     selectedSection: selectedSectionState
   });
   
@@ -33,12 +40,19 @@ export const DesignAnalysisCard = () => {
         const rawUdlLoads = localStorage.getItem('beamLoads');
         const rawPointLoads = localStorage.getItem('beamPointLoads');
         const rawMoments = localStorage.getItem('beamMoments');
+        const rawFullUDL = localStorage.getItem('beamFullUDL');
         const rawSelectedSection = localStorage.getItem('selectedSection');
         
         const parsedGeneralInputs = rawGeneralInputs ? JSON.parse(rawGeneralInputs) : {};
         const parsedUdlLoads = rawUdlLoads ? JSON.parse(rawUdlLoads) : [];
         const parsedPointLoads = rawPointLoads ? JSON.parse(rawPointLoads) : [];
         const parsedMoments = rawMoments ? JSON.parse(rawMoments) : [];
+        const parsedFullUDL = rawFullUDL ? JSON.parse(rawFullUDL) : {
+          tributaryWidth: 0,
+          deadGkPa: 0,
+          liveQkPa: 0,
+          includeSelfWeight: false
+        };
         const parsedSelectedSection = rawSelectedSection ? JSON.parse(rawSelectedSection) : null;
         
         // Check if data has actually changed before updating state
@@ -47,6 +61,7 @@ export const DesignAnalysisCard = () => {
           JSON.stringify(inputs.udlLoads) !== JSON.stringify(parsedUdlLoads) ||
           JSON.stringify(inputs.pointLoads) !== JSON.stringify(parsedPointLoads) ||
           JSON.stringify(inputs.moments) !== JSON.stringify(parsedMoments) ||
+          JSON.stringify(inputs.fullUDL) !== JSON.stringify(parsedFullUDL) ||
           JSON.stringify(inputs.selectedSection) !== JSON.stringify(parsedSelectedSection);
         
         if (hasChanged) {
@@ -56,6 +71,7 @@ export const DesignAnalysisCard = () => {
             udlLoads: parsedUdlLoads,
             pointLoads: parsedPointLoads,
             moments: parsedMoments,
+            fullUDL: parsedFullUDL,
             selectedSection: parsedSelectedSection
           });
         }
@@ -135,6 +151,12 @@ export const DesignAnalysisCard = () => {
   const udlLoads = inputs.udlLoads || []
   const pointLoads = inputs.pointLoads || []
   const moments = inputs.moments || []
+  const fullUDL = inputs.fullUDL || {
+    tributaryWidth: 0,
+    deadGkPa: 0,
+    liveQkPa: 0,
+    includeSelfWeight: false
+  }
   
   // Create member properties from selected section
   const [memberProperties, setMemberProperties] = useState<MemberProperties | null>(null)
@@ -207,6 +229,7 @@ export const DesignAnalysisCard = () => {
     udlLoads,
     pointLoads,
     moments,
+    fullUDL,
     memberProperties
   })
 

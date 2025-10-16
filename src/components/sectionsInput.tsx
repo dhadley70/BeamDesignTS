@@ -89,10 +89,16 @@ export function SectionsInputCard() {
     '' // Default empty
   )
 
-  // Read generalInputs from localStorage to get the number of members
+  // Add state for number of members
+  const [numberOfMembers, setNumberOfMembers] = useLocalStorage<number>('numberOfMembers', 1);
+  
+  // Define options for number of members selection
+  const memberOptions = [1, 2, 3, 4, 5, 6]
+
+  // Read generalInputs from localStorage to get other general inputs
   const [generalInputs] = useLocalStorage<GeneralInputs>(
     'generalInputs',
-    { span: 3.0, members: 1, usage: 'Normal', lateralRestraint: 'Lateral Restraint', ws: 2, wl: 3 }
+    { span: 3.0, usage: 'Normal', lateralRestraint: 'Lateral Restraint', ws: 2, wl: 3 }
   )
 
   // State to force a re-render when needed
@@ -101,6 +107,21 @@ export function SectionsInputCard() {
   // State for available members based on selected section type
   const [availableMembers, setAvailableMembers] = useState<SectionMember[]>([])
 
+  // Handle number of members change
+  const handleNumberOfMembersChange = (value: string) => {
+    const n = Number(value);
+    if (Number.isFinite(n) && n > 0 && n <= 6) {
+      setNumberOfMembers(n);
+      
+      // Force UI update
+      setUpdateCounter(prev => prev + 1);
+      
+      // Dispatch a custom event to notify other components about the change
+      const event = new Event('app-storage-change');
+      window.dispatchEvent(event);
+    }
+  };
+  
   // Handle section type change
   const handleSectionTypeChange = (value: string) => {
     setSelectedSectionType(value)
@@ -188,13 +209,13 @@ export function SectionsInputCard() {
     }
   }, [availableMembers, selectedMember]);
 
-  // Listen for changes in generalInputs.members
+  // Listen for changes in numberOfMembers
   useEffect(() => {
     // This will trigger a re-render with the updated member count
-    console.log('generalInputs.members changed in sectionsInput:', generalInputs.members);
+    console.log('numberOfMembers changed in sectionsInput:', numberOfMembers);
     // Force a re-render by incrementing the counter
     setUpdateCounter(prev => prev + 1);
-  }, [generalInputs.members]);
+  }, [numberOfMembers]);
 
   // Get the displayed member for the phiM calculation
   const displayedMember = selectedMember ?
@@ -231,21 +252,8 @@ export function SectionsInputCard() {
     return builtUpMember;
   };
 
-  // Get member count from generalInputs and also directly from localStorage as fallback
-  let memberCount = generalInputs.members || 1;
-
-  // Try to get the most up-to-date value directly from localStorage
-  try {
-    const rawGeneralInputs = localStorage.getItem('generalInputs');
-    if (rawGeneralInputs) {
-      const parsedGeneralInputs = JSON.parse(rawGeneralInputs);
-      if (parsedGeneralInputs.members && typeof parsedGeneralInputs.members === 'number') {
-        memberCount = parsedGeneralInputs.members;
-      }
-    }
-  } catch (error) {
-    console.error('Error reading generalInputs from localStorage:', error);
-  }
+  // Get member count from the numberOfMembers state
+  let memberCount = numberOfMembers || 1;
 
   // Add debug logs
   console.log('Member count from generalInputs:', memberCount);
@@ -302,7 +310,7 @@ export function SectionsInputCard() {
   
   // Section summary text
   const sectionSummary = memberDesignation !== 'None' 
-    ? `| ${memberCount}x ${memberDesignation} ${sectionTypeLabel} |`
+    ? `| ${numberOfMembers}x ${memberDesignation} ${sectionTypeLabel} |`
     : `| No section selected |`;
 
   return (
@@ -324,10 +332,11 @@ export function SectionsInputCard() {
             <ChevronUp className="h-5 w-5 text-[var(--text)]" />}
         </Button>
       </CardHeader>
-      {!collapsed && (
-        <CardContent>
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      
+      <CardContent className="pb-6">
+        {/* Always show the input controls, regardless of collapse state */}
+        <div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label htmlFor="section-type" className="text-sm font-medium">
                 Section Type
@@ -454,9 +463,38 @@ export function SectionsInputCard() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          {displayedMember && (
+            <div className="space-y-2">
+              <label htmlFor="number-of-members" className="text-sm font-medium">
+                Number of Members
+              </label>
+              <Select
+                value={String(numberOfMembers)}
+                onValueChange={handleNumberOfMembersChange}
+              >
+                <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
+                  <SelectValue placeholder="Number of members" />
+                </SelectTrigger>
+                <SelectContent 
+                  className="bg-[var(--card)] border-[color:var(--border)] text-[var(--text)]"
+                  position="popper"
+                >
+                  {memberOptions.map(n => (
+                    <SelectItem
+                      key={n}
+                      value={String(n)}
+                      className="hover:bg-[var(--accent)] hover:text-[var(--accent-contrast)]"
+                    >
+                      {n}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          {/* Only show details when not collapsed */}
+          {!collapsed && displayedMember && (
             <>
               <h4 className="text-md font-medium mb-2 mt-4 text-[var(--text)]">
                 Individual Member Properties
@@ -532,8 +570,8 @@ export function SectionsInputCard() {
             </>
           )}
 
-          {/* Dedicated Built-up Section Card */}
-          {displayedMember && memberCount > 1 && (
+          {/* Dedicated Built-up Section Card - only show when not collapsed */}
+          {!collapsed && displayedMember && memberCount > 1 && (
             <div className="mt-4 p-4 rounded-md border border-[var(--accent)] bg-[var(--bg)]/50">
               <h4 className="text-md font-medium mb-2 text-[var(--text)]">
                 Built-up Section Properties ({memberCount} members)
@@ -618,7 +656,6 @@ export function SectionsInputCard() {
           )}
         </div>
       </CardContent>
-      )}
     </Card>
   )
 }

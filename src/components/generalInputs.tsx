@@ -12,14 +12,11 @@ import { COLLAPSE_ALL_CARDS, EXPAND_ALL_CARDS, getShortcutKey } from '@/lib/card
 export type UsageOption = keyof typeof usageData
 export interface GeneralInputs {
   span: number
-  members: number
   usage: UsageOption
   lateralRestraint: string
   ws: number
   wl: number
 }
-
-const memberOptions = [1, 2, 3, 4, 5, 6]
 
 // Get default values for a new general inputs object
 export function getDefaultGeneralInputs(): GeneralInputs {
@@ -27,7 +24,6 @@ export function getDefaultGeneralInputs(): GeneralInputs {
   const usageDetails = usageData[defaultUsage]
   return {
     span: 3.0,
-    members: 1,
     usage: defaultUsage,
     lateralRestraint: 'Lateral Restraint',
     ws: usageDetails.ws,
@@ -38,7 +34,7 @@ export function getDefaultGeneralInputs(): GeneralInputs {
 export const GeneralInputsCard: React.FC<{
   generalInputs: GeneralInputs
   setGeneralInputs: React.Dispatch<React.SetStateAction<GeneralInputs>>
-}> = ({ generalInputs, setGeneralInputs }) => {
+}> = ({ setGeneralInputs }) => {
 
   // Use local storage to persist general inputs
   const [localGeneralInputs, setLocalGeneralInputs] = useLocalStorage<GeneralInputs>(
@@ -113,7 +109,7 @@ export const GeneralInputsCard: React.FC<{
         </Button>
       </CardHeader>
       {!collapsed && <CardContent className="space-y-4">
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           {/* Span (strict clamp) */}
           <div className="space-y-1.5">
             <label htmlFor="span" className="block text-sm font-medium text-[var(--text)]">
@@ -152,40 +148,7 @@ export const GeneralInputsCard: React.FC<{
             />
           </div>
 
-          {/* Members */}
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-[var(--text)]">Number of members</label>
-            <Select
-              value={String(generalInputs.members)}
-              onValueChange={(val) => {
-                const n = Number(val)
-                const newMembers = Number.isFinite(n) ? n : generalInputs.members;
-                console.log('Setting members to:', newMembers);
-                setGeneralInputs(p => ({ ...p, members: newMembers }))
-                // Also update localStorage directly to ensure it's saved
-                setLocalGeneralInputs(prev => {
-                  const newGeneralInputs = { ...prev, members: newMembers };
-                  
-                  // Dispatch a custom event to notify other components about the change
-                  const event = new Event('app-storage-change');
-                  window.dispatchEvent(event);
-                  
-                  return newGeneralInputs;
-                })
-              }}
-            >
-              <SelectTrigger className="w-full bg-[var(--input)] text-[var(--input-text)] border-[color:var(--border)]">
-                <SelectValue placeholder="Number of members" />
-              </SelectTrigger>
-              <SelectContent>
-                {memberOptions.map(n => (
-                  <SelectItem key={n} value={String(n)}>
-                    {n}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+
 
           {/* Usage */}
               <div className="space-y-1.5">

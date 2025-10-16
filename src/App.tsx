@@ -33,7 +33,6 @@ type UsageOption = "Normal" | "No Traffic" | "Storage"
 
 type GeneralInputs = {
   span: number            // metres, >= 0.1
-  members: number         // 1..4
   usage: UsageOption      // enum
   lateralRestraint: string
   ws: number             // short-term deflection variable

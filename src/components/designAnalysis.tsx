@@ -199,7 +199,8 @@ export const DesignAnalysisCard = () => {
   
   const generalInputs = getLatestGeneralInputs();
   const span = generalInputs?.span || 3.0
-  const members = generalInputs?.members || 1
+  // Get number of members from localStorage
+  const members = Number(localStorage.getItem('numberOfMembers')) || 1
   const ws = generalInputs?.ws || 0.4
   const wl = generalInputs?.wl || 0.3
   

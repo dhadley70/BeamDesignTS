@@ -55,24 +55,28 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
     
     console.log('==== STARTING BEAM ANALYSIS ====');
     
-    // Calculate self-weight from section mass
+    // Calculate self-weight
     let selfWeight = 0;
+    const isSteelMaterial = props.memberProperties.material.toLowerCase().includes('steel');
+    const isTimberMaterial = props.memberProperties.material.toLowerCase().includes('timber') || 
+                           props.memberProperties.material.toLowerCase().includes('lvl');
     
-    // If mass_kg_m is provided, use it directly (preferred method)
-    if (props.memberProperties.mass_kg_m) {
-      // Convert kg/m to kN/m
+    // For steel sections, use the mass_kg_m if available
+    if (isSteelMaterial && props.memberProperties.mass_kg_m) {
+      // Convert kg/m to kN/m for steel sections
       selfWeight = props.memberProperties.mass_kg_m * 9.81 / 1000;
-      console.log(`Using mass_kg_m (${props.memberProperties.mass_kg_m} kg/m) for self-weight: ${selfWeight} kN/m`);
-    } else {
-      // Fallback to approximate calculation using dimensions
+      console.log(`Steel section: Using mass_kg_m (${props.memberProperties.mass_kg_m} kg/m) for self-weight: ${selfWeight} kN/m`);
+    } 
+    // For all other cases (timber, concrete, or steel without mass_kg_m), use dimensional calculation
+    else {
+      // Calculate using dimensions
       const crossSectionArea = props.memberProperties.width * props.memberProperties.depth; // mm²
       
       // Determine material density (kg/m³)
       let materialDensity = 0;
-      if (props.memberProperties.material.toLowerCase().includes('steel')) {
+      if (isSteelMaterial) {
         materialDensity = 7850; // kg/m³ for steel
-      } else if (props.memberProperties.material.toLowerCase().includes('timber') || 
-                props.memberProperties.material.toLowerCase().includes('lvl')) {
+      } else if (isTimberMaterial) {
         materialDensity = 500; // kg/m³ for timber/LVL (approximate)
       } else if (props.memberProperties.material.toLowerCase().includes('concrete')) {
         materialDensity = 2400; // kg/m³ for concrete
@@ -80,10 +84,17 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
         materialDensity = 1000; // Default density
       }
       
-      // Calculate self-weight in kN/m - approximate method
+      // Calculate self-weight in kN/m
       // Convert mm² to m², multiply by density, convert kg to kN
       selfWeight = crossSectionArea * (1/1000000) * materialDensity * 9.81/1000;
-      console.log(`Using approximate dimensions for self-weight: ${selfWeight} kN/m (section mass not provided)`);
+      
+      if (isTimberMaterial) {
+        console.log(`Timber section: Using dimensions ${props.memberProperties.width}mm x ${props.memberProperties.depth}mm for self-weight: ${selfWeight} kN/m`);
+      } else if (isSteelMaterial) {
+        console.log(`Steel section: Using dimensions for self-weight: ${selfWeight} kN/m (mass_kg_m not provided)`);
+      } else {
+        console.log(`Section type ${props.memberProperties.material}: Using dimensions for self-weight: ${selfWeight} kN/m`);
+      }
     }
     
     console.log('Beam properties:', {

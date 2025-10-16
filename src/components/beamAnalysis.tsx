@@ -249,18 +249,18 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
       const L = span * 1000; // m to mm
       const pos = position * 1000; // m to mm
       
+      // For a point load at the center of a simply supported beam:
+      // δmax = PL³/(48EI)
+      //
       // For a point load at any position (a) on a simply supported beam:
-      // Δmax = (P·a·b·(L+b-a))/(6·E·I·L) at a specific point x
+      // δmax = (P·b·a·(L²-b²-a²))/(27·√3·E·I·L) where a+b=L
+      // 
       // where:
       // - a is the distance from left support to the load
       // - b is L-a (distance from load to right support)
-      // - maximum deflection occurs at a specific point (calculated below)
       
       const a = pos; // distance from left support to load in mm
       const b = L - a; // distance from load to right support in mm
-      
-      // Calculate deflection at position of maximum deflection
-      // For a point load, the maximum deflection may not be directly under the load
       
       // Calculate position of maximum deflection
       let xMax = 0;
@@ -276,7 +276,16 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
       const xMaxM = xMax / 1000;
       
       // Calculate maximum deflection
-      const deflection = (P * a * b * (L + b - a)) / (6 * EI * L);
+      let deflection;
+      
+      // Special case for center load (more precise formula)
+      if (Math.abs(position - span/2) < 0.001) {
+        // For center load use: PL³/(48EI)
+        deflection = (P * Math.pow(L, 3)) / (48 * EI);
+      } else {
+        // For off-center loads, use the formula for any position
+        deflection = (P * a * b * (L*L - b*b - a*a)) / (27 * Math.sqrt(3) * EI * L);
+      }
       
       console.log(`Point Load Deflection calculation for load ${load} kN at position ${position}m:`, {
         load: load,
@@ -288,7 +297,7 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
         a: a,
         b: b,
         EI: EI,
-        formula: '(P·a·b·(L+b-a))/(6·E·I·L)',
+        formula: position === span/2 ? 'PL³/(48EI)' : '(P·a·b·(L²-b²-a²))/(27·√3·E·I·L)',
         maxDeflectionAt: xMaxM,
         result: deflection,
         units: 'deflection in mm'

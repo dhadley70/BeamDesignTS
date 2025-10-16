@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { UDLLoad, PointLoad, Moment } from '@/components/loadsInput';
 import ultimateLoadCombinations from '@/data/ultimateLoadCombinations.json';
 import serviceabilityLoadCombinations from '@/data/serviceabilityLoadCombinations.json';
@@ -67,11 +67,14 @@ export const useBeamAnalysis = (props: BeamAnalysisProps): BeamAnalysisResults |
       return null;
     }
     
-    console.log('Performing beam analysis with:', { 
-      span, 
-      members, 
-      memberProperties: memberProperties.section 
-    });
+    // Only show this message when analyzing a new section
+    if (prevResults.current === null) {
+      console.log('Performing beam analysis with:', { 
+        span, 
+        members, 
+        memberProperties: memberProperties.section 
+      });
+    }
 
     // Convert the span to mm for calculations
     const spanMm = span * 1000;
@@ -213,17 +216,16 @@ export const useBeamAnalysis = (props: BeamAnalysisProps): BeamAnalysisResults |
     const E = memberProperties.elasticModulus;  // MPa
     const I = memberProperties.momentOfInertia; // mm⁴
     
-    console.log('Member properties used for deflection calculation:');
-    console.log(` - Section: ${memberProperties.section}`);
-    console.log(` - E = ${E} MPa`);
-    console.log(` - I = ${I} mm⁴ (converted from ${I/1e12} m⁴)`);
-    console.log(` - Span = ${span} m = ${spanMm} mm`);
-    
-    console.log('Member properties used for deflection calculation:');
-    console.log(` - Section: ${memberProperties.section}`);
-    console.log(` - E = ${E} MPa`);
-    console.log(` - I = ${I} mm⁴ (converted from ${I/1e12} m⁴)`);
-    console.log(` - Span = ${span} m = ${spanMm} mm`);
+    // Only log once with detailed info for debugging when needed
+    // Set to false to disable these logs
+    const enableDetailedLogs = true;
+    if (enableDetailedLogs) {
+      console.log('Member properties used for deflection calculation:');
+      console.log(` - Section: ${memberProperties.section}`);
+      console.log(` - E = ${E} MPa`);
+      console.log(` - I = ${I} mm⁴ (converted from ${I/1e12} m⁴)`);
+      console.log(` - Span = ${span} m = ${spanMm} mm`);
+    }
     
     // Process each SLS combination
     slsCombinations.forEach((combination) => {
@@ -245,7 +247,11 @@ export const useBeamAnalysis = (props: BeamAnalysisProps): BeamAnalysisResults |
         liveLoadFactor = J2 * wl;
       }
       
-      console.log(`Processing SLS case: ${name} with deadLoadFactor=${deadLoadFactor}, liveLoadFactor=${liveLoadFactor}`);
+      // Detailed logging for debugging specific SLS cases
+      const enableSLSLogging = false;
+      if (enableSLSLogging) {
+        console.log(`Processing SLS case: ${name} with deadLoadFactor=${deadLoadFactor}, liveLoadFactor=${liveLoadFactor}`);
+      }
       
       // Simplified deflection calculation for each type of load
       // UDL Loads
@@ -373,20 +379,39 @@ export const useBeamAnalysis = (props: BeamAnalysisProps): BeamAnalysisResults |
     };
   };
   
+  // Memoize performAnalysis to prevent recreation on every render
+  const memoizedPerformAnalysis = useCallback(() => {
+    return performAnalysis();
+  }, [
+    props.span, 
+    props.members,
+    props.ws,
+    props.wl,
+    props.J2,
+    // Use JSON.stringify to compare objects without causing infinite updates
+    JSON.stringify(props.udlLoads),
+    JSON.stringify(props.pointLoads),
+    JSON.stringify(props.moments),
+    // Only re-run if critical member properties change
+    props.memberProperties?.section,
+    props.memberProperties?.momentOfInertia,
+    props.memberProperties?.elasticModulus
+  ]);
+
   // Handler for storage changes
-  const handleStorageChange = () => {
+  const handleStorageChange = useCallback(() => {
     console.log('Storage change detected in beam analysis');
     // Trigger analysis
-    const newResults = performAnalysis();
+    const newResults = memoizedPerformAnalysis();
     setResults(newResults);
-  };
+  }, [memoizedPerformAnalysis]);
 
   // Perform analysis when inputs change and setup event listener
   useEffect(() => {
     console.log('Setting up beam analysis with event listener');
     
     // Initial analysis
-    const initialResults = performAnalysis();
+    const initialResults = memoizedPerformAnalysis();
     setResults(initialResults);
     
     // Add event listener for storage changes
@@ -396,7 +421,7 @@ export const useBeamAnalysis = (props: BeamAnalysisProps): BeamAnalysisResults |
     return () => {
       window.removeEventListener('app-storage-change', handleStorageChange);
     };
-  }, [props]);
+  }, [memoizedPerformAnalysis, handleStorageChange]);
   
   return results;
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { PropertyCell } from '@/components/ui/property-cell'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './ui/table'
@@ -7,7 +7,7 @@ import useBeamAnalysis from './beamAnalysis.tsx'
 import type { MemberProperties } from './beamAnalysis.tsx'
 import type { UDLLoad, PointLoad, Moment } from '@/components/loadsInput'
 
-export const DesignAnalysisCard: React.FC = () => {
+export const DesignAnalysisCard = () => {
   // Load data from local storage with direct access to ensure it's always up to date
   const [generalInputsState] = useLocalStorage<any>('generalInputs', {})
   const [udlLoadsState] = useLocalStorage<UDLLoad[]>('beamLoads', [])
@@ -41,13 +41,24 @@ export const DesignAnalysisCard: React.FC = () => {
         const parsedMoments = rawMoments ? JSON.parse(rawMoments) : [];
         const parsedSelectedSection = rawSelectedSection ? JSON.parse(rawSelectedSection) : null;
         
-        setInputs({
-          generalInputs: parsedGeneralInputs,
-          udlLoads: parsedUdlLoads,
-          pointLoads: parsedPointLoads,
-          moments: parsedMoments,
-          selectedSection: parsedSelectedSection
-        });
+        // Check if data has actually changed before updating state
+        const hasChanged = 
+          JSON.stringify(inputs.generalInputs) !== JSON.stringify(parsedGeneralInputs) ||
+          JSON.stringify(inputs.udlLoads) !== JSON.stringify(parsedUdlLoads) ||
+          JSON.stringify(inputs.pointLoads) !== JSON.stringify(parsedPointLoads) ||
+          JSON.stringify(inputs.moments) !== JSON.stringify(parsedMoments) ||
+          JSON.stringify(inputs.selectedSection) !== JSON.stringify(parsedSelectedSection);
+        
+        if (hasChanged) {
+          // Only update state if something has actually changed
+          setInputs({
+            generalInputs: parsedGeneralInputs,
+            udlLoads: parsedUdlLoads,
+            pointLoads: parsedPointLoads,
+            moments: parsedMoments,
+            selectedSection: parsedSelectedSection
+          });
+        }
       } catch (error) {
         console.error('Error reading data from localStorage:', error);
       }
@@ -57,17 +68,45 @@ export const DesignAnalysisCard: React.FC = () => {
     getUpdatedData();
     
     // Set up event listener for storage changes
-    const handleStorageChange = () => {
-      console.log('Storage changed, updating analysis inputs');
-      getUpdatedData();
+    const lastUpdateTimeRef = useRef<number>(0);
+
+    const handleStorageChange = (event: StorageEvent) => {
+      // Only update if it's a key we care about
+      const relevantKeys = ['generalInputs', 'beamLoads', 'beamPointLoads', 'beamMoments', 'selectedSection'];
+      if (event.key && relevantKeys.includes(event.key)) {
+        console.log(`Storage changed for ${event.key}, updating analysis inputs`);
+        getUpdatedData();
+      }
     };
     
     window.addEventListener('storage', handleStorageChange);
     
-    // Custom event listener for our app's local changes
+    // Custom event listener for our app's local changes - use debouncing to avoid rapid updates
+    let debounceTimer: number | null = null;
+    
     const handleAppStorageChange = () => {
-      console.log('App storage changed, updating analysis inputs');
-      getUpdatedData();
+      const now = Date.now();
+      const debounceTime = 100; // ms
+      
+      // Simple time-based throttle using useRef
+      if (now - lastUpdateTimeRef.current > debounceTime) {
+        lastUpdateTimeRef.current = now;
+        console.log('App storage changed, updating analysis inputs');
+        getUpdatedData();
+      } else if (debounceTimer) {
+        // Clear existing timer if it exists
+        window.clearTimeout(debounceTimer);
+        debounceTimer = null;
+      }
+      
+      // Set a new timer for delayed update
+      if (!debounceTimer) {
+        debounceTimer = window.setTimeout(() => {
+          lastUpdateTimeRef.current = Date.now();
+          getUpdatedData();
+          debounceTimer = null;
+        }, debounceTime);
+      }
     };
     
     window.addEventListener('app-storage-change', handleAppStorageChange);
@@ -76,7 +115,14 @@ export const DesignAnalysisCard: React.FC = () => {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('app-storage-change', handleAppStorageChange);
+      
+      // Clear any pending debounce timer
+      if (debounceTimer) {
+        window.clearTimeout(debounceTimer);
+        debounceTimer = null;
+      }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
   // Extract parameters from general inputs
@@ -96,8 +142,14 @@ export const DesignAnalysisCard: React.FC = () => {
   // Convert selected section to member properties for analysis
   useEffect(() => {
     const sectionData = inputs.selectedSection;
+    // Track section by its designation
+    
     if (sectionData) {
-      console.log('Selected section data:', sectionData);
+      // Only log when section changes
+      if (!memberProperties || memberProperties.section !== sectionData.designation) {
+        console.log('Selected section data:', sectionData.designation);
+      }
+      
       const props: MemberProperties = {
         section: sectionData.designation,
         material: sectionData.material || 'Steel',
@@ -107,34 +159,43 @@ export const DesignAnalysisCard: React.FC = () => {
         elasticModulus: sectionData.E || 200000, // Default to 200 GPa for steel if not specified
         J2: sectionData.J2 || 2.0, // Default creep factor if not specified
       }
-      console.log('Created member properties:', props);
-      setMemberProperties(props)
-    } else {
-      // Try to fetch directly from localStorage in case the hook value is not updated
-      try {
-        const rawData = localStorage.getItem('selectedSection');
-        if (rawData) {
-          const sectionData = JSON.parse(rawData);
-          console.log('Fetched section data from localStorage:', sectionData);
-          const props: MemberProperties = {
-            section: sectionData.designation,
-            material: sectionData.material || 'Steel',
-            depth: sectionData.depth_mm || sectionData.depth || 0,
-            width: sectionData.flange_mm || sectionData.width_mm || sectionData.width || 0,
-            momentOfInertia: sectionData.I_m4 ? (sectionData.I_m4 * 1e12) : (sectionData.momentOfInertia || 0), // Convert from m⁴ to mm⁴
-            elasticModulus: sectionData.E || 200000, 
-            J2: sectionData.J2 || 2.0,
-          }
-          console.log('Created member properties from localStorage:', props);
-          setMemberProperties(props);
-          return;
-        }
-      } catch (error) {
-        console.error('Error reading selectedSection from localStorage:', error);
+      
+      // Only update state if something important changed to prevent infinite loops
+      if (!memberProperties || 
+          memberProperties.section !== props.section ||
+          memberProperties.momentOfInertia !== props.momentOfInertia ||
+          memberProperties.elasticModulus !== props.elasticModulus) {
+        setMemberProperties(props);
       }
-      setMemberProperties(null)
+    } else {
+      // Try to fetch directly from localStorage only if we don't already have memberProperties
+      if (!memberProperties) {
+        try {
+          const rawData = localStorage.getItem('selectedSection');
+          if (rawData) {
+            const sectionData = JSON.parse(rawData);
+            const props: MemberProperties = {
+              section: sectionData.designation,
+              material: sectionData.material || 'Steel',
+              depth: sectionData.depth_mm || sectionData.depth || 0,
+              width: sectionData.flange_mm || sectionData.width_mm || sectionData.width || 0,
+              momentOfInertia: sectionData.I_m4 ? (sectionData.I_m4 * 1e12) : (sectionData.momentOfInertia || 0),
+              elasticModulus: sectionData.E || 200000, 
+              J2: sectionData.J2 || 2.0,
+            }
+            setMemberProperties(props);
+            return;
+          }
+        } catch (error) {
+          console.error('Error reading selectedSection from localStorage:', error);
+        }
+      }
+      
+      if (memberProperties !== null) {
+        setMemberProperties(null);
+      }
     }
-  }, [inputs.selectedSection])
+  }, [inputs.selectedSection, memberProperties])
 
   // Perform beam analysis
   const analysisResults = useBeamAnalysis({
@@ -260,4 +321,5 @@ export const DesignAnalysisCard: React.FC = () => {
   )
 }
 
-export default DesignAnalysisCard
+// Export the component wrapped with React.memo for performance optimization
+export default React.memo(DesignAnalysisCard)

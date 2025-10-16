@@ -151,6 +151,11 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
         return load;
       });
       setLoads(updatedLoads);
+      
+      // Dispatch a custom event to notify other components about the change
+      const event = new Event('app-storage-change');
+      window.dispatchEvent(event);
+      
       return;
     }
     
@@ -170,6 +175,11 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
           return load;
         });
         setLoads(updatedLoads);
+        
+        // Dispatch a custom event to notify other components about the change
+        const event = new Event('app-storage-change');
+        window.dispatchEvent(event);
+        
         return;
       }
     } else if (field === 'finish') {
@@ -185,6 +195,10 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     });
     
     setLoads(updatedLoads);
+    
+    // Dispatch a custom event to notify other components about the change
+    const event = new Event('app-storage-change');
+    window.dispatchEvent(event);
   };
   
   // Handler for editing existing point loads
@@ -204,6 +218,11 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
         return load;
       });
       setPointLoads(updatedLoads);
+      
+      // Dispatch a custom event to notify other components about the change
+      const event = new Event('app-storage-change');
+      window.dispatchEvent(event);
+      
       return;
     }
     
@@ -223,6 +242,10 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     });
     
     setPointLoads(updatedLoads);
+    
+    // Dispatch a custom event to notify other components about the change
+    const event = new Event('app-storage-change');
+    window.dispatchEvent(event);
   };
   
   // Handler for editing existing moments
@@ -242,6 +265,11 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
         return moment;
       });
       setMoments(updatedMoments);
+      
+      // Dispatch a custom event to notify other components about the change
+      const event = new Event('app-storage-change');
+      window.dispatchEvent(event);
+      
       return;
     }
     
@@ -261,6 +289,10 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
     });
     
     setMoments(updatedMoments);
+    
+    // Dispatch a custom event to notify other components about the change
+    const event = new Event('app-storage-change');
+    window.dispatchEvent(event);
   };
   
   // Handler for toggling includeSelfWeight for Full UDL

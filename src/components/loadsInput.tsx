@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { InputWithUnit } from '@/components/ui/InputWithUnit'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './ui/table'
@@ -49,6 +49,69 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
   const [pointLoads, setPointLoads] = useLocalStorage<PointLoad[]>('beamPointLoads', []);
   // State for moments
   const [moments, setMoments] = useLocalStorage<Moment[]>('beamMoments', []);
+  
+  // Create a function to reset all UDL loads
+  const resetAllUDLLoads = () => {
+    // Clear all UDL loads
+    setLoads([]);
+    console.log('Cleared all UDL loads');
+    
+    // Force localStorage update
+    localStorage.setItem('beamLoads', JSON.stringify([]));
+    
+    // Dispatch event for other components
+    const event = new Event('app-storage-change');
+    window.dispatchEvent(event);
+  };
+  
+  // Validate loads on component mount
+  useEffect(() => {
+    // Check if there are loads in localStorage that aren't shown in the UI
+    try {
+      const storedLoads = localStorage.getItem('beamLoads');
+      if (storedLoads) {
+        const parsedLoads = JSON.parse(storedLoads) as UDLLoad[];
+        
+        // If localStorage has loads but our component doesn't show them, update the UI
+        if (parsedLoads.length > 0 && loads.length === 0) {
+          console.log('Found hidden UDL loads in localStorage, updating UI:', parsedLoads);
+          
+          // Check if the loads have the expected properties
+          const validLoads = parsedLoads.filter(load => (
+            load && 
+            typeof load === 'object' && 
+            'id' in load && 
+            'start' in load && 
+            'finish' in load && 
+            'udlG' in load && 
+            'udlQ' in load
+          ));
+          
+          if (validLoads.length === parsedLoads.length) {
+            setLoads(parsedLoads);
+            
+            // Show warning to user
+            setTimeout(() => {
+              if (confirm('Hidden UDL loads were found and have been added to the UI. Would you like to keep these loads or clear them all?\n\nClick OK to keep them, or Cancel to clear all loads.')) {
+                // User chose to keep loads - do nothing
+              } else {
+                // User chose to clear loads
+                resetAllUDLLoads();
+              }
+            }, 1000);
+          } else {
+            // Invalid loads detected, reset everything
+            console.warn('Invalid UDL loads detected in localStorage, resetting');
+            resetAllUDLLoads();
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error validating localStorage UDL loads:', error);
+      // On any error, reset to be safe
+      resetAllUDLLoads();
+    }
+  }, []);
   // State for FULL UDL
   const [fullUDL, setFullUDL] = useLocalStorage<FullUDL>('beamFullUDL', {
     tributaryWidth: 0,
@@ -344,7 +407,9 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
       <CardContent>
         <div className="space-y-4">
           {/* FULL UDL Section */}
-          <h3 className="text-lg font-medium mb-2">Full UDL</h3>
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-lg font-medium">Full UDL</h3>
+          </div>
           <Table className="mb-4">
             <TableHeader>
               <TableRow>
@@ -417,7 +482,9 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
           <div className="border-t border-[color:var(--border)] mt-4 mb-6"></div>
           
           {/* UDL Table */}
-          <h3 className="text-lg font-medium mb-2">Partial UDL</h3>
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-lg font-medium">Partial UDL</h3>
+          </div>
           <Table>
             <TableHeader>
               <TableRow>

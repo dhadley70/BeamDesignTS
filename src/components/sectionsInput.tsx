@@ -23,9 +23,9 @@ import type { GeneralInputs } from "@/components/generalInputs"
 // Define the types of sections available
 const sectionTypes = [
   // Steel sections
-  { value: "UB", label: "UB - Universal Beam", group: "Steel" },
-  { value: "UC", label: "UC - Universal Column", group: "Steel" },
-  { value: "PFC", label: "PFC - Parallel Flange Channel", group: "Steel" },
+  { value: "UB", label: "UB & WB", group: "Steel" },
+  { value: "UC", label: "UC & WC", group: "Steel" },
+  { value: "PFC", label: "PFC", group: "Steel" },
 
   // Timber sections - Laminated Veneer Lumber
   { value: "LVL13", label: "LVL 13", group: "Timber-LVL" },
@@ -302,7 +302,7 @@ export function SectionsInputCard() {
   
   // Section summary text
   const sectionSummary = memberDesignation !== 'None' 
-    ? `| ${memberCount}x ${sectionTypeLabel} | ${memberDesignation} |`
+    ? `| ${memberCount}x ${memberDesignation} ${sectionTypeLabel} |`
     : `| No section selected |`;
 
   return (
@@ -339,7 +339,10 @@ export function SectionsInputCard() {
                 <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
                   <SelectValue placeholder="Select section type" />
                 </SelectTrigger>
-                <SelectContent className="bg-[var(--card)] border-[color:var(--border)] text-[var(--text)]">
+                <SelectContent 
+                  className="bg-[var(--card)] border-[color:var(--border)] text-[var(--text)] max-h-[320px] overflow-y-auto"
+                  position="popper"
+                >
                   <SelectGroup>
                     <SelectLabel>Steel</SelectLabel>
                     {sectionTypes
@@ -435,7 +438,10 @@ export function SectionsInputCard() {
                 <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
                   <SelectValue placeholder="Select member" />
                 </SelectTrigger>
-                <SelectContent className="bg-[var(--card)] border-[color:var(--border)] text-[var(--text)]">
+                <SelectContent 
+                  className="bg-[var(--card)] border-[color:var(--border)] text-[var(--text)] max-h-[320px] overflow-y-auto"
+                  position="popper"
+                >
                   {availableMembers.map((member) => (
                     <SelectItem
                       key={member.designation}

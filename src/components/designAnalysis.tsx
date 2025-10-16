@@ -291,7 +291,7 @@ export const DesignAnalysisCard = () => {
   const getResultsSummary = () => {
     try {
       if (!analysisResults || !inputs.selectedSection) {
-        return "(No results available)";
+        return "| No results available |";
       }
       
       // Calculate moment utilization ratio
@@ -303,10 +303,10 @@ export const DesignAnalysisCard = () => {
       const initialDeflectionOk = analysisResults.maxInitialDeflection <= span * 1000 / 240;
       const deflectionStatus = initialDeflectionOk ? "Defl: OK" : "Defl: FAIL";
       
-      return `(${momentUtilization}, ${deflectionStatus})`;
+      return `| ${momentUtilization} | ${deflectionStatus} |`;
     } catch (error) {
       console.error("Error generating results summary:", error);
-      return "(Error in results)";
+      return "| Error in results |";
     }
   };
 
@@ -315,7 +315,7 @@ export const DesignAnalysisCard = () => {
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
           <CardTitle className="text-xl">Design</CardTitle>
-          <span className="text-sm opacity-75 font-medium">{getResultsSummary()}</span>
+          <span className="text-base opacity-80 font-medium">{getResultsSummary()}</span>
         </div>
         <Button 
           variant="ghost" 

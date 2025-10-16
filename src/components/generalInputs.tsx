@@ -92,7 +92,7 @@ export const GeneralInputsCard: React.FC<{
 
   // Generate a summary for the card when collapsed
   const getSummary = () => {
-    return `(Span: ${localGeneralInputs.span}m, Usage: ${localGeneralInputs.usage})`;
+    return `| ${localGeneralInputs.span}m | ${localGeneralInputs.usage} |`;
   };
 
   return (
@@ -100,7 +100,7 @@ export const GeneralInputsCard: React.FC<{
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-xl">
           General Inputs
-          {collapsed && <span className="text-sm font-normal ml-2 text-muted-foreground">{getSummary()}</span>}
+          {collapsed && <span className="text-base ml-2 opacity-80">{getSummary()}</span>}
         </CardTitle>
         <Button 
           variant="ghost" 

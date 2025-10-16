@@ -302,15 +302,15 @@ export function SectionsInputCard() {
   
   // Section summary text
   const sectionSummary = memberDesignation !== 'None' 
-    ? `(${memberCount}x ${sectionTypeLabel}, ${memberDesignation})`
-    : `(No section selected)`;
+    ? `| ${memberCount}x ${sectionTypeLabel} | ${memberDesignation} |`
+    : `| No section selected |`;
 
   return (
     <Card className="mb-6 lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
           <CardTitle className="text-xl">Sections</CardTitle>
-          <span className="text-sm opacity-75 font-medium">{sectionSummary}</span>
+          <span className="text-base opacity-80 font-medium">{sectionSummary}</span>
         </div>
         <Button 
           variant="ghost" 

@@ -63,15 +63,12 @@ export function ProjectInfoCard({
   
   // Generate summary for collapsed view
   const getProjectSummary = () => {
-    const projectNumberText = projectInfo.projectNumber ? `#${projectInfo.projectNumber}` : '';
+    const projectNumberText = projectInfo.projectNumber || '';
     const projectNameText = projectInfo.projectName || '';
+    const itemNameText = projectInfo.name || '';
     
-    if (projectNumberText && projectNameText) {
-      return `(${projectNumberText}: ${projectNameText})`;
-    } else if (projectNumberText) {
-      return `(${projectNumberText})`;
-    } else if (projectNameText) {
-      return `(${projectNameText})`;
+    if (projectNumberText || projectNameText || itemNameText) {
+      return `| ${projectNumberText} | ${projectNameText} | ${itemNameText} |`;
     }
     return '(No project details)';
   };
@@ -81,7 +78,7 @@ export function ProjectInfoCard({
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-xl">
           Project Information
-          {collapsed && <span className="text-sm font-normal ml-2 text-muted-foreground">{getProjectSummary()}</span>}
+          <span className="text-base ml-2 opacity-80">{getProjectSummary()}</span>
         </CardTitle>
         <Button 
           variant="ghost" 

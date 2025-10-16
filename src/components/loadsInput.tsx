@@ -448,14 +448,14 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
 
   // Create a summary string for the loads
   const selfWeightStatus = fullUDL.includeSelfWeight ? "Included" : "Not included";
-  const loadSummary = `(Self-weight: ${selfWeightStatus}, Partial UDLs: ${loads.length}, Point Loads: ${pointLoads.length}, Moments: ${moments.length})`;
+  const loadSummary = `| Self-weight: ${selfWeightStatus} | UDLs: ${loads.length} | Points: ${pointLoads.length} | Moments: ${moments.length} |`;
 
   return (
     <Card className="mb-6 lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
           <CardTitle className="text-xl">Loads Input</CardTitle>
-          <span className="text-sm opacity-75 font-medium">{loadSummary}</span>
+          <span className="text-base opacity-80 font-medium">{loadSummary}</span>
         </div>
         <Button 
           variant="ghost" 

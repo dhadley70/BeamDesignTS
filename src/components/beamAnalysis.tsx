@@ -618,8 +618,10 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
       }
     }
     
-    // Calculate short-term deflection (dead + short-term live)
-    let shortTermDeflection = initialDeflection;
+    // Calculate short-term deflection (short-term live only: wsQ)
+    let shortTermDeflection = 0;
+    
+    console.log(`Short-term deflection calculation using ws = ${props.ws} (short-term factor)`);
     
     // Add UDL live loads (with short-term factor)
     props.udlLoads.forEach(udl => {
@@ -658,33 +660,50 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
     
     // Calculate long-term deflection (dead with creep + long-term live)
     // For dead load, apply creep factor J2
-    let longTermDeflection = initialDeflection * props.J2;
-    console.log(`Long-term dead load deflection with creep: ${initialDeflection} mm * ${props.J2} = ${longTermDeflection} mm`);
+    // Determine proper J2 value based on material
+    let effectiveJ2 = props.J2;
     
-    // Add UDL live loads (with long-term factor)
+    // Steel has no creep, so J2 should be 1.0 for steel
+    if (props.memberProperties.material.toLowerCase().includes('steel') && effectiveJ2 !== 1.0) {
+      console.log(`Material is steel, overriding J2 from ${effectiveJ2} to 1.0 (steel has no creep)`);
+      effectiveJ2 = 1.0;
+    } else {
+      // For timber, use the specified J2 from the catalog or the default
+      console.log(`Using J2 = ${effectiveJ2} for ${props.memberProperties.material}`);
+    }
+    
+    let longTermDeflection = initialDeflection * effectiveJ2;
+    console.log(`Long-term dead load deflection with creep: ${initialDeflection} mm * ${effectiveJ2} = ${longTermDeflection} mm`);
+    
+    console.log(`Long-term deflection calculation using J2 = ${effectiveJ2} (creep factor) and wl = ${props.wl} (long-term factor)`);
+    
+    // Add UDL live loads (with long-term factor and creep factor)
     props.udlLoads.forEach(udl => {
       if (udl.udlQ > 0) {
-        const deflection = calculateUDLDeflection(udl.udlQ * props.wl, props.span, udl.start, udl.finish, EI);
+        const liveLoadWithFactors = udl.udlQ * props.wl * effectiveJ2; // Apply both wl and J2
+        const deflection = calculateUDLDeflection(liveLoadWithFactors, props.span, udl.start, udl.finish, EI);
         longTermDeflection += deflection;
-        console.log(`Added UDL live load deflection from ${udl.start}-${udl.finish}m (long-term): ${deflection} mm, running total: ${longTermDeflection} mm`);
+        console.log(`Added UDL live load deflection from ${udl.start}-${udl.finish}m (long-term): ${udl.udlQ} kN/m × ${props.wl} × ${effectiveJ2} = ${liveLoadWithFactors} kN/m, deflection: ${deflection} mm, running total: ${longTermDeflection} mm`);
       }
     });
     
-    // Add point live loads (with long-term factor)
+    // Add point live loads (with long-term factor and creep factor)
     props.pointLoads.forEach(point => {
       if (point.pointQ > 0) {
-        const deflection = calculatePointLoadDeflection(point.pointQ * props.wl, props.span, EI, point.location);
+        const liveLoadWithFactors = point.pointQ * props.wl * effectiveJ2; // Apply both wl and J2
+        const deflection = calculatePointLoadDeflection(liveLoadWithFactors, props.span, EI, point.location);
         longTermDeflection += deflection;
-        console.log(`Added point live load deflection at ${point.location}m (long-term): ${deflection} mm, running total: ${longTermDeflection} mm`);
+        console.log(`Added point live load deflection at ${point.location}m (long-term): ${point.pointQ} kN × ${props.wl} × ${effectiveJ2} = ${liveLoadWithFactors} kN, deflection: ${deflection} mm, running total: ${longTermDeflection} mm`);
       }
     });
     
-    // Add moment live loads (with long-term factor)
+    // Add moment live loads (with long-term factor and creep factor)
     props.moments.forEach(moment => {
       if (moment.momentQ > 0) {
-        const deflection = calculateMomentDeflection(moment.momentQ * props.wl, props.span, EI, moment.location);
+        const liveLoadWithFactors = moment.momentQ * props.wl * effectiveJ2; // Apply both wl and J2
+        const deflection = calculateMomentDeflection(liveLoadWithFactors, props.span, EI, moment.location);
         longTermDeflection += deflection;
-        console.log(`Added moment live load deflection at ${moment.location}m (long-term): ${deflection} mm, running total: ${longTermDeflection} mm`);
+        console.log(`Added moment live load deflection at ${moment.location}m (long-term): ${moment.momentQ} kNm × ${props.wl} × ${effectiveJ2} = ${liveLoadWithFactors} kNm, deflection: ${deflection} mm, running total: ${longTermDeflection} mm`);
       }
     });
     

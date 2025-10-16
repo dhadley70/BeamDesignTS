@@ -28,6 +28,7 @@ export interface MemberProperties {
   elasticModulus: number;          // Young's modulus in MPa
   J2: number;                      // Creep factor (for long-term deflection)
   mass_kg_m?: number;              // Mass per unit length in kg/m
+  density_kg_m3?: number;          // Density in kg/m³ (primarily for timber sections)
 }
 
 export interface BeamAnalysisProps {
@@ -77,7 +78,8 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
       if (isSteelMaterial) {
         materialDensity = 7850; // kg/m³ for steel
       } else if (isTimberMaterial) {
-        materialDensity = 500; // kg/m³ for timber/LVL (approximate)
+        // Use the timber density from the memberProperties if available, otherwise use appropriate default
+        materialDensity = props.memberProperties.density_kg_m3 || 500; // Use catalog density or fallback to 500 kg/m³
       } else if (props.memberProperties.material.toLowerCase().includes('concrete')) {
         materialDensity = 2400; // kg/m³ for concrete
       } else {
@@ -89,7 +91,8 @@ function useBeamAnalysis(props: BeamAnalysisProps): BeamAnalysisResults | null {
       selfWeight = crossSectionArea * (1/1000000) * materialDensity * 9.81/1000;
       
       if (isTimberMaterial) {
-        console.log(`Timber section: Using dimensions ${props.memberProperties.width}mm x ${props.memberProperties.depth}mm for self-weight: ${selfWeight} kN/m`);
+        const densityUsed = props.memberProperties.density_kg_m3 || 500;
+        console.log(`Timber section: Using dimensions ${props.memberProperties.width}mm x ${props.memberProperties.depth}mm with density ${densityUsed} kg/m³ for self-weight: ${selfWeight} kN/m`);
       } else if (isSteelMaterial) {
         console.log(`Steel section: Using dimensions for self-weight: ${selfWeight} kN/m (mass_kg_m not provided)`);
       } else {

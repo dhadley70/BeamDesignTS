@@ -737,7 +737,7 @@
       "grade": "F11",
       "E_GPa": 10.5,
       "G_GPa": null,
-      "density_kg_m3": 60.0,
+      "density_kg_m3": 600.0,
       "fb_MPa": 35.0,
       "fs_MPa": 2.8,
       "phi": 0.6,

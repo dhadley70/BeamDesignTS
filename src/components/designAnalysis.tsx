@@ -213,7 +213,8 @@ export const DesignAnalysisCard = () => {
         momentOfInertia: sectionData.I_m4 ? (sectionData.I_m4 * 1e12) : (sectionData.momentOfInertia || 0),
         elasticModulus: sectionData.E || 200000, // Default to 200 GPa for steel if not specified
         J2: sectionData.J2 || 2.0, // Default creep factor if not specified,
-        mass_kg_m: sectionData.mass_kg_m || 0 // Include mass per unit length for accurate self-weight
+        mass_kg_m: sectionData.mass_kg_m || 0, // Include mass per unit length for accurate self-weight
+        density_kg_m3: sectionData.density_kg_m3 || 0 // Use specific timber density from catalog
       }
       
       // Set the member properties without checking current state

@@ -169,10 +169,7 @@ export const DesignAnalysisCard = () => {
     // Track section by its designation
     
     if (sectionData) {
-      // Only log when section changes
-      if (!memberProperties || memberProperties.section !== sectionData.designation) {
-        console.log('Selected section data:', sectionData.designation);
-      }
+      console.log('Processing section data:', sectionData.designation);
       
       const props: MemberProperties = {
         section: sectionData.designation,
@@ -184,42 +181,34 @@ export const DesignAnalysisCard = () => {
         J2: sectionData.J2 || 2.0, // Default creep factor if not specified
       }
       
-      // Only update state if something important changed to prevent infinite loops
-      if (!memberProperties || 
-          memberProperties.section !== props.section ||
-          memberProperties.momentOfInertia !== props.momentOfInertia ||
-          memberProperties.elasticModulus !== props.elasticModulus) {
-        setMemberProperties(props);
-      }
+      // Set the member properties without checking current state
+      setMemberProperties(props);
     } else {
-      // Try to fetch directly from localStorage only if we don't already have memberProperties
-      if (!memberProperties) {
-        try {
-          const rawData = localStorage.getItem('selectedSection');
-          if (rawData) {
-            const sectionData = JSON.parse(rawData);
-            const props: MemberProperties = {
-              section: sectionData.designation,
-              material: sectionData.material || 'Steel',
-              depth: sectionData.depth_mm || sectionData.depth || 0,
-              width: sectionData.flange_mm || sectionData.width_mm || sectionData.width || 0,
-              momentOfInertia: sectionData.I_m4 ? (sectionData.I_m4 * 1e12) : (sectionData.momentOfInertia || 0),
-              elasticModulus: sectionData.E || 200000, 
-              J2: sectionData.J2 || 2.0,
-            }
-            setMemberProperties(props);
-            return;
+      // Try to fetch directly from localStorage
+      try {
+        const rawData = localStorage.getItem('selectedSection');
+        if (rawData) {
+          const sectionData = JSON.parse(rawData);
+          const props: MemberProperties = {
+            section: sectionData.designation,
+            material: sectionData.material || 'Steel',
+            depth: sectionData.depth_mm || sectionData.depth || 0,
+            width: sectionData.flange_mm || sectionData.width_mm || sectionData.width || 0,
+            momentOfInertia: sectionData.I_m4 ? (sectionData.I_m4 * 1e12) : (sectionData.momentOfInertia || 0),
+            elasticModulus: sectionData.E || 200000, 
+            J2: sectionData.J2 || 2.0,
           }
-        } catch (error) {
-          console.error('Error reading selectedSection from localStorage:', error);
+          setMemberProperties(props);
+          return;
         }
+      } catch (error) {
+        console.error('Error reading selectedSection from localStorage:', error);
       }
       
-      if (memberProperties !== null) {
-        setMemberProperties(null);
-      }
+      // If we get here, there's no valid section data
+      setMemberProperties(null);
     }
-  }, [inputs.selectedSection, memberProperties])
+  }, [inputs.selectedSection]) // Removed memberProperties from dependencies
 
   // Perform beam analysis
   const analysisResults = useBeamAnalysis({

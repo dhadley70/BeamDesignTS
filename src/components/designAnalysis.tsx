@@ -30,6 +30,10 @@ export const DesignAnalysisCard = () => {
     fullUDL: fullUDLState,
     selectedSection: selectedSectionState
   });
+
+  // Create refs at component top level
+  const lastUpdateTimeRef = useRef<number>(0);
+  const debounceTimerRef = useRef<number | null>(null);
   
   // Force refresh state from localStorage on render and when data changes
   useEffect(() => {
@@ -84,7 +88,6 @@ export const DesignAnalysisCard = () => {
     getUpdatedData();
     
     // Set up event listener for storage changes
-    const lastUpdateTimeRef = useRef<number>(0);
 
     const handleStorageChange = (event: StorageEvent) => {
       // Only update if it's a key we care about
@@ -98,7 +101,6 @@ export const DesignAnalysisCard = () => {
     window.addEventListener('storage', handleStorageChange);
     
     // Custom event listener for our app's local changes - use debouncing to avoid rapid updates
-    let debounceTimer: number | null = null;
     
     const handleAppStorageChange = () => {
       const now = Date.now();
@@ -109,18 +111,18 @@ export const DesignAnalysisCard = () => {
         lastUpdateTimeRef.current = now;
         console.log('App storage changed, updating analysis inputs');
         getUpdatedData();
-      } else if (debounceTimer) {
+      } else if (debounceTimerRef.current) {
         // Clear existing timer if it exists
-        window.clearTimeout(debounceTimer);
-        debounceTimer = null;
+        window.clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
       }
       
       // Set a new timer for delayed update
-      if (!debounceTimer) {
-        debounceTimer = window.setTimeout(() => {
+      if (!debounceTimerRef.current) {
+        debounceTimerRef.current = window.setTimeout(() => {
           lastUpdateTimeRef.current = Date.now();
           getUpdatedData();
-          debounceTimer = null;
+          debounceTimerRef.current = null;
         }, debounceTime);
       }
     };
@@ -133,9 +135,9 @@ export const DesignAnalysisCard = () => {
       window.removeEventListener('app-storage-change', handleAppStorageChange);
       
       // Clear any pending debounce timer
-      if (debounceTimer) {
-        window.clearTimeout(debounceTimer);
-        debounceTimer = null;
+      if (debounceTimerRef.current) {
+        window.clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps

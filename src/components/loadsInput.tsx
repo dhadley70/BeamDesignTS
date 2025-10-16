@@ -448,7 +448,8 @@ export const LoadsInputCard: React.FC<LoadsInputProps> = ({ loads, setLoads, spa
 
   // Create a summary string for the loads
   const selfWeightStatus = fullUDL.includeSelfWeight ? "Included" : "Not included";
-  const loadSummary = `| Self-weight: ${selfWeightStatus} | UDLs: ${loads.length} | Points: ${pointLoads.length} | Moments: ${moments.length} |`;
+  // Add 1 to the UDLs count to include the full UDL
+  const loadSummary = `| Self-weight: ${selfWeightStatus} | UDLs: ${loads.length + 1} | Points: ${pointLoads.length} | Moments: ${moments.length} |`;
 
   return (
     <Card className="mb-6 lg:col-span-2 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">

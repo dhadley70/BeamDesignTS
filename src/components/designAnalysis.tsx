@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { PropertyCell } from '@/components/ui/property-cell'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './ui/table'
 import useLocalStorage from '@/hooks/useLocalStorage'
-import useBeamAnalysis from './beamAnalysis'
+import useBeamAnalysis from './beamAnalysis.tsx'
 import type { MemberProperties } from './beamAnalysis'
 import type { UDLLoad, PointLoad, Moment } from '@/components/loadsInput'
 

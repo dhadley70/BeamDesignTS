@@ -225,7 +225,7 @@ export default function App() {
 
 
         <div className="mt-8 space-y-4 text-xs opacity-60">
-          © {new Date().getFullYear()} Cantilever · Vite · Tailwind v4 · shadcn/ui
+          © {new Date().getFullYear()} Radial · Vite · Tailwind v4 · shadcn/ui
         </div>
       </main>
 

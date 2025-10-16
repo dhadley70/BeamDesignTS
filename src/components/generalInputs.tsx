@@ -43,6 +43,24 @@ export const GeneralInputsCard: React.FC<{
     getDefaultGeneralInputs()
   )
   
+  // Validate general inputs on first load to ensure ws and wl match the usage
+  React.useEffect(() => {
+    // Check if ws and wl match the current usage
+    const usageKey = localGeneralInputs.usage;
+    const usageDetails = usageData[usageKey];
+    
+    // If ws or wl don't match the usage values, update them
+    if (localGeneralInputs.ws !== usageDetails.ws || 
+        localGeneralInputs.wl !== usageDetails.wl) {
+      console.log('Fixing ws/wl values to match usage:', usageKey);
+      setLocalGeneralInputs(prev => ({
+        ...prev,
+        ws: usageDetails.ws,
+        wl: usageDetails.wl
+      }));
+    }
+  }, []);  // Empty dependency array means this only runs once on mount
+  
   // Update parent state when local state changes
   React.useEffect(() => {
     console.log('localGeneralInputs changed:', localGeneralInputs);

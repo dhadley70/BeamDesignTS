@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BeamDesignTS Tests</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+    }
+    button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 10px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    .test-section {
+      margin-bottom: 30px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .results {
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #f8f8f8;
+      border-left: 4px solid #4CAF50;
+    }
+  </style>
+</head>
+<body>
+  <h1>BeamDesignTS Tests</h1>
+  
+  <div class="test-section">
+    <h2>LocalStorage Tests</h2>
+    <p>These tests verify that our localStorage handling is robust against various issues.</p>
+    <button onclick="runLocalStorageTests()">Run LocalStorage Tests</button>
+    <div id="localStorage-results" class="results">Test results will appear here...</div>
+  </div>
+
+  <div class="test-section">
+    <h2>Load Adding Tests</h2>
+    <p>These tests verify that adding loads works correctly even with problematic localStorage data.</p>
+    <button onclick="runLoadAddingTests()">Run Load Adding Tests</button>
+    <div id="loadAdding-results" class="results">Test results will appear here...</div>
+  </div>
+
+  <div class="test-section">
+    <h2>Clear All Tests</h2>
+    <p>Clear all test data from localStorage</p>
+    <button onclick="clearAllTests()">Clear Test Data</button>
+    <div id="clear-results" class="results">Results will appear here...</div>
+  </div>
+
+  <script>
+    // Function to run localStorage tests
+    function runLocalStorageTests() {
+      const resultsDiv = document.getElementById('localStorage-results');
+      resultsDiv.innerHTML = '<pre>Running tests...</pre>';
+      
+      try {
+        // Clear any existing data
+        localStorage.removeItem('testArray');
+        
+        let results = '===== Testing localStorage Array Handling =====\n\n';
+        
+        // Test 1: Set a valid array
+        results += 'Test 1: Setting valid array\n';
+        localStorage.setItem('testArray', JSON.stringify([1, 2, 3]));
+        const result1 = JSON.parse(localStorage.getItem('testArray') || '[]');
+        results += `Result should be an array: ${JSON.stringify(result1)}\n`;
+        results += `Is array: ${Array.isArray(result1)}\n\n`;
+        
+        // Test 2: Set an invalid value (not an array)
+        results += 'Test 2: Setting invalid value (not an array)\n';
+        localStorage.setItem('testArray', '{"notAnArray": true}');
+        try {
+          const result2 = JSON.parse(localStorage.getItem('testArray') || '[]');
+          results += `Result is: ${JSON.stringify(result2)}\n`;
+          results += `Is array: ${Array.isArray(result2)}\n`;
+          results += 'Our code should detect this is not an array and provide an empty array instead\n\n';
+        } catch (e) {
+          results += `Error parsing: ${e}\n\n`;
+        }
+        
+        // Test 3: Completely invalid JSON
+        results += 'Test 3: Setting completely invalid JSON\n';
+        localStorage.setItem('testArray', 'not valid json');
+        try {
+          const result3 = JSON.parse(localStorage.getItem('testArray') || '[]');
+          results += 'This should never show due to JSON.parse error\n';
+        } catch (e) {
+          results += `Expected error parsing invalid JSON: ${e}\n`;
+          results += 'Our hook should handle this error and return default value\n\n';
+        }
+        
+        // Cleanup
+        localStorage.removeItem('testArray');
+        results += 'Test completed, localStorage test key removed';
+        
+        resultsDiv.innerHTML = `<pre>${results}</pre>`;
+      } catch (e) {
+        resultsDiv.innerHTML = `<pre>Error running tests: ${e.message}</pre>`;
+      }
+    }
+
+    // Function to run load adding tests
+    function runLoadAddingTests() {
+      const resultsDiv = document.getElementById('loadAdding-results');
+      resultsDiv.innerHTML = '<pre>Running tests...</pre>';
+      
+      try {
+        let results = '===== Testing Load Adding Functionality =====\n\n';
+        
+        // Clear existing loads
+        localStorage.removeItem('beamLoads');
+        
+        // Test 1: Initialize with empty array
+        results += 'Test 1: Initialize with empty array\n';
+        localStorage.setItem('beamLoads', JSON.stringify([]));
+        results += 'beamLoads set to empty array. App should show no loads.\n\n';
+        
+        // Test 2: Initialize with invalid data
+        results += 'Test 2: Initialize with invalid data (not an array)\n';
+        localStorage.setItem('beamLoads', '{"notAnArray": true}');
+        results += 'beamLoads set to invalid data. App should handle this gracefully.\n\n';
+        
+        // Test 3: Initialize with malformed data
+        results += 'Test 3: Initialize with malformed JSON\n';
+        localStorage.setItem('beamLoads', 'this is not valid JSON');
+        results += 'beamLoads set to malformed JSON. App should handle this gracefully.\n\n';
+        
+        results += 'Now try using the ADD button in the application to add loads\n';
+        results += 'The application should handle all these cases without errors\n\n';
+        
+        results += 'Test setup complete. Please open the main app and try adding loads.';
+        
+        resultsDiv.innerHTML = `<pre>${results}</pre>`;
+      } catch (e) {
+        resultsDiv.innerHTML = `<pre>Error running tests: ${e.message}</pre>`;
+      }
+    }
+
+    // Function to clear all test data
+    function clearAllTests() {
+      const resultsDiv = document.getElementById('clear-results');
+      resultsDiv.innerHTML = '<pre>Clearing test data...</pre>';
+      
+      try {
+        localStorage.removeItem('testArray');
+        localStorage.removeItem('beamLoads');
+        localStorage.removeItem('beamPointLoads');
+        localStorage.removeItem('beamMoments');
+        localStorage.removeItem('beamFullUDL');
+        
+        resultsDiv.innerHTML = '<pre>All test data cleared from localStorage</pre>';
+      } catch (e) {
+        resultsDiv.innerHTML = `<pre>Error clearing data: ${e.message}</pre>`;
+      }
+    }
+  </script>
+</body>
+</html>

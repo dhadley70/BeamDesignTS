@@ -1,53 +1,87 @@
-# React + TypeScript + Vite
+# BeamDesignTS
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A comprehensive beam design application built with React, TypeScript, and Vite. This tool allows structural engineers to perform beam design calculations with various materials including steel, timber, and concrete.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Support for multiple materials (steel, timber, concrete)
+- Accurate self-weight calculations based on material density
+- Load combination management
+- Deflection limit checks
+- Save and load design data
+- Responsive user interface
 
-## React Compiler
+## Recent Fixes
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Fixed timber density values for accurate self-weight calculations
+- Improved array handling in localStorage to prevent "prevLoads is not iterable" errors
+- Enhanced error recovery for network connection issues
+- Added comprehensive test suite
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Installation
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/BeamDesignTS.git
+cd BeamDesignTS
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Install dependencies
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Development
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
+```bash
+# Start development server
+npm run dev
+```
+
+### Building
+
+```bash
+# Build for production
+npm run build
+```
+
+### Testing
+
+```bash
+# Run test suite
+npm run test
+```
+
+See [TESTING.md](TESTING.md) for detailed testing information.
+
+## Project Structure
+
+- `src/components/`: React components
+- `src/data/`: Data files (material catalogs, load combinations)
+- `src/hooks/`: Custom React hooks
+- `src/lib/`: Utility functions
+- `src/tests/`: Test files
+
+## Technology Stack
+
+- React (v19)
+- TypeScript
+- Vite
+- Tailwind CSS
+- Radix UI components
+
+## Contributing
+
+Before pushing changes to master, ensure:
+
+1. All TypeScript compilation passes (`npx tsc --noEmit`)
+2. ESLint checks pass (`npm run lint`)
+3. All tests pass (see [TESTING.md](TESTING.md))
+4. Your changes are well-documented
+
+## License
+
+MIT
 import reactDom from 'eslint-plugin-react-dom'
 
 export default defineConfig([

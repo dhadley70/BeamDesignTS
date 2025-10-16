@@ -290,7 +290,7 @@ export function SectionsInputCard() {
                 value={selectedSectionType}
                 onValueChange={handleSectionTypeChange}
               >
-                <SelectTrigger className="w-full bg-[var(--card)] border-[color:var(--border)]">
+                <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
                   <SelectValue placeholder="Select section type" />
                 </SelectTrigger>
                 <SelectContent className="bg-[var(--card)] border-[color:var(--border)] text-[var(--text)]">
@@ -386,7 +386,7 @@ export function SectionsInputCard() {
                 onValueChange={handleMemberChange}
                 disabled={availableMembers.length === 0}
               >
-                <SelectTrigger className="w-full bg-[var(--card)] border-[color:var(--border)]">
+                <SelectTrigger className="w-full bg-[var(--input)] border-[color:var(--border)]">
                   <SelectValue placeholder="Select member" />
                 </SelectTrigger>
                 <SelectContent className="bg-[var(--card)] border-[color:var(--border)] text-[var(--text)]">

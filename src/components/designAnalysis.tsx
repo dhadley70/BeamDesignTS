@@ -337,7 +337,7 @@ export const DesignAnalysisCard = () => {
     <Card className="mt-6 bg-[var(--card)] text-[var(--text)] border-[color:var(--border)]">
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
-          <CardTitle className="text-xl">Design</CardTitle>
+          <CardTitle className="text-xl">Analysis</CardTitle>
           <span className="text-base opacity-80 font-medium">{getResultsSummary()}</span>
         </div>
         <Button 
